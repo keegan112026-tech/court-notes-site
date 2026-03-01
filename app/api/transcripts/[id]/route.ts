@@ -11,7 +11,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
             return NextResponse.json({ ok: false, error: 'Session not found' }, { status: 404 });
         }
         const [transcripts, comments] = await Promise.all([
-            fetchTranscripts(session.id),
+            fetchTranscripts(session.sessionId),
             // Fetch all comments for this session's transcripts
             Promise.resolve([]), // Will fetch per-line on client
         ]);

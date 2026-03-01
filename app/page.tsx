@@ -391,13 +391,30 @@ export default function Home() {
             <Banner title="計畫緣起" subtitle="About This Project" bg="bg-[#F5E6D3]" text="text-[#7A5C3D]" />
             <section id="about" className="max-w-7xl mx-auto px-6 py-8">
                 <FadeIn>
-                    <div className="bg-white rounded-2xl p-6 md:p-8 border border-[#E8E0D4] shadow-sm">
-                        <p className="text-[20px] text-[#5A5347] font-medium leading-[2]">
-                            剴剴案已成為助人專業領域集體議題，對民眾及助人領域均產生各項影響。為了因應衝擊，目前有許多令人尊敬的助人者挺身而出，也引發了各種對話。這些對話並非對立，而是對事件與問題有不同見解的人們，商議朝不同的方向前進。不論是替社工報不平、還是與民眾對話、向上抗爭等等，均是為了這個專業群體而努力。未有對錯，均為夥伴。
-                        </p>
-                        <p className="text-[20px] text-[#5A5347] font-medium leading-[2] mt-4">
-                            對於我而言——「審判已然開始，審判也早已結束。」我想做的是從這個傷害中最務實、最深刻的去探究問題，探討如何修正、優化目前的工作困境，最終共構解方，避免再有人遭逢此難。
-                        </p>
+                    <div className="bg-white rounded-2xl p-6 md:p-10 border border-[#E8E0D4] shadow-sm">
+                        <div className="space-y-6 text-[18px] md:text-[20px] text-[#5A5347] font-medium leading-[2.1]">
+                            <p>{cms.Mission_Para_1 || '剴剴案已成為助人專業領域集體議題，對民眾及助人領域均產生各項影響。'}</p>
+                            <p>{cms.Mission_Para_2 || '為了因應衝擊，目前有許多令人尊敬的助人者挺身而出，也引發了各種對話。這些對話並非對立，而是對事件與問題有不同見解的人們，商議朝不同的方向前進，倡議、發聲、行動，不論是替社工報不平、還是與民眾對話、向上抗爭等等，均是為了這個專業群體而努力。未有對錯，均為夥伴。'}</p>
+                            <p>{cms.Mission_Para_3 || '我從114年12月11日起開始觀庭，並且加入民眾群組、社工群組、網絡社群，開始學習、觀察、諮詢與訪問，對各種對話與疑惑進行探討、歸因，尋求屬於我自己對事件的理解和問題認定。終於在115年2月26日訂下我對問題的理解，以及我想要去推動的解方。'}</p>
+
+                            <blockquote className="border-l-[6px] border-[#C67B5C] pl-6 md:pl-8 py-4 my-10 bg-[#FDE8D8]/30 rounded-r-3xl" style={serif}>
+                                <p className="text-[24px] md:text-[30px] font-black text-[#5A5347] mb-4 leading-relaxed tracking-wide">
+                                    {cms.Mission_Quote || '對於我而言——「審判已然開始，審判也早已結束。」'}
+                                </p>
+                                <p className="text-[18px] font-bold text-[#7A5C3D]">
+                                    {cms.Mission_Quote_Sub || '社會大眾與助人專業群體均是悲痛的、憤怒的、受傷的、挫敗的。不論判決結果如何，此間已然滿目瘡痍。'}
+                                </p>
+                            </blockquote>
+
+                            <p>{cms.Mission_Para_4 || '因此我的出發點，並不想放在糾結對錯與真相上，因為不管對民眾而言還是助人群體而言，傷害與崩壞早已是事實。我想做的是從這個傷害中最務實、最深刻的去探究問題，探討如何修正、優化目前的工作困境，最終共構解方，避免再有人遭逢此難。剴剴、民眾、社工群體，不再遭逢此難。'}</p>
+                            <p>{cms.Mission_Para_5 || '更白話來說，我接受傷害早已造成並成定局，討論對錯於事無補。我要做的是從斷垣殘壁中回收價值、吸取經驗，建立新的共識與準則，在哀鴻遍野中開始重建、復原，讓我們的同伴們、後輩們，不再如此。但若要這樣，就要去挖掘創傷，暫時放掉胸中悲痛與委屈，最真實的看待問題。'}</p>
+
+                            <div className="bg-[#E3EED3]/50 p-8 md:p-10 rounded-[2rem] text-[#3D5220] font-black border border-[#C5D9A8] text-center shadow-sm my-10 text-[20px] md:text-[22px] leading-relaxed tracking-wider">
+                                {cms.Mission_Highlight || '這是用饅頭（互助、團結）沾著已然流出的血淚，轉化為成長滋糧的殘酷歷程。'}
+                            </div>
+
+                            <p>{cms.Mission_Para_6 || '要做到這點，那就必須要先學習先備知識，再從現有資料及開庭歷程中，不經他人包裝詮釋，自己閱覽事情的始末，做出完整、獨立、多元觀點的判讀，才能走到下一步：尋求解方。'}</p>
+                        </div>
                     </div>
                 </FadeIn>
             </section>

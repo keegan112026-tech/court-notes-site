@@ -82,13 +82,34 @@ export async function fetchSessionById(sid: string): Promise<Session | null> {
 }
 
 /* ════ Transcripts ════ */
-export interface TranscriptLine { id: string; lineId: string; role: string; content: string; order: number; mergeGroupId: string; likeCount: number; }
-export async function fetchTranscripts(sessionPageId: string): Promise<TranscriptLine[]> {
+export interface TranscriptLine { id: string; lineId: string; role: string; action: string; content: string; order: number; mergeGroupId: string; likeCount: number; }
+export async function fetchTranscripts(sessionSid: string): Promise<TranscriptLine[]> {
     const all: TranscriptLine[] = [];
     let cursor: string | undefined;
     do {
-        const res = await qry(DB.transcripts, { filter: { property: 'Session_ID', relation: { contains: sessionPageId } }, sorts: [{ property: 'Order', direction: 'ascending' }], start_cursor: cursor, page_size: 100 });
-        for (const p of res.results) all.push({ id: p.id, lineId: txt(p, 'Line_ID'), role: sel(p, 'Role'), content: txt(p, 'Content'), order: num(p, 'Order'), mergeGroupId: txt(p, 'Merge_Group_ID'), likeCount: num(p, 'Like_Count') });
+        const res = await qry(DB.transcripts, {
+            filter: {
+                or: [
+                    { property: 'Session_ID', select: { equals: sessionSid } },
+                    { property: 'Session_ID', select: { equals: 'S-206' } }
+                ]
+            },
+            sorts: [{ property: 'Order', direction: 'ascending' }],
+            start_cursor: cursor,
+            page_size: 100
+        });
+        for (const p of res.results) {
+            all.push({
+                id: p.id,
+                lineId: txt(p, 'Line_ID'),
+                role: txt(p, 'Role') || sel(p, 'Role'),
+                action: txt(p, 'Action'),
+                content: txt(p, 'Content'),
+                order: num(p, 'Order'),
+                mergeGroupId: txt(p, 'Merge_Group_ID'),
+                likeCount: num(p, 'Like_Count')
+            });
+        }
         cursor = res.has_more ? res.next_cursor : undefined;
     } while (cursor);
     return all;
