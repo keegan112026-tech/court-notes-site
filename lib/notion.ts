@@ -18,7 +18,7 @@ const DB = {
 };
 
 async function qry(dbId: string, body: any = {}): Promise<any> {
-    const r = await fetch(`${API}/databases/${dbId}/query`, { method: 'POST', headers: hdrs, body: JSON.stringify(body) });
+    const r = await fetch(`${API}/databases/${dbId}/query`, { method: 'POST', headers: hdrs, body: JSON.stringify(body), next: { revalidate: 0 } });
     if (!r.ok) throw new Error(`Notion query ${r.status}`);
     return r.json();
 }
@@ -155,16 +155,36 @@ export async function incrementLike(pageId: string, targetDb: 'transcripts' | 'i
     return cur + 1;
 }
 
-/* ════ Trending ════ */
+/* ════ Trending & Stats ════ */
 export async function fetchTrendingNotes(limit = 5) {
     const res = await qry(DB.transcripts, { sorts: [{ property: 'Like_Count', direction: 'descending' }], page_size: limit });
-    return res.results.map((p: any) => ({ id: p.id, lineId: txt(p, 'Line_ID'), content: txt(p, 'Content'), role: sel(p, 'Role'), likeCount: num(p, 'Like_Count') }));
+    return res.results.map((p: any) => {
+        const sessionPageId = p.properties.Session_ID?.relation?.[0]?.id || '';
+        return { id: p.id, lineId: txt(p, 'Line_ID'), content: txt(p, 'Content'), role: sel(p, 'Role'), likeCount: num(p, 'Like_Count'), sessionPageId };
+    });
 }
-export async function fetchTrendingComments(limit = 5) {
+export async function fetchTrendingComments(limit = 3) {
     const res = await qry(DB.interactions, { filter: { property: 'Status', select: { equals: '核准' } }, sorts: [{ property: 'Likes', direction: 'descending' }], page_size: limit });
-    return res.results.map((p: any) => ({ id: p.id, author: txt(p, 'Author'), content: txt(p, 'Content'), likes: num(p, 'Likes') }));
+    return res.results.map((p: any) => ({ id: p.id, author: txt(p, 'Author'), content: txt(p, 'Content'), likes: num(p, 'Likes'), role: '專家留言' }));
 }
-export async function fetchTrendingArticles(limit = 5) {
+export async function fetchTrendingArticles(limit = 3) {
     const res = await qry(DB.forum, { filter: { property: 'Status', select: { equals: '已發布' } }, sorts: [{ property: 'Likes', direction: 'descending' }], page_size: limit });
     return res.results.map((p: any) => ({ id: p.id, title: txt(p, 'Title'), author: txt(p, 'Author'), category: sel(p, 'Category'), likes: num(p, 'Likes') }));
+}
+export async function fetchSiteStats() {
+    try {
+        const [sessionsRes, commentsRes, restoredSes] = await Promise.all([
+            qry(DB.sessions, { page_size: 100 }),
+            qry(DB.interactions, { filter: { property: 'Status', select: { equals: '核准' } }, page_size: 100 }),
+            qry(DB.sessions, { filter: { property: 'Status', select: { equals: '已發布' } }, page_size: 100 })
+        ]);
+
+        return {
+            totalSessions: sessionsRes.results?.length || 0,
+            restoredSessions: restoredSes.results?.length || 0,
+            approvedComments: commentsRes.results?.length || 0
+        };
+    } catch (e) {
+        return { totalSessions: 0, restoredSessions: 0, approvedComments: 0 };
+    }
 }

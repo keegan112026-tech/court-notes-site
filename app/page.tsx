@@ -11,14 +11,46 @@ import { FadeIn, Counter, TypeWriter, Banner, WarmGradientBg } from '@/component
 
 const serif = { fontFamily: "'Noto Serif TC', serif" };
 
-export default function HomePage() {
+type SiteStats = { totalSessions: number; restoredSessions: number; approvedComments: number };
+
+export default function Home() {
     const [scrolled, setScrolled] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
     const { scrollYProgress } = useScroll();
 
+    const [cms, setCms] = useState<Record<string, string>>({});
+    const [sessions, setSessions] = useState<any[]>([]);
+    const [stats, setStats] = useState<SiteStats>({ totalSessions: 0, restoredSessions: 0, approvedComments: 0 });
+    const [hotNotes, setHotNotes] = useState<any[]>([]);
+    const [hotComments, setHotComments] = useState<any[]>([]);
+    const [hotArticles, setHotArticles] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
     useEffect(() => {
         const h = () => setScrolled(window.scrollY > 30);
         window.addEventListener('scroll', h); return () => window.removeEventListener('scroll', h);
+    }, []);
+
+    useEffect(() => {
+        Promise.all([
+            fetch('/api/cms').then(r => r.json()),
+            fetch('/api/sessions').then(r => r.json()),
+            fetch('/api/stats').then(r => r.json()),
+            fetch('/api/trending?type=notes').then(r => r.json()),
+            fetch('/api/trending?type=comments').then(r => r.json()),
+            fetch('/api/trending?type=articles').then(r => r.json()),
+        ]).then(([cmsData, sessionsData, statsData, notesData, commentsData, articlesData]) => {
+            setCms(cmsData);
+            setSessions(sessionsData);
+            setStats(statsData);
+            setHotNotes(notesData);
+            setHotComments(commentsData);
+            setHotArticles(articlesData);
+            setLoading(false);
+        }).catch(err => {
+            console.error('Error fetching data:', err);
+            setLoading(false);
+        });
     }, []);
 
     const navItems = [
@@ -31,21 +63,25 @@ export default function HomePage() {
     ];
 
     /* ── Demo data (will be replaced by Notion CMS when entries exist) ── */
-    const hotNotes = [
-        { rank: 1, title: '檢察官論告——為何聚焦「未依規定訪視」？', likes: 387, views: 2841, session: '第六場次' },
-        { rank: 2, title: '辯護律師陳述——制度性缺失不應由個人承擔', likes: 342, views: 2103, session: '第六場次' },
-        { rank: 3, title: '合議庭詰問社工督導——知情不報的灰色地帶', likes: 298, views: 1854, session: '第五場次' },
-    ];
-    const hotComments = [
-        { author: '匿名社工A', content: '身為兒保社工五年，這段論告讓我心涼——我們每天做的就是在資源不足下做「最不壞的選擇」...', likes: 156, role: '兒少保護' },
-        { author: '匿名社工B', content: '制度面的問題不解決，換誰來做都會出事。辯護律師講到點上了。', likes: 134, role: '安置機構' },
-        { author: '匿名心理師', content: '從心理師角度看，這段詰問反映了跨專業溝通的斷裂——社工與心理師之間的語言不同...', likes: 112, role: '諮商心理' },
-    ];
-    const hotArticles = [
-        { title: '從剴剴案看台灣兒少保護體系的結構性困境', author: '跨域共構小組', likes: 231, tag: '專題分析' },
-        { title: '社工訪視頻率與風險評估——實務與法規的落差', author: '匿名資深社工', likes: 189, tag: '實務論述' },
-        { title: '收出養媒合制度：北中南差異有多大？', author: '匿名社工C', likes: 167, tag: '經驗分享' },
-    ];
+    // const hotNotes = [
+    //     { rank: 1, title: '檢察官論告——為何聚焦「未依規定訪視」？', likes: 387, views: 2841, session: '第六場次' },
+    //     { rank: 2, title: '辯護律師陳述——制度性缺失不應由個人承擔', likes: 342, views: 2103, session: '第六場次' },
+    //     { rank: 3, title: '合議庭詰問社工督導——知情不報的灰色地帶', likes: 298, views: 1854, session: '第五場次' },
+    // ];
+    // const hotComments = [
+    //     { author: '匿名社工A', content: '身為兒保社工五年，這段論告讓我心涼——我們每天做的就是在資源不足下做「最不壞的選擇」...', likes: 156, role: '兒少保護' },
+    //     { author: '匿名社工B', content: '制度面的問題不解決，換誰來做都會出事。辯護律師講到點上了。', likes: 134, role: '安置機構' },
+    //     { author: '匿名心理師', content: '從心理師角度看，這段詰問反映了跨專業溝通的斷裂——社工與心理師之間的語言不同...', likes: 112, role: '諮商心理' },
+    // ];
+    // const hotArticles = [
+    //     { title: '從剴剴案看台灣兒少保護體系的結構性困境', author: '跨域共構小組', likes: 231, tag: '專題分析' },
+    //     { title: '社工訪視頻率與風險評估——實務與法規的落差', author: '匿名資深社工', likes: 189, tag: '實務論述' },
+    //     { title: '收出養媒合制度：北中南差異有多大？', author: '匿名社工C', likes: 167, tag: '經驗分享' },
+    // ];
+
+    const heroTitle = cms['Hero_Title'] || '法庭實況還原\n專業共構筆記計畫';
+    const heroDesc = cms['Hero_Desc_1'] || '這不只是一份開庭紀錄，而是一場化血淚為滋養的集體療癒與重建。';
+    const typewriterTexts = (cms['Hero_TypeWriter_Texts'] || '唯有直視真實，才能共構解方|讓同伴與後輩不再孤單|用專業視角為社工實務留下註腳|不造神・重文字・匿名化・去權威').split('|');
 
     return (
         <div className="min-h-screen overflow-x-hidden" style={{ backgroundColor: '#FBF7F0', color: '#2D2A26', fontSize: '18px' }}>
@@ -151,9 +187,13 @@ export default function HomePage() {
                     </FadeIn>
                     <FadeIn delay={0.4}>
                         <div className="mt-6 flex gap-10 text-center">
-                            {[{ n: 10, l: '場開庭紀錄' }, { n: 6, l: '場已還原' }, { n: 1247, l: '則專業留言', s: '+' }].map((s, i) => (
+                            {[
+                                { n: stats.totalSessions, l: '場開庭紀錄' },
+                                { n: stats.restoredSessions, l: '場已還原' },
+                                { n: stats.approvedComments, l: '則專業留言', s: '+' }
+                            ].map((s, i) => (
                                 <div key={i}>
-                                    <p className="text-[36px] font-black text-[#7B8C4E]" style={serif}><Counter target={s.n} suffix={s.s} /></p>
+                                    <p className="text-[36px] font-black text-[#7B8C4E]" style={serif}><Counter target={s.n} suffix={'s' in s ? s.s as string : undefined} /></p>
                                     <p className="text-[14px] font-bold text-[#A09888]">{s.l}</p>
                                 </div>
                             ))}
@@ -254,19 +294,22 @@ export default function HomePage() {
                                     className="w-9 h-9 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center text-white shadow-md"><BookOpen size={18} /></motion.div>
                                 <h4 className="text-[20px] font-black text-white" style={serif}>熱門觀庭筆記</h4>
                             </div>
-                            {hotNotes.map((n, i) => (
-                                <motion.div key={i} whileHover={{ x: 4, backgroundColor: 'rgba(255,255,255,0.05)' }}
-                                    className="flex items-start gap-3 py-3 border-b border-white/5 last:border-0 cursor-pointer group rounded-lg px-2 transition-colors">
-                                    <span className={`text-[28px] font-black w-8 shrink-0 ${i === 0 ? 'text-orange-400' : i === 1 ? 'text-gray-400' : 'text-amber-700'}`} style={serif}>{n.rank}</span>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-[16px] font-bold text-white/90 truncate group-hover:text-orange-300 transition-colors">{n.title}</p>
-                                        <div className="flex gap-3 mt-1 text-[14px]">
-                                            <span className="text-gray-500 font-bold">{n.session}</span>
-                                            <span className="text-red-400 flex items-center gap-1"><Heart size={13} fill="currentColor" />{n.likes}</span>
-                                            <span className="text-gray-500 flex items-center gap-1"><Eye size={13} />{n.views}</span>
+                            {hotNotes.length === 0 ? (
+                                <p className="text-white/50 text-center py-6 text-[14px] font-bold">目前尚無熱門觀庭筆記</p>
+                            ) : hotNotes.map((n, i) => (
+                                <Link key={i} href={n.sessionPageId ? `/sessions/${n.sessionPageId}#${n.lineId}` : '/sessions'} className="block">
+                                    <motion.div whileHover={{ x: 4, backgroundColor: 'rgba(255,255,255,0.05)' }}
+                                        className="flex items-start gap-3 py-3 border-b border-white/5 last:border-0 cursor-pointer group rounded-lg px-2 transition-colors">
+                                        <span className={`text-[28px] font-black w-8 shrink-0 ${i === 0 ? 'text-orange-400' : i === 1 ? 'text-gray-400' : 'text-amber-700'}`} style={serif}>{i + 1}</span>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-[16px] font-bold text-white/90 truncate group-hover:text-orange-300 transition-colors">{n.content.substring(0, 30)}...</p>
+                                            <div className="flex gap-3 mt-1 text-[14px]">
+                                                <span className="text-gray-500 font-bold">{n.sessionName}</span>
+                                                <span className="text-red-400 flex items-center gap-1"><Heart size={13} fill="currentColor" />{n.likeCount}</span>
+                                            </div>
                                         </div>
-                                    </div>
-                                </motion.div>
+                                    </motion.div>
+                                </Link>
                             ))}
                         </motion.div>
                     </FadeIn>
@@ -276,7 +319,9 @@ export default function HomePage() {
                                 <div className="w-9 h-9 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg flex items-center justify-center text-white shadow-md"><MessageSquare size={18} /></div>
                                 <h4 className="text-[20px] font-black text-white" style={serif}>熱門專業留言</h4>
                             </div>
-                            {hotComments.map((c, i) => (
+                            {hotComments.length === 0 ? (
+                                <p className="text-white/50 text-center py-6 text-[14px] font-bold">目前尚無專業留言</p>
+                            ) : hotComments.map((c, i) => (
                                 <motion.div key={i} whileHover={{ scale: 1.02 }}
                                     className="p-3 rounded-xl bg-white/[0.04] border border-white/5 mb-3 last:mb-0 hover:border-purple-500/20 transition-all">
                                     <div className="flex items-center gap-2 mb-2">
@@ -296,16 +341,20 @@ export default function HomePage() {
                                 <div className="w-9 h-9 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center text-white shadow-md"><FileText size={18} /></div>
                                 <h4 className="text-[20px] font-black text-white" style={serif}>熱門投稿文章</h4>
                             </div>
-                            {hotArticles.map((a, i) => (
-                                <motion.div key={i} whileHover={{ scale: 1.02 }}
-                                    className="p-3 rounded-xl bg-white/[0.04] border border-white/5 mb-3 last:mb-0 hover:border-emerald-500/20 transition-all cursor-pointer">
-                                    <span className="text-[12px] font-black text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">{a.tag}</span>
-                                    <p className="text-[16px] font-bold text-white/90 mt-2 hover:text-emerald-300 transition-colors">{a.title}</p>
-                                    <div className="flex justify-between mt-2 text-[14px]">
-                                        <span className="text-gray-500 font-bold">{a.author}</span>
-                                        <span className="text-red-400 flex items-center gap-1"><Heart size={13} fill="currentColor" />{a.likes}</span>
-                                    </div>
-                                </motion.div>
+                            {hotArticles.length === 0 ? (
+                                <p className="text-white/50 text-center py-6 text-[14px] font-bold">目前尚無投稿文章</p>
+                            ) : hotArticles.map((a, i) => (
+                                <Link key={i} href={`/forum`} className="block">
+                                    <motion.div whileHover={{ scale: 1.02 }}
+                                        className="p-3 rounded-xl bg-white/[0.04] border border-white/5 mb-3 last:mb-0 hover:border-emerald-500/20 transition-all cursor-pointer">
+                                        <span className="text-[12px] font-black text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">{a.category}</span>
+                                        <p className="text-[16px] font-bold text-white/90 mt-2 hover:text-emerald-300 transition-colors">{a.title}</p>
+                                        <div className="flex justify-between mt-2 text-[14px]">
+                                            <span className="text-gray-500 font-bold">{a.author}</span>
+                                            <span className="text-red-400 flex items-center gap-1"><Heart size={13} fill="currentColor" />{a.likes}</span>
+                                        </div>
+                                    </motion.div>
+                                </Link>
                             ))}
                         </motion.div>
                     </FadeIn>
