@@ -258,6 +258,7 @@ export async function fetchTrendingComments(limit = 3) {
         content: txt(p, 'Content'),
         likes: num(p, 'Likes'),
         role: '段落留言',
+        targetLineId: txt(p, 'Target_Line_ID'),
         targetSessionId: p.properties.Target_Session?.relation?.[0]?.id ?? ''
     }));
 }

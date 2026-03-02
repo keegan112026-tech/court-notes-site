@@ -324,22 +324,25 @@ export default function Home() {
                                 <p className="text-white/50 text-center py-6 text-[14px] font-bold">目前尚無專業留言</p>
                             ) : hotComments.map((c, i) => {
                                 const s = sessions.find(sess => sess.id === c.targetSessionId);
+                                const commentHref = s ? `/sessions/${s.id}${c.targetLineId ? `#${c.targetLineId}` : ''}` : '/sessions';
                                 return (
-                                    <motion.div key={i} whileHover={{ scale: 1.02 }}
-                                        className="p-3 rounded-xl bg-white/[0.04] border border-white/5 mb-3 last:mb-0 hover:border-purple-500/20 transition-all">
-                                        <div className="flex flex-wrap items-center gap-2 mb-2">
-                                            <div className="w-7 h-7 bg-gradient-to-br from-violet-400 to-purple-500 rounded-lg flex items-center justify-center text-white text-[12px] font-black">{c.author.slice(-1)}</div>
-                                            <span className="text-[14px] font-bold text-white/70">{c.author}</span>
-                                            <span className="text-[12px] font-bold text-purple-300 bg-purple-500/15 px-2 py-0.5 rounded">{c.role}</span>
-                                            {s && (
-                                                <Link href={`/sessions`} className="text-[12px] text-blue-300 bg-blue-500/15 px-2 py-0.5 rounded hover:underline cursor-pointer flex flex-wrap items-center gap-1">
-                                                    <BookOpen size={10} /> {s.sessionId}
-                                                </Link>
-                                            )}
-                                        </div>
-                                        <p className="text-[14px] text-gray-400 leading-relaxed line-clamp-2">{c.content}</p>
-                                        <p className="text-red-400 text-[14px] font-bold flex items-center gap-1 mt-2"><Heart size={13} fill="currentColor" />{c.likes}</p>
-                                    </motion.div>
+                                    <Link key={i} href={commentHref} className="block mb-3 last:mb-0">
+                                        <motion.div whileHover={{ scale: 1.02 }}
+                                            className="p-3 rounded-xl bg-white/[0.04] border border-white/5 hover:border-purple-500/20 transition-all cursor-pointer">
+                                            <div className="flex flex-wrap items-center gap-2 mb-2">
+                                                <div className="w-7 h-7 bg-gradient-to-br from-violet-400 to-purple-500 rounded-lg flex items-center justify-center text-white text-[12px] font-black">{c.author.slice(-1)}</div>
+                                                <span className="text-[14px] font-bold text-white/70">{c.author}</span>
+                                                <span className="text-[12px] font-bold text-purple-300 bg-purple-500/15 px-2 py-0.5 rounded">{c.role}</span>
+                                                {s && (
+                                                    <span className="text-[12px] text-blue-300 bg-blue-500/15 px-2 py-0.5 rounded flex flex-wrap items-center gap-1">
+                                                        <BookOpen size={10} /> {s.sessionId}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <p className="text-[14px] text-gray-400 leading-relaxed line-clamp-2">{c.content}</p>
+                                            <p className="text-red-400 text-[14px] font-bold flex items-center gap-1 mt-2"><Heart size={13} fill="currentColor" />{c.likes}</p>
+                                        </motion.div>
+                                    </Link>
                                 )
                             })}
                         </motion.div>
@@ -355,9 +358,9 @@ export default function Home() {
                             ) : hotArticles.map((a, i) => {
                                 const s = sessions.find(sess => sess.id === a.targetSessionId);
                                 return (
-                                    <Link key={i} href={`/forum`} className="block">
+                                    <Link key={i} href={`/forum#${a.id}`} className="block mb-3 last:mb-0">
                                         <motion.div whileHover={{ scale: 1.02 }}
-                                            className="p-3 rounded-xl bg-white/[0.04] border border-white/5 mb-3 last:mb-0 hover:border-emerald-500/20 transition-all cursor-pointer">
+                                            className="p-3 rounded-xl bg-white/[0.04] border border-white/5 hover:border-emerald-500/20 transition-all cursor-pointer">
                                             <div className="flex flex-wrap items-center gap-2 mb-2">
                                                 <span className="text-[12px] font-black text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">{a.category}</span>
                                                 {a.targetTopic && (
