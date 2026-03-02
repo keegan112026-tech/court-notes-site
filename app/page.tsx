@@ -40,8 +40,8 @@ export default function Home() {
             fetch('/api/trending?type=comments').then(r => r.json()),
             fetch('/api/trending?type=articles').then(r => r.json()),
         ]).then(([cmsData, sessionsData, statsData, notesData, commentsData, articlesData]) => {
-            setCms(cmsData);
-            setSessions(sessionsData);
+            setCms(cmsData.data || cmsData);
+            setSessions(sessionsData.data || sessionsData || []);
             setStats(statsData);
             setHotNotes(notesData);
             setHotComments(commentsData);
