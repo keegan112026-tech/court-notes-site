@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
         if (!rl.allowed) {
             return NextResponse.json({ ok: false, error: '操作太頻繁，請稍後再試', retryAfter: rl.retryAfter }, { status: 429 });
         }
-        const { author, title, content, category } = await req.json();
+        const { author, title, content, category, topic, targetSessionSid } = await req.json();
         if (!title?.trim() || !content?.trim()) {
             return NextResponse.json({ ok: false, error: '標題與內容為必填' }, { status: 400 });
         }
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
         }
         const validCategories = ['經驗分享', '專業討論', '資料補充', '提問', '糾錯回報'];
         const cat = validCategories.includes(category) ? category : '經驗分享';
-        await createForumPost(author, title.trim(), content.trim(), cat);
+        await createForumPost(author, title.trim(), content.trim(), cat, topic, targetSessionSid);
         return NextResponse.json({ ok: true, message: '投稿已送出，待審核後顯示' });
     } catch (e: any) {
         return NextResponse.json({ ok: false, error: e.message }, { status: 500 });

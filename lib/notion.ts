@@ -24,7 +24,10 @@ async function qry(dbId: string, body: any = {}): Promise<any> {
 }
 async function mkPage(body: any): Promise<any> {
     const r = await fetch(`${API}/pages`, { method: 'POST', headers: hdrs, body: JSON.stringify(body) });
-    if (!r.ok) throw new Error(`Notion create ${r.status}`);
+    if (!r.ok) {
+        const err = await r.json().catch(() => ({}));
+        throw new Error(`Notion create ${r.status}: ${JSON.stringify(err)}`);
+    }
     return r.json();
 }
 async function getPage(id: string): Promise<any> {
@@ -116,42 +119,96 @@ export async function fetchTranscripts(sessionSid: string): Promise<TranscriptLi
 }
 
 /* ════ Comments ════ */
-export interface Comment { id: string; targetLineId: string; author: string; content: string; likes: number; status: string; createdAt: string; }
-export async function fetchComments(transcriptPageId: string): Promise<Comment[]> {
-    const res = await qry(DB.interactions, { filter: { and: [{ property: 'Target_Line_ID', relation: { contains: transcriptPageId } }, { property: 'Status', select: { equals: '核准' } }] }, sorts: [{ property: 'Likes', direction: 'descending' }] });
-    return res.results.map((p: any) => ({ id: p.id, targetLineId: p.properties.Target_Line_ID?.relation?.[0]?.id ?? '', author: txt(p, 'Author'), content: txt(p, 'Content'), likes: num(p, 'Likes'), status: sel(p, 'Status'), createdAt: p.created_time }));
-}
-export async function createComment(targetLineId: string, author: string, content: string) {
-    return mkPage({
-        parent: { database_id: DB.interactions }, properties: {
-            Comment_ID: { title: [{ text: { content: `c-${Date.now()}` } }] },
-            Target_Line_ID: { relation: [{ id: targetLineId }] },
-            Author: { rich_text: [{ text: { content: author || '匿名' } }] },
-            Content: { rich_text: [{ text: { content } }] },
-            Likes: { number: 0 },
-            Status: { select: { name: '待審核' } },
-        }
+export interface Comment { id: string; targetLineId: string; author: string; content: string; likes: number; status: string; createdAt: string; type: string; targetTopic?: string; }
+export async function fetchComments(targetLineId: string): Promise<Comment[]> {
+    const res = await qry(DB.interactions, {
+        filter: {
+            and: [
+                { property: 'Target_Line_ID', rich_text: { equals: targetLineId } },
+                { property: 'Status', select: { equals: '核准' } }
+            ]
+        },
+        sorts: [{ property: 'Likes', direction: 'descending' }]
     });
+    return res.results.map((p: any) => ({
+        id: p.id,
+        targetLineId: txt(p, 'Target_Line_ID'),
+        author: txt(p, 'Author'),
+        content: txt(p, 'Content'),
+        likes: num(p, 'Likes'),
+        status: sel(p, 'Status'),
+        type: sel(p, 'Type'),
+        targetTopic: sel(p, 'Target_Topic'),
+        createdAt: p.created_time
+    }));
+}
+export async function createComment(targetLineId: string, author: string, content: string, sessionId: string, topic?: string) {
+    const props: any = {
+        Comment_ID: { title: [{ text: { content: `c-${Date.now()}` } }] },
+        Target_Line_ID: { rich_text: [{ text: { content: targetLineId } }] },
+        Author: { rich_text: [{ text: { content: author || '匿名夥伴' } }] },
+        Content: { rich_text: [{ text: { content } }] },
+        Likes: { number: 0 },
+        Status: { select: { name: '待審核' } },
+        Type: { select: { name: '段落留言' } }
+    };
+    if (topic) props.Target_Topic = { select: { name: topic } };
+    if (sessionId) {
+        const session = await fetchSessionById(sessionId);
+        if (session && session.id) {
+            props.Target_Session = { relation: [{ id: session.id }] };
+        }
+    }
+    return mkPage({ parent: { database_id: DB.interactions }, properties: props });
 }
 
 /* ════ Forum ════ */
-export interface ForumPost { id: string; postId: string; author: string; title: string; content: string; category: string; parentPostId: string; likes: number; status: string; createdAt: string; }
+export interface ForumPost { id: string; postId: string; author: string; title: string; content: string; category: string; targetTopic: string; targetSessionId: string; likes: number; status: string; createdAt: string; }
 export async function fetchForumPosts(): Promise<ForumPost[]> {
-    const res = await qry(DB.forum, { filter: { property: 'Status', select: { equals: '已發布' } }, sorts: [{ timestamp: 'created_time', direction: 'descending' }] });
-    return res.results.map((p: any) => ({ id: p.id, postId: txt(p, 'Post_ID'), author: txt(p, 'Author'), title: txt(p, 'Title'), content: txt(p, 'Content'), category: sel(p, 'Category'), parentPostId: txt(p, 'Parent_Post_ID'), likes: num(p, 'Likes'), status: sel(p, 'Status'), createdAt: p.created_time }));
-}
-export async function createForumPost(author: string, title: string, content: string, category: string) {
-    return mkPage({
-        parent: { database_id: DB.forum }, properties: {
-            Post_ID: { title: [{ text: { content: `f-${Date.now()}` } }] },
-            Author: { rich_text: [{ text: { content: author || '匿名' } }] },
-            Title: { rich_text: [{ text: { content: title } }] },
-            Content: { rich_text: [{ text: { content } }] },
-            Category: { select: { name: category } },
-            Likes: { number: 0 },
-            Status: { select: { name: '待審核' } },
-        }
+    const res = await qry(DB.interactions, {
+        filter: {
+            and: [
+                { property: 'Type', select: { equals: '論壇文章' } },
+                { property: 'Status', select: { equals: '核准' } }
+            ]
+        },
+        sorts: [{ timestamp: 'created_time', direction: 'descending' }]
     });
+    return res.results.map((p: any) => ({
+        id: p.id,
+        postId: txt(p, 'Comment_ID'),
+        author: txt(p, 'Author'),
+        title: txt(p, 'Title'),
+        content: txt(p, 'Content'),
+        category: sel(p, 'Category'),
+        targetTopic: sel(p, 'Target_Topic'),
+        // we can return relation id or we don't need it right now
+        targetSessionId: p.properties.Target_Session?.relation?.[0]?.id ?? '',
+        likes: num(p, 'Likes'),
+        status: sel(p, 'Status'),
+        createdAt: p.created_time
+    }));
+}
+export async function createForumPost(author: string, title: string, content: string, category: string, topic?: string, targetSessionSid?: string) {
+    const props: any = {
+        Comment_ID: { title: [{ text: { content: `f-${Date.now()}` } }] },
+        Type: { select: { name: '論壇文章' } },
+        Author: { rich_text: [{ text: { content: author || '匿名夥伴' } }] },
+        Title: { rich_text: [{ text: { content: title } }] },
+        Content: { rich_text: [{ text: { content } }] },
+        Category: { select: { name: category } },
+        Likes: { number: 0 },
+        Status: { select: { name: '待審核' } },
+    };
+    if (topic) props.Target_Topic = { select: { name: topic } };
+    if (targetSessionSid) {
+        const session = await fetchSessionById(targetSessionSid);
+        if (session && session.id) {
+            props.Target_Session = { relation: [{ id: session.id }] };
+        }
+    }
+
+    return mkPage({ parent: { database_id: DB.interactions }, properties: props });
 }
 
 /* ════ Contact ════ */
@@ -185,12 +242,45 @@ export async function fetchTrendingNotes(limit = 5) {
     });
 }
 export async function fetchTrendingComments(limit = 3) {
-    const res = await qry(DB.interactions, { filter: { property: 'Status', select: { equals: '核准' } }, sorts: [{ property: 'Likes', direction: 'descending' }], page_size: limit });
-    return res.results.map((p: any) => ({ id: p.id, author: txt(p, 'Author'), content: txt(p, 'Content'), likes: num(p, 'Likes'), role: '專家留言' }));
+    const res = await qry(DB.interactions, {
+        filter: {
+            and: [
+                { property: 'Status', select: { equals: '核准' } },
+                { property: 'Type', select: { equals: '段落留言' } }
+            ]
+        },
+        sorts: [{ property: 'Likes', direction: 'descending' }],
+        page_size: limit
+    });
+    return res.results.map((p: any) => ({
+        id: p.id,
+        author: txt(p, 'Author'),
+        content: txt(p, 'Content'),
+        likes: num(p, 'Likes'),
+        role: '段落留言',
+        targetSessionId: p.properties.Target_Session?.relation?.[0]?.id ?? ''
+    }));
 }
 export async function fetchTrendingArticles(limit = 3) {
-    const res = await qry(DB.forum, { filter: { property: 'Status', select: { equals: '已發布' } }, sorts: [{ property: 'Likes', direction: 'descending' }], page_size: limit });
-    return res.results.map((p: any) => ({ id: p.id, title: txt(p, 'Title'), author: txt(p, 'Author'), category: sel(p, 'Category'), likes: num(p, 'Likes') }));
+    const res = await qry(DB.interactions, {
+        filter: {
+            and: [
+                { property: 'Status', select: { equals: '核准' } },
+                { property: 'Type', select: { equals: '論壇文章' } }
+            ]
+        },
+        sorts: [{ property: 'Likes', direction: 'descending' }],
+        page_size: limit
+    });
+    return res.results.map((p: any) => ({
+        id: p.id,
+        title: txt(p, 'Title'),
+        author: txt(p, 'Author'),
+        category: sel(p, 'Category'),
+        likes: num(p, 'Likes'),
+        targetTopic: sel(p, 'Target_Topic'),
+        targetSessionId: p.properties.Target_Session?.relation?.[0]?.id ?? ''
+    }));
 }
 export async function fetchSiteStats() {
     try {
@@ -208,4 +298,35 @@ export async function fetchSiteStats() {
     } catch (e) {
         return { totalSessions: 0, restoredSessions: 0, approvedComments: 0 };
     }
+}
+
+export async function fetchAllApprovedParagraphComments(): Promise<Comment[]> {
+    const all: Comment[] = [];
+    let cursor: string | undefined;
+    do {
+        const res = await qry(DB.interactions, {
+            filter: {
+                and: [
+                    { property: 'Status', select: { equals: '核准' } },
+                    { property: 'Type', select: { equals: '段落留言' } }
+                ]
+            },
+            start_cursor: cursor, page_size: 100
+        });
+        for (const p of res.results) {
+            all.push({
+                id: p.id,
+                targetLineId: txt(p, 'Target_Line_ID'),
+                author: txt(p, 'Author'),
+                content: txt(p, 'Content'),
+                likes: num(p, 'Likes'),
+                status: sel(p, 'Status'),
+                type: sel(p, 'Type'),
+                targetTopic: sel(p, 'Target_Topic'),
+                createdAt: p.created_time
+            });
+        }
+        cursor = res.has_more ? res.next_cursor : undefined;
+    } while (cursor);
+    return all;
 }

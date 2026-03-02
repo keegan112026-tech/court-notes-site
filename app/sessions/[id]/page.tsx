@@ -3,29 +3,28 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { ArrowLeft, MessageSquare, User, X, ArrowRight, Info, ChevronRight } from 'lucide-react';
+import { ArrowLeft, MessageSquare, User, X, ArrowRight, Info, ChevronRight, Gavel, FileText, AlertCircle, Share2, HeartHandshake, Bookmark, PenTool, ThumbsUp, ShieldAlert, Send, ChevronDown, BookOpen, Calendar, Users } from 'lucide-react';
 import { FadeIn, LikeButton } from '@/components/ui-shared';
 
 const serif = { fontFamily: "'Noto Serif TC', serif" };
 
 /* ── role colors ── */
 const ROLE_COLORS: Record<string, { text: string; bg: string; border: string }> = {
-    '法官': { text: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200' },
-    '檢察官': { text: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-200' },
-    '社工': { text: 'text-[#7B8C4E]', bg: 'bg-emerald-50', border: 'border-emerald-200' },
-    '辯護人': { text: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' },
-    '系統/旁白': { text: 'text-gray-500', bg: 'bg-gray-100', border: 'border-gray-300' },
+    '法官🔴': { text: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200' },
+    '檢察官🟣': { text: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-200' },
+    '社工🟢': { text: 'text-[#7B8C4E]', bg: 'bg-emerald-50', border: 'border-emerald-200' },
+    '辯護人🔵': { text: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' },
 };
-function roleStyle(role: string | undefined) {
-    if (!role) return { text: 'text-gray-600', bg: 'bg-gray-50', border: 'border-gray-200' };
-    return ROLE_COLORS[role] || { text: 'text-gray-700', bg: 'bg-gray-50', border: 'border-gray-200' };
+function roleStyle(role: string) {
+    return ROLE_COLORS[role] || { text: 'text-gray-500', bg: 'bg-gray-50', border: 'border-gray-200' };
 }
 
-// --- 收縮介面方框元件 ---
-const CollapsibleBox = ({ title, children, colorTheme, icon: Icon }: any) => {
+
+
+const CollapsibleBox = ({ title, children, colorTheme, icon: Icon }: { title: string, children: React.ReactNode, colorTheme: 'green' | 'blue' | 'orange' | 'purple' | 'gray', icon?: any }) => {
     const [isOpen, setIsOpen] = useState(false);
-    const themes: any = {
-        green: "bg-[#F9FBE7] text-[#7B8C4E] border-[#E9EDDA]",
+    const themes = {
+        green: "bg-[#F9FBE7] text-[#6B8E23] border-[#E9EDDA]",
         blue: "bg-[#EFF6FF] text-[#1E40AF] border-[#DBEAFE]",
         orange: "bg-[#FFF7ED] text-[#9A3412] border-[#FFEDD5]",
         purple: "bg-[#F5F3FF] text-[#4C1D95] border-[#EDE9FE]",
@@ -35,17 +34,20 @@ const CollapsibleBox = ({ title, children, colorTheme, icon: Icon }: any) => {
 
     return (
         <div className="mb-4 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all">
-            <button onClick={() => setIsOpen(!isOpen)} className="flex w-full items-center justify-between p-5 text-left hover:bg-gray-50 transition-colors">
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="flex w-full items-center justify-between p-5 text-left hover:bg-gray-50 transition-colors"
+            >
                 <div className="flex items-center gap-3">
                     <div className={`flex h-10 w-10 items-center justify-center rounded-xl border shadow-sm ${theme}`}>
                         {Icon && <Icon size={20} />}
                     </div>
-                    <span className="text-[17px] font-black text-[#3D3832]" style={serif}>{title}</span>
+                    <span className="text-lg font-black text-gray-800">{title}</span>
                 </div>
-                <ChevronRight className={`text-gray-400 transition-transform duration-300 ${isOpen ? 'rotate-90' : ''}`} />
+                <ChevronDown className={`text-gray-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
             </button>
             {isOpen && (
-                <div className="border-t border-gray-50 p-6 md:p-8 text-[16px] text-[#5A5347] leading-[1.9] font-medium">
+                <div className="animate-in fade-in slide-in-from-top-2 border-t border-gray-50 p-6 md:p-8 text-[16px] md:text-[17px] text-gray-600 leading-[1.9] font-medium">
                     {children}
                 </div>
             )}
@@ -57,306 +59,287 @@ export default function SessionDetailPage() {
     const params = useParams();
     const sessionId = params.id as string;
 
-    const [sessionData, setSessionData] = useState<any>(null);
-    const [transcript, setTranscript] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
-
+    const [transcript, setTranscript] = useState([] as any[]);
+    const [session, setSession] = useState<any>(null);
     const [selectedParagraph, setSelectedParagraph] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    // Comments states
-    const [commentsCache, setCommentsCache] = useState<Record<string, any[]>>({});
-    const [commentsLoading, setCommentsLoading] = useState(false);
-
-    // Form states
-    const [newComment, setNewComment] = useState('');
-    const [authorName, setAuthorName] = useState('');
-    const [submitting, setSubmitting] = useState(false);
-    const [submitMsg, setSubmitMsg] = useState('');
-
+    // Fetch dynamic data
     useEffect(() => {
-        if (!sessionId) return;
-        setLoading(true);
         fetch(`/api/transcripts/${sessionId}`)
             .then(res => res.json())
             .then(data => {
                 if (data.ok) {
-                    setSessionData(data.data.session);
                     setTranscript(data.data.transcripts || []);
+                    setSession(data.data.session || null);
+                    const mappedComments = (data.data.comments || []).map((c: any) => ({
+                        id: c.id,
+                        pId: c.targetLineId,
+                        author: c.author,
+                        content: c.content,
+                        targetTopic: c.targetTopic,
+                        likes: c.likes,
+                        time: new Date(c.createdAt).toLocaleString('zh-TW', { hour12: false })
+                    }));
+                    setComments(mappedComments);
                 }
-                setLoading(false);
             })
-            .catch(err => {
-                console.error("Failed to load transcript:", err);
-                setLoading(false);
-            });
+            .catch(console.error);
     }, [sessionId]);
+    const [newComment, setNewComment] = useState('');
+    const [authorName, setAuthorName] = useState('');
+    const [topic, setTopic] = useState('制度探討');
+    const [submitting, setSubmitting] = useState(false);
+    const [submitMsg, setSubmitMsg] = useState('');
+    const [comments, setComments] = useState<any[]>([]);
 
     const filteredComments = useMemo(() => {
-        if (!selectedParagraph) return [];
-        return commentsCache[selectedParagraph] || [];
-    }, [selectedParagraph, commentsCache]);
-
-    const loadCommentsForLine = async (pId: string) => {
-        // Line ID mapping fallback for Notion Line_ID resolving
-        const transcriptItem = transcript.find(t => t.id === pId || t.lineId === pId);
-        if (!transcriptItem) return;
-
-        setCommentsLoading(true);
-        try {
-            const res = await fetch(`/api/comments?lineId=${transcriptItem.id}`);
-            const data = await res.json();
-            if (data.ok) {
-                setCommentsCache(prev => ({ ...prev, [pId]: data.data }));
-            }
-        } catch (err) {
-            console.error("Failed to load comments:", err);
-        }
-        setCommentsLoading(false);
-    };
+        if (!selectedParagraph) return comments;
+        return comments.filter(c => c.pId === selectedParagraph);
+    }, [selectedParagraph, comments]);
 
     const openCommentModal = (pId: string) => {
         setSelectedParagraph(pId);
         setIsModalOpen(true);
-        setSubmitMsg('');
-        if (!commentsCache[pId]) {
-            loadCommentsForLine(pId);
-        }
     };
 
     const handleSubmitComment = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!newComment.trim() || !selectedParagraph) return;
-
-        // Find line ID for Notion target
-        const transcriptItem = transcript.find(t => t.id === selectedParagraph || t.lineId === selectedParagraph);
-        if (!transcriptItem) return;
-
+        if (!newComment.trim()) return;
         setSubmitting(true);
         try {
             const res = await fetch('/api/comments', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ targetLineId: transcriptItem.id, author: authorName, content: newComment }),
+                body: JSON.stringify({ targetLineId: selectedParagraph, author: authorName, content: newComment, sessionId, topic }),
             });
             const data = await res.json();
             if (data.ok) {
                 setSubmitMsg('✅ 留言已送出，待審核後顯示');
-
-                // Optimistically update cache
-                const newCommentObj = { id: `local-${Date.now()}`, targetLineId: transcriptItem.id, author: authorName || '匿名夥伴', content: newComment, likes: 0, status: 'Pending', createdAt: new Date().toISOString() };
-                setCommentsCache(prev => ({
-                    ...prev,
-                    [selectedParagraph]: [newCommentObj, ...(prev[selectedParagraph] || [])]
-                }));
-
+                setComments([{ id: `local-${Date.now()}`, pId: selectedParagraph || '', author: authorName || '匿名夥伴', content: newComment, targetTopic: topic, likes: 0, time: '剛剛（待審核）' }, ...comments]);
                 setNewComment('');
                 setTimeout(() => { setIsModalOpen(false); setSubmitMsg(''); }, 2000);
             } else {
                 setSubmitMsg(`❌ ${data.error}`);
             }
-        } catch (err: any) {
-            setSubmitMsg(`❌ 系統錯誤: ${err.message}`);
-        }
+        } catch { setSubmitMsg('❌ 網路錯誤'); } finally { setSubmitting(false); }
     };
 
     return (
-        <div className="min-h-screen" style={{ backgroundColor: '#FBF7F0', color: '#2D2A26' }}>
-            {/* Comment Modal */}
-            {isModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-                    <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-                        className="bg-white rounded-2xl p-6 md:p-8 w-full max-w-lg shadow-2xl">
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-[22px] font-black" style={serif}>發表見解</h3>
-                            <button onClick={() => setIsModalOpen(false)}><X className="text-gray-400 hover:text-red-500" /></button>
-                        </div>
-                        {submitMsg ? (
-                            <p className="text-center py-8 text-[20px] font-bold">{submitMsg}</p>
-                        ) : (
-                            <form onSubmit={handleSubmitComment} className="space-y-4">
-                                <div>
-                                    <label className="block text-[14px] font-black text-[#8A8078] mb-1">您的稱呼（選填）</label>
-                                    <input value={authorName} onChange={e => setAuthorName(e.target.value)}
-                                        className="w-full bg-[#FBF7F0] border border-[#E8E0D4] rounded-xl px-4 py-3 text-[17px] focus:outline-none focus:ring-2 focus:ring-[#7B8C4E]"
-                                        placeholder="e.g. 兒保社工 C" />
-                                </div>
-                                <div>
-                                    <label className="block text-[14px] font-black text-[#8A8078] mb-1">見解內容 *</label>
-                                    <textarea value={newComment} onChange={e => setNewComment(e.target.value)} required rows={5}
-                                        className="w-full bg-[#FBF7F0] border border-[#E8E0D4] rounded-xl px-4 py-3 text-[17px] focus:outline-none focus:ring-2 focus:ring-[#7B8C4E] resize-y"
-                                        placeholder="請輸入您的專業觀察..." />
-                                </div>
-                                <motion.button type="submit" disabled={submitting} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                                    className="w-full bg-gradient-to-r from-[#7B8C4E] to-[#5a6e38] text-white py-4 rounded-xl text-[18px] font-black shadow-lg disabled:opacity-50">
-                                    {submitting ? '送出中...' : '送出審核'}
-                                </motion.button>
-                                <p className="text-[13px] text-[#A09888] text-center font-bold">留言需經審核後才會顯示</p>
-                            </form>
-                        )}
-                    </motion.div>
-                </div>
-            )}
-
+        <div className="min-h-screen bg-[#FAFAFA] text-gray-800 font-sans selection:bg-[#6B8E23]/20 pb-20">
             {/* Header */}
-            <div className="bg-gradient-to-b from-[#F5EFE4] to-[#FBF7F0] border-b border-[#E8E0D4]">
-                <div className="max-w-7xl mx-auto px-6 py-6">
-                    <Link href="/sessions" className="text-[#7B8C4E] text-[16px] font-bold flex items-center gap-1 mb-3 hover:underline"><ArrowLeft size={16} /> 返回場次列表</Link>
-                    {loading ? (
-                        <h1 className="text-[32px] md:text-[42px] font-black leading-tight text-[#8A8078]" style={serif}>載入中...</h1>
-                    ) : (
-                        <>
-                            <h1 className="text-[32px] md:text-[42px] font-black leading-tight" style={serif}>{sessionData?.title}</h1>
-                            <div className="flex flex-wrap items-center gap-3 mt-3">
-                                {sessionData?.status && (
-                                    <span className={`text-[14px] font-black px-3 py-1 rounded-lg ${sessionData.status === '已發布' ? 'bg-[#7B8C4E] text-white' : 'bg-[#E8E0D4] text-[#8A8078]'}`}>
-                                        {sessionData.status}
-                                    </span>
-                                )}
-                                {sessionData?.category && <span className="bg-[#C67B5C] text-white text-[14px] font-black px-3 py-1 rounded-lg">{sessionData?.category}</span>}
-                                {sessionData?.participantsCount > 0 && <span className="text-[#8A8078] text-[14px] font-bold px-2">參與對話 {sessionData?.participantsCount} 人</span>}
-                            </div>
-                        </>
-                    )}
+            <header className="sticky top-0 z-40 bg-white border-b border-gray-100 px-4 lg:px-10 py-4 flex justify-between items-center shadow-sm">
+                <div className="flex items-center gap-4">
+                    <Link href="/sessions" className="p-2 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors">
+                        <ArrowLeft size={22} className="text-gray-600" />
+                    </Link>
+                    <h1 className="text-base lg:text-xl font-black text-gray-900 tracking-tight">法庭實況還原與專業共構筆記</h1>
                 </div>
-            </div>
+                <button className="bg-[#6B8E23] text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm">分享報告</button>
+            </header>
 
-            <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 px-6 py-6">
-                {/* Left: Transcript */}
-                <div className="lg:col-span-8">
-                    <FadeIn>
-                        {sessionData?.summary && (
-                            <div className="mb-6 space-y-4">
-                                <CollapsibleBox title="前言與紀錄" colorTheme="green" icon={Info}>
-                                    <p className="whitespace-pre-wrap">{sessionData.summary}</p>
-                                </CollapsibleBox>
-                            </div>
-                        )}
-                        <div className="bg-white rounded-[2.5rem] shadow-sm border border-[#E8E0D4] overflow-hidden">
-                            {sessionData?.status !== '已發布' || transcript.length === 0 ? (
-                                <div className="py-24 text-center">
-                                    <Info className="mx-auto w-14 h-14 text-[#C67B5C] mb-4 opacity-80" />
-                                    <h4 className="text-[24px] font-black text-[#5A5347] mb-2" style={serif}>本場次筆記尚在整理中</h4>
-                                    <p className="text-[18px] text-[#8A8078]">（徵求筆記中，未完成還原）</p>
-                                </div>
-                            ) : (
-                                <>
-                                    {/* 重要提示 */}
-                                    <div className="p-5 bg-[#FBF7F0] border-b border-[#E8E0D4]">
-                                        <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-xl border border-blue-100">
-                                            <Info size={20} className="text-blue-500 mt-0.5 shrink-0" />
-                                            <div className="text-[15px] text-blue-700 font-medium leading-relaxed">
-                                                <p className="font-black mb-1">重要提示</p>
-                                                <p>本筆記為集結多名專業人員及民眾筆記後謄寫之類逐字稿。點擊對話段落可查看特定評論，點擊 💬 發表見解。</p>
+            <main className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 px-4 lg:px-8 pt-8">
+                {/* 左側：主體內容區 (8/12) */}
+                <div className="lg:col-span-8 space-y-8">
+
+                    <div className="text-center py-8 border-b border-gray-100 space-y-4">
+                        <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-gray-900 leading-tight">
+                            {session ? session.title : '載入中...'}
+                        </h2>
+                        <div className="flex items-center justify-center gap-2">
+                            <span className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-[13px] font-bold">{session?.category || '分類載入中'}</span>
+                            <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-[13px] font-bold">{session?.date || '日期載入中'}</span>
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
+                        <CollapsibleBox title="本場次介紹與重點" colorTheme="green" icon={BookOpen}>
+                            <p className="whitespace-pre-wrap">{session?.summary || '載入中...'}</p>
+                        </CollapsibleBox>
+                        <CollapsibleBox title="法庭人物與角色" colorTheme="gray" icon={Users}>
+                            <p>審判長：吳家桐 ｜ 被告：陳尚潔社工師 ｜ 辯護律師：蔡宜臻、朱浩文等</p>
+                        </CollapsibleBox>
+                    </div>
+
+                    <div className="space-y-6 pt-6">
+                        <div className="inline-flex items-center gap-3 bg-[#E9EDDA] px-5 py-2.5 rounded-xl border-l-[6px] border-[#6B8E23] shadow-sm mb-4">
+                            <h3 className="text-2xl font-black text-gray-900">開庭實況還原筆記</h3>
+                        </div>
+
+                        <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden p-6 md:p-10 space-y-2">
+                            {transcript.map((item: any, idx) => {
+                                const isStage = item.type === 'stage' || item.role === '系統/旁白';
+                                if (isStage) {
+                                    return (
+                                        <div key={item.id || idx} className="py-8 text-center">
+                                            <span className="bg-[#F9FBE7] text-[#6B8E23] px-6 py-2 rounded-full text-sm font-black border border-[#6B8E23]/20 uppercase tracking-widest">{item.content}</span>
+                                        </div>
+                                    );
+                                }
+                                const isSelected = selectedParagraph === item.id;
+                                const roleIdStr = item.role || '未知';
+
+                                return (
+                                    <div
+                                        key={item.id}
+                                        id={`line-${item.id}`}
+                                        onClick={() => setSelectedParagraph(isSelected ? null : item.id)}
+                                        className={`group relative p-6 md:p-8 rounded-[1.8rem] transition-all cursor-pointer ${isSelected ? 'bg-[#F9FBE7] ring-1 ring-[#6B8E23]/30 shadow-inner' : 'hover:bg-gray-50 border border-transparent hover:border-gray-100'
+                                            }`}
+                                    >
+                                        <div className="flex flex-col md:flex-row gap-2 md:gap-8">
+                                            <div className={`shrink-0 md:w-16 text-[14px] font-black pt-1.5 uppercase tracking-widest ${roleIdStr.includes('法官') || roleIdStr.includes('審判長') || roleIdStr.includes('🔴') ? 'text-orange-600' : 'text-[#6B8E23]'}`}>
+                                                {roleIdStr.replace(/[🔴🟣🟢🔵]/g, '')}
+                                            </div>
+                                            <div className="flex-1">
+                                                {item.action && <span className="text-[11px] font-black text-gray-400 mb-1 block">({item.action})</span>}
+                                                <p className={`text-[17px] md:text-[18px] leading-[1.9] ${isSelected ? 'text-gray-900 font-bold' : 'text-[#4A4743] font-medium'}`} style={serif}>
+                                                    {item.content}
+                                                </p>
                                             </div>
                                         </div>
+                                        {comments.some(c => c.pId === item.id) && (
+                                            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-12 bg-[#6B8E23] rounded-full opacity-60" />
+                                        )}
                                     </div>
-
-                                    {/* Transcript Lines */}
-                                    <div className="p-4 md:p-6 space-y-1">
-                                        {transcript.map((item, idx) => {
-                                            if (item.role === '系統/旁白') {
-                                                return (
-                                                    <div key={item.id} className="py-8 text-center animate-in fade-in duration-500 delay-100">
-                                                        <span className="bg-[#F9FBE7] text-[#7B8C4E] px-6 py-2 rounded-full text-[13px] font-black border border-[#7B8C4E]/20 uppercase tracking-widest">{item.content}</span>
-                                                    </div>
-                                                );
-                                            }
-
-                                            const rs = roleStyle(item.role);
-                                            return (
-                                                <motion.div key={item.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: idx * 0.03 }}
-                                                    className={`group relative p-6 md:p-8 rounded-[1.8rem] transition-all cursor-pointer ${selectedParagraph === item.id ? `${rs.bg} ring-1 ${rs.border} shadow-inner` : 'hover:bg-gray-50 border border-transparent hover:border-gray-100'}`}
-                                                    onClick={() => setSelectedParagraph(selectedParagraph === item.id ? null : item.id)}>
-                                                    <div className="flex flex-col md:flex-row gap-2 md:gap-8">
-                                                        <div className={`shrink-0 md:w-20 text-[14px] font-black pt-1.5 uppercase tracking-widest ${rs.text}`}>
-                                                            {item.role.replace(/[🔴🟣🟢🔵]/g, '')}
-                                                        </div>
-                                                        <div className="flex-1">
-                                                            {item.action && <span className="text-[12px] font-bold text-gray-500 mb-1.5 block tracking-widest">({item.action})</span>}
-                                                            <div className={`text-[17px] md:text-lg leading-[1.9] ${selectedParagraph === item.id ? 'text-gray-900 font-bold' : 'text-[#3D3832] font-medium'}`}>{item.content}</div>
-                                                        </div>
-                                                    </div>
-                                                    {/* Floating Toolbar */}
-                                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all flex gap-2 items-center">
-                                                        <LikeButton targetId={item.id} targetType="transcripts" initialCount={item.likeCount} size="md" />
-                                                        <motion.button whileTap={{ scale: 0.9 }} onClick={(e) => { e.stopPropagation(); openCommentModal(item.id); }}
-                                                            className="p-2 bg-white shadow-lg rounded-xl text-gray-400 hover:text-[#7B8C4E] transition-all border border-gray-100" title="發表見解">
-                                                            <MessageSquare size={20} />
-                                                        </motion.button>
-                                                    </div>
-                                                    {/* Comment indicator */}
-                                                    {commentsCache[item.id]?.length > 0 && (
-                                                        <div className={`absolute left-0.5 top-1/2 -translate-y-1/2 w-1 h-8 rounded-full opacity-60 ${rs.text.includes('7B8C4E') ? 'bg-[#7B8C4E]' : rs.text.includes('red') ? 'bg-red-400' : rs.text.includes('purple') ? 'bg-purple-400' : 'bg-blue-400'}`} />
-                                                    )}
-                                                </motion.div>
-                                            );
-                                        })}
-                                    </div>
-                                </>
-                            )}
+                                );
+                            })}
                         </div>
-                    </FadeIn>
+                    </div>
                 </div>
 
-                {/* Right: Comments */}
-                <div className="lg:col-span-4">
-                    <div className="sticky top-4">
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-[22px] font-black flex items-center gap-2" style={serif}>
-                                <MessageSquare size={22} className="text-[#7B8C4E]" />
-                                專業評論
-                                <span className="bg-[#7B8C4E] text-white text-[12px] px-2.5 py-0.5 rounded-full font-bold">
-                                    {selectedParagraph ? `段落 ${transcript.findIndex(t => t.id === selectedParagraph) + 1}` : '全部'}
-                                </span>
+                {/* 右側：專業註記區 (4/12) */}
+                <div className="col-span-1 lg:col-span-4 relative mt-8 lg:mt-0">
+                    <div className="sticky top-28 space-y-6">
+                        <div className="bg-white rounded-[2rem] p-6 shadow-md border border-gray-100 overflow-hidden">
+                            <h3 className="text-xl font-black text-gray-900 flex items-center gap-2 mb-6 border-b border-gray-50 pb-4">
+                                <MessageSquare className="text-[#6B8E23]" /> 專業論述共構
+                                <span className="bg-gray-100 text-gray-400 text-[10px] px-2 py-0.5 rounded-full ml-auto">{filteredComments.length}</span>
                             </h3>
-                            {selectedParagraph && (
-                                <button onClick={() => setSelectedParagraph(null)}
-                                    className="text-[13px] font-bold text-gray-400 hover:text-gray-600 bg-gray-100 px-3 py-1 rounded-full flex items-center gap-1">清除過濾 <X size={12} /></button>
-                            )}
-                        </div>
 
-                        <div className="space-y-3 max-h-[calc(100vh-200px)] overflow-y-auto pr-1 custom-scrollbar">
-                            {filteredComments.length === 0 ? (
-                                <div className="text-center py-16 bg-white rounded-2xl border-2 border-dashed border-gray-100">
-                                    <MessageSquare size={32} className="mx-auto text-[#D4CCC0] mb-3" />
-                                    <p className="text-[18px] text-[#8A8078] font-bold">此段落尚無評論</p>
-                                    <button onClick={() => openCommentModal(selectedParagraph || transcript[0]?.id || '')}
-                                        className="mt-4 text-[#7B8C4E] text-[15px] font-black flex items-center gap-1 mx-auto hover:underline">
-                                        立即撰寫見解 <ArrowRight size={14} />
+                            {selectedParagraph ? (
+                                <div className="space-y-6 animate-in fade-in">
+                                    <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest bg-gray-50 p-2 rounded-lg text-center">正在回應段落：{selectedParagraph.replace('p', '')}</p>
+
+                                    <div className="space-y-4 max-h-[450px] overflow-y-auto pr-2 custom-scrollbar">
+                                        {filteredComments.length === 0 ? (
+                                            <div className="py-12 text-center space-y-3">
+                                                <PenTool size={32} className="mx-auto text-gray-200" />
+                                                <p className="text-sm font-bold text-gray-400 leading-relaxed">目前此段落尚無專業註記，<br />期待您的實務見解。</p>
+                                            </div>
+                                        ) : (
+                                            filteredComments.map(comment => (
+                                                <div key={comment.id} className="bg-[#FAFAFA] p-5 rounded-2xl border border-gray-100 shadow-sm space-y-3">
+                                                    <div className="flex justify-between items-center">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-xs font-black text-[#6B8E23] bg-[#F9FBE7] px-2 py-1 rounded">{comment.author}</span>
+                                                            {comment.targetTopic && <span className="text-[10px] font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded border border-orange-100">#{comment.targetTopic}</span>}
+                                                        </div>
+                                                        <span className="text-[10px] font-bold text-gray-300">{comment.time}</span>
+                                                    </div>
+                                                    <p className="text-sm font-medium text-gray-600 leading-relaxed italic">「{comment.content}」</p>
+                                                    <div className="flex items-center gap-4 mt-1">
+                                                        <LikeButton initialCount={comment.likes} targetId={comment.id} targetType="interactions" size="sm" />
+                                                    </div>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+
+                                    <button onClick={() => setIsModalOpen(true)} className="w-full bg-[#6B8E23] text-white py-4 rounded-2xl font-black text-sm shadow-lg hover:scale-[1.02] transition-all flex items-center justify-center gap-2">
+                                        <PenTool size={16} /> 發表專業見解
                                     </button>
                                 </div>
                             ) : (
-                                filteredComments.map((comment: any, i: number) => (
-                                    <FadeIn key={comment.id} delay={i * 0.05}>
-                                        <motion.div whileHover={{ y: -2 }}
-                                            className={`bg-white p-5 rounded-2xl shadow-sm border transition-all ${selectedParagraph === comment.targetLineId ? 'border-[#C5D9A8] shadow-md ring-1 ring-[#C5D9A8]' : 'border-[#E8E0D4]'}`}>
-                                            <div className="flex justify-between items-start mb-2">
-                                                <div className="flex items-center gap-2">
-                                                    <div className="w-8 h-8 rounded-full bg-[#E3EED3] flex items-center justify-center text-[#7B8C4E] text-[13px] font-black"><User size={14} /></div>
-                                                    <div>
-                                                        <p className="text-[15px] font-black text-[#3D3832]">{comment.author}</p>
-                                                        <p className="text-[11px] text-[#D4CCC0] font-bold">
-                                                            {new Date(comment.createdAt).toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
-                                                        </p>
+                                <div className="space-y-4 animate-in fade-in zoom-in-95 duration-300">
+                                    <h4 className="text-[13px] font-black text-gray-400 bg-gray-50 px-4 py-2 rounded-xl text-center uppercase tracking-widest">本場次所有專業論述</h4>
+                                    <div className="space-y-3 max-h-[450px] overflow-y-auto pr-2 custom-scrollbar">
+                                        {comments.length === 0 ? (
+                                            <div className="py-12 text-center space-y-3">
+                                                <MessageSquare size={32} className="mx-auto text-gray-200" />
+                                                <p className="text-sm font-bold text-gray-400 leading-relaxed">目前尚無整體留言，<br />點擊左側段落即可發表見解。</p>
+                                            </div>
+                                        ) : comments.map(comment => (
+                                            <div
+                                                key={`all-${comment.id}`}
+                                                onClick={() => {
+                                                    setSelectedParagraph(comment.pId);
+                                                    setTimeout(() => {
+                                                        const el = document.getElementById(`line-${comment.pId}`);
+                                                        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                                    }, 100);
+                                                }}
+                                                className="bg-white p-4 rounded-xl cursor-pointer hover:bg-[#F9FBE7] hover:border-[#6B8E23]/50 transition-all border border-gray-100 shadow-sm"
+                                            >
+                                                <div className="flex justify-between items-center mb-2">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-[11px] font-black text-[#6B8E23] bg-[#E9EDDA] px-2 py-0.5 rounded">{comment.author}</span>
+                                                        {comment.targetTopic && <span className="text-[10px] font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded border border-orange-100">#{comment.targetTopic}</span>}
                                                     </div>
+                                                    <span className="text-[10px] text-gray-400 font-bold">{comment.time}</span>
                                                 </div>
-                                                {!selectedParagraph && comment.targetLineId && (
-                                                    <span className="text-[11px] bg-gray-50 text-gray-400 px-2 py-0.5 rounded-lg font-bold"># {transcript.findIndex(t => t.id === comment.targetLineId) + 1}</span>
-                                                )}
+                                                <p className="text-[13px] font-medium text-gray-600 line-clamp-3 leading-relaxed">「{comment.content}」</p>
                                             </div>
-                                            <p className="text-[16px] text-[#5A5347] leading-relaxed font-medium">{comment.content}</p>
-                                            <div className="flex items-center gap-4 mt-3 text-[14px] font-bold text-[#A09888]">
-                                                <LikeButton initialCount={comment.likes || 0} size="sm" targetId={comment.id} targetType="interactions" />
-                                            </div>
-                                        </motion.div>
-                                    </FadeIn>
-                                ))
+                                        ))}
+                                    </div>
+
+                                    <div className="mt-8 bg-orange-50 p-5 rounded-2xl border border-orange-100">
+                                        <h4 className="text-[14px] font-black text-orange-800 mb-3 flex items-center gap-2">
+                                            <Info size={16} /> 平台發文規範與承諾
+                                        </h4>
+                                        <div className="text-[12px] text-orange-700/80 leading-relaxed font-medium space-y-2">
+                                            <p><strong className="text-orange-900 block mb-0.5">1. 嚴格去識別化（最重要）：</strong>嚴禁揭露案主、家屬、社工或相關人員之真實姓名、詳細地址或任何足以辨識身分之隱私資訊。</p>
+                                            <p><strong className="text-orange-900 block mt-3 mb-0.5">2. 聚焦專業，拒絕公審：</strong>鼓勵針對「專業判斷」、「處遇邏輯」進行討論。避免針對特定個人進行人身攻擊、非理性謾罵或臆測性的道德指控。</p>
+                                            <p><strong className="text-orange-900 block mt-3 mb-0.5">3. 先審後發機制：</strong>為保護當事人在未經查證下遭受二次傷害免除法律紛爭，平台目前採取「先審後發」，僅攔截明顯違法或人身攻擊內容。</p>
+                                        </div>
+                                    </div>
+                                </div>
                             )}
                         </div>
                     </div>
                 </div>
-            </div>
+            </main>
+
+            {/* 投稿 Modal */}
+            {isModalOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/70 backdrop-blur-md animate-in fade-in" onClick={() => setIsModalOpen(false)} />
+                    <div className="bg-white w-full max-w-xl rounded-[2.5rem] shadow-2xl relative z-10 overflow-hidden animate-in zoom-in">
+                        <div className="bg-[#6B8E23] p-8 text-white relative">
+                            <button onClick={() => setIsModalOpen(false)} className="absolute right-6 top-6 hover:bg-white/20 p-2 rounded-full transition-colors"><X size={20} /></button>
+                            <h3 className="text-2xl font-black mb-1">發表專業見解</h3>
+                            <p className="text-xs opacity-80 font-bold uppercase tracking-widest">正在回應段落：{selectedParagraph?.replace('p', '')}</p>
+                        </div>
+                        {submitMsg ? (
+                            <div className="p-12 text-center text-xl font-bold text-[#6B8E23]">{submitMsg}</div>
+                        ) : (
+                            <form onSubmit={handleSubmitComment} className="p-8 space-y-6">
+                                <div>
+                                    <label className="text-xs font-black text-gray-400 uppercase ml-1 block mb-2">您的身分稱呼 (例如：資深社工)</label>
+                                    <input type="text" value={authorName} onChange={(e) => setAuthorName(e.target.value)} placeholder="不留則顯示「匿名夥伴」" className="w-full bg-gray-50 p-4 rounded-2xl border border-transparent focus:border-[#6B8E23] outline-none font-bold text-gray-700" />
+                                </div>
+                                <div>
+                                    <label className="text-xs font-black text-gray-400 uppercase ml-1 block mb-2">討論主題 *</label>
+                                    <select value={topic} onChange={(e) => setTopic(e.target.value)} className="w-full bg-gray-50 p-4 rounded-2xl border border-transparent focus:border-[#6B8E23] outline-none font-bold text-gray-700">
+                                        {['制度探討', '實務經驗', '倫理界線', '流程爭議', '資源配置', '其他'].map(t => <option key={t} value={t}>{t}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="text-xs font-black text-gray-400 uppercase ml-1 block mb-2">見解論述內容 *</label>
+                                    <textarea required rows={5} value={newComment} onChange={(e) => setNewComment(e.target.value)} placeholder="請輸入關於此對話的專業判讀或建議..." className="w-full bg-gray-50 p-4 rounded-2xl border border-transparent focus:border-[#6B8E23] outline-none font-medium text-gray-600 resize-none leading-relaxed" />
+                                </div>
+                                <div className="flex items-start gap-2 bg-orange-50 p-4 rounded-xl text-[11px] text-orange-800 font-medium">
+                                    <ShieldAlert size={16} className="shrink-0" />
+                                    送出即確認內容符合「去識別化」原則，不揭露個案隱私。
+                                </div>
+                                <button type="submit" disabled={submitting} className="w-full bg-[#6B8E23] text-white py-5 rounded-3xl font-black text-lg shadow-xl flex items-center justify-center gap-3 hover:scale-[1.02] transition-all disabled:opacity-50">
+                                    {submitting ? '處理中...' : '確認送出註記'} <Send size={20} />
+                                </button>
+                            </form>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

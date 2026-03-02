@@ -9,15 +9,20 @@ const serif = { fontFamily: "'Noto Serif TC', serif" };
 
 export default function ForumPage() {
     const [posts, setPosts] = useState<any[]>([]);
+    const [sessionsList, setSessionsList] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
-    const [formData, setFormData] = useState({ author: '', title: '', content: '', category: '經驗分享' });
+    const [formData, setFormData] = useState({ author: '', title: '', content: '', category: '經驗分享', topic: '制度探討', targetSessionSid: '' });
     const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
 
     useEffect(() => {
-        fetch('/api/forum').then(r => r.json()).then(d => {
-            if (d.ok) setPosts(d.data);
+        Promise.all([
+            fetch('/api/forum').then(r => r.json()),
+            fetch('/api/sessions').then(r => r.json())
+        ]).then(([forumData, sessionsData]) => {
+            if (forumData.ok) setPosts(forumData.data);
+            if (sessionsData.ok) setSessionsList(sessionsData.data);
         }).catch(() => { }).finally(() => setLoading(false));
     }, []);
 
@@ -34,13 +39,14 @@ export default function ForumPage() {
             const data = await res.json();
             if (data.ok) {
                 setSubmitted(true);
-                setFormData({ author: '', title: '', content: '', category: '經驗分享' });
+                setFormData({ author: '', title: '', content: '', category: '經驗分享', topic: '制度探討', targetSessionSid: '' });
                 setTimeout(() => { setSubmitted(false); setShowForm(false); }, 3000);
             }
         } catch { } finally { setSubmitting(false); }
     };
 
     const categories = ['經驗分享', '專業討論', '資料補充', '提問', '糾錯回報'];
+    const topics = ['制度探討', '實務經驗', '倫理界線', '流程爭議', '資源配置', '其他'];
 
     return (
         <div className="min-h-screen" style={{ backgroundColor: '#FBF7F0', color: '#2D2A26' }}>
@@ -94,6 +100,23 @@ export default function ForumPage() {
                                             </select>
                                         </div>
                                     </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-[14px] font-black text-[#8A8078] mb-1">主題標籤</label>
+                                            <select value={formData.topic} onChange={e => setFormData({ ...formData, topic: e.target.value })}
+                                                className="w-full bg-[#FBF7F0] border border-[#E8E0D4] rounded-xl px-4 py-3 text-[17px] focus:outline-none focus:ring-2 focus:ring-[#7B8C4E]">
+                                                {topics.map(t => <option key={t} value={t}>{t}</option>)}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-[14px] font-black text-[#8A8078] mb-1">關聯場次（選填）</label>
+                                            <select value={formData.targetSessionSid} onChange={e => setFormData({ ...formData, targetSessionSid: e.target.value })}
+                                                className="w-full bg-[#FBF7F0] border border-[#E8E0D4] rounded-xl px-4 py-3 text-[17px] focus:outline-none focus:ring-2 focus:ring-[#7B8C4E] truncate">
+                                                <option value="">-- 不指定場次 --</option>
+                                                {sessionsList.map(s => <option key={s.sessionId} value={s.sessionId}>{s.sessionId} - {s.title}</option>)}
+                                            </select>
+                                        </div>
+                                    </div>
                                     <div>
                                         <label className="block text-[14px] font-black text-[#8A8078] mb-1">標題 *</label>
                                         <input value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} required
@@ -136,8 +159,17 @@ export default function ForumPage() {
                             <FadeIn key={post.id} delay={i * 0.05}>
                                 <motion.div whileHover={{ y: -2 }}
                                     className="bg-white p-6 rounded-2xl border border-[#E8E0D4] hover:shadow-md transition-all">
-                                    <div className="flex items-center gap-3 mb-3">
+                                    <div className="flex flex-wrap items-center gap-2 mb-3">
                                         <span className="bg-[#E3EED3] text-[#3D5220] px-3 py-1 rounded-lg text-[13px] font-black">{post.category}</span>
+                                        {post.targetTopic && (
+                                            <span className="bg-orange-100 text-orange-800 px-3 py-1 rounded-lg text-[13px] font-black">#{post.targetTopic}</span>
+                                        )}
+                                        {post.targetSessionId && (
+                                            <Link href={`/sessions`} className="bg-blue-50 text-blue-700 px-3 py-1 rounded-lg text-[13px] font-black hover:underline cursor-pointer flex items-center gap-1">
+                                                <BookOpen size={12} /> 關聯場次
+                                            </Link>
+                                        )}
+                                        <div className="flex-1"></div>
                                         <span className="text-[14px] text-[#A09888] font-bold">{post.author || '匿名'}</span>
                                         <span className="text-[12px] text-[#D4CCC0]">{new Date(post.createdAt).toLocaleDateString('zh-TW')}</span>
                                     </div>

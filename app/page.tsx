@@ -205,20 +205,21 @@ export default function Home() {
             {/* ═══ What We Do ═══ */}
             <Banner title="這個平台在做什麼？" subtitle="What We Do" bg="bg-[#E8E0D4]" text="text-[#3D3832]" />
             <section className="max-w-7xl mx-auto px-6 py-8">
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
                     {[
                         { icon: <BookMarked size={30} />, label: "整合資訊", desc: "打破壁壘，降低門檻", color: "bg-[#E3EED3]", accent: "text-[#5A6F35]", glow: "hover:shadow-[0_8px_30px_rgba(123,140,78,0.2)]" },
-                        { icon: <Gavel size={30} />, label: "觀庭還原", desc: "身歷其境，完整還原", color: "bg-[#F5E6D3]", accent: "text-[#A0724E]", glow: "hover:shadow-[0_8px_30px_rgba(198,123,92,0.2)]" },
-                        { icon: <MessageCircle size={30} />, label: "專業評述", desc: "匿名交流，平等詮釋", color: "bg-[#E0DAF0]", accent: "text-[#6B5CA5]", glow: "hover:shadow-[0_8px_30px_rgba(107,92,165,0.2)]" },
+                        { icon: <Eye size={30} />, label: "觀庭還原", desc: "身歷其境，完整還原", color: "bg-[#F5E6D3]", accent: "text-[#A0724E]", glow: "hover:shadow-[0_8px_30px_rgba(198,123,92,0.2)]" },
+                        { icon: <Gavel size={30} />, label: "觀庭評述", desc: "就本案呈現真實狀況評述", color: "bg-[#E0DAF0]", accent: "text-[#6B5CA5]", glow: "hover:shadow-[0_8px_30px_rgba(107,92,165,0.2)]" },
+                        { icon: <MessageCircle size={30} />, label: "建構論壇", desc: "匿名交流，平等詮釋", color: "bg-[#E3EED3]", accent: "text-[#5A6F35]", glow: "hover:shadow-[0_8px_30px_rgba(123,140,78,0.2)]" },
                         { icon: <Sparkles size={30} />, label: "共構解方", desc: "集體智慧，復原重建", color: "bg-[#FDE8D8]", accent: "text-[#C67B5C]", glow: "hover:shadow-[0_8px_30px_rgba(198,123,92,0.2)]" },
                     ].map((item, i) => (
                         <FadeIn key={i} delay={i * 0.08}>
                             <motion.div whileHover={{ y: -6, scale: 1.02 }} transition={{ type: 'spring', stiffness: 300, damping: 15 }}
-                                className={`${item.color} p-6 rounded-2xl border border-black/5 cursor-pointer group transition-shadow ${item.glow}`}>
+                                className={`${item.color} p-6 rounded-2xl border border-black/5 cursor-pointer group transition-shadow ${item.glow} h-full`}>
                                 <motion.div whileHover={{ rotate: 8, scale: 1.15 }} transition={{ type: 'spring', stiffness: 400 }}
                                     className={`w-14 h-14 rounded-xl ${item.accent} bg-white/60 flex items-center justify-center mb-3`}>{item.icon}</motion.div>
-                                <p className="text-[24px] font-black" style={serif}>{item.label}</p>
-                                <p className="text-[16px] font-bold text-[#8A8078] mt-1">{item.desc}</p>
+                                <p className="text-[22px] md:text-[24px] font-black" style={serif}>{item.label}</p>
+                                <p className="text-[15px] font-bold text-[#8A8078] mt-2 leading-relaxed h-[45px]">{item.desc}</p>
                             </motion.div>
                         </FadeIn>
                     ))}
@@ -321,18 +322,26 @@ export default function Home() {
                             </div>
                             {hotComments.length === 0 ? (
                                 <p className="text-white/50 text-center py-6 text-[14px] font-bold">目前尚無專業留言</p>
-                            ) : hotComments.map((c, i) => (
-                                <motion.div key={i} whileHover={{ scale: 1.02 }}
-                                    className="p-3 rounded-xl bg-white/[0.04] border border-white/5 mb-3 last:mb-0 hover:border-purple-500/20 transition-all">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <div className="w-7 h-7 bg-gradient-to-br from-violet-400 to-purple-500 rounded-lg flex items-center justify-center text-white text-[12px] font-black">{c.author.slice(-1)}</div>
-                                        <span className="text-[14px] font-bold text-white/70">{c.author}</span>
-                                        <span className="text-[12px] font-bold text-purple-300 bg-purple-500/15 px-2 py-0.5 rounded">{c.role}</span>
-                                    </div>
-                                    <p className="text-[14px] text-gray-400 leading-relaxed line-clamp-2">{c.content}</p>
-                                    <p className="text-red-400 text-[14px] font-bold flex items-center gap-1 mt-2"><Heart size={13} fill="currentColor" />{c.likes}</p>
-                                </motion.div>
-                            ))}
+                            ) : hotComments.map((c, i) => {
+                                const s = sessions.find(sess => sess.id === c.targetSessionId);
+                                return (
+                                    <motion.div key={i} whileHover={{ scale: 1.02 }}
+                                        className="p-3 rounded-xl bg-white/[0.04] border border-white/5 mb-3 last:mb-0 hover:border-purple-500/20 transition-all">
+                                        <div className="flex flex-wrap items-center gap-2 mb-2">
+                                            <div className="w-7 h-7 bg-gradient-to-br from-violet-400 to-purple-500 rounded-lg flex items-center justify-center text-white text-[12px] font-black">{c.author.slice(-1)}</div>
+                                            <span className="text-[14px] font-bold text-white/70">{c.author}</span>
+                                            <span className="text-[12px] font-bold text-purple-300 bg-purple-500/15 px-2 py-0.5 rounded">{c.role}</span>
+                                            {s && (
+                                                <Link href={`/sessions`} className="text-[12px] text-blue-300 bg-blue-500/15 px-2 py-0.5 rounded hover:underline cursor-pointer flex flex-wrap items-center gap-1">
+                                                    <BookOpen size={10} /> {s.sessionId}
+                                                </Link>
+                                            )}
+                                        </div>
+                                        <p className="text-[14px] text-gray-400 leading-relaxed line-clamp-2">{c.content}</p>
+                                        <p className="text-red-400 text-[14px] font-bold flex items-center gap-1 mt-2"><Heart size={13} fill="currentColor" />{c.likes}</p>
+                                    </motion.div>
+                                )
+                            })}
                         </motion.div>
                     </FadeIn>
                     <FadeIn delay={0.24}>
@@ -343,21 +352,58 @@ export default function Home() {
                             </div>
                             {hotArticles.length === 0 ? (
                                 <p className="text-white/50 text-center py-6 text-[14px] font-bold">目前尚無投稿文章</p>
-                            ) : hotArticles.map((a, i) => (
-                                <Link key={i} href={`/forum`} className="block">
-                                    <motion.div whileHover={{ scale: 1.02 }}
-                                        className="p-3 rounded-xl bg-white/[0.04] border border-white/5 mb-3 last:mb-0 hover:border-emerald-500/20 transition-all cursor-pointer">
-                                        <span className="text-[12px] font-black text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">{a.category}</span>
-                                        <p className="text-[16px] font-bold text-white/90 mt-2 hover:text-emerald-300 transition-colors">{a.title}</p>
-                                        <div className="flex justify-between mt-2 text-[14px]">
-                                            <span className="text-gray-500 font-bold">{a.author}</span>
-                                            <span className="text-red-400 flex items-center gap-1"><Heart size={13} fill="currentColor" />{a.likes}</span>
-                                        </div>
-                                    </motion.div>
-                                </Link>
-                            ))}
+                            ) : hotArticles.map((a, i) => {
+                                const s = sessions.find(sess => sess.id === a.targetSessionId);
+                                return (
+                                    <Link key={i} href={`/forum`} className="block">
+                                        <motion.div whileHover={{ scale: 1.02 }}
+                                            className="p-3 rounded-xl bg-white/[0.04] border border-white/5 mb-3 last:mb-0 hover:border-emerald-500/20 transition-all cursor-pointer">
+                                            <div className="flex flex-wrap items-center gap-2 mb-2">
+                                                <span className="text-[12px] font-black text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">{a.category}</span>
+                                                {a.targetTopic && (
+                                                    <span className="text-[12px] font-black text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded">#{a.targetTopic}</span>
+                                                )}
+                                                {s && (
+                                                    <span className="text-[12px] text-blue-300 bg-blue-500/15 px-2 py-0.5 rounded flex items-center gap-1">
+                                                        <BookOpen size={10} /> {s.sessionId}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <p className="text-[16px] font-bold text-white/90 mt-2 hover:text-emerald-300 transition-colors">{a.title}</p>
+                                            <div className="flex justify-between mt-2 text-[14px]">
+                                                <span className="text-gray-500 font-bold">{a.author}</span>
+                                                <span className="text-red-400 flex items-center gap-1"><Heart size={13} fill="currentColor" />{a.likes}</span>
+                                            </div>
+                                        </motion.div>
+                                    </Link>
+                                )
+                            })}
                         </motion.div>
                     </FadeIn>
+                </div>
+            </section>
+
+            {/* ═══ 解決什麼問題 ═══ */}
+            <Banner title="我們要解決什麼問題？" subtitle="Problems We Solve" bg="bg-[#E8D5B8]" text="text-[#8B4D35]" />
+            <section className="max-w-7xl mx-auto px-6 py-8">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
+                    {/* 背景連動線 */}
+                    <div className="hidden md:block absolute top-[40%] left-[15%] right-[15%] h-[2px] bg-gradient-to-r from-[#7B8C4E] via-[#B8860B] to-[#C67B5C] opacity-30 z-0"></div>
+                    <motion.div animate={{ scaleX: [0, 1] }} transition={{ duration: 2, repeat: Infinity }} className="hidden md:block absolute top-[40%] left-[15%] right-[15%] h-[2px] bg-gradient-to-r from-[#7B8C4E] via-[#B8860B] to-[#C67B5C] z-0 origin-left"></motion.div>
+
+                    {[
+                        { title: "資訊紛亂斷裂、門檻高", desc: "資訊紛亂、斷裂、專業壁壘、完整尋找門檻高", icon: <Layers size={24} className="text-blue-500" /> },
+                        { title: "單一敘事與詮釋壟斷", desc: "有條件觀庭者僅少數、雙方敘述封閉於庭上、外界資訊均透過解讀詮釋、觀庭者掌握解釋權、論述各有切入點與立場影響、可獲得關注", icon: <Eye size={24} className="text-[#7B8C4E]" /> },
+                        { title: "對立衝突與無法傾聽", desc: "各自論述對立、衝突、難以理解彼此、也不去聽對方的語言", icon: <MessageSquare size={24} className="text-[#C67B5C]" /> },
+                    ].map((step, i) => (
+                        <FadeIn key={i} delay={i * 0.1} className="relative z-10">
+                            <motion.div whileHover={{ y: -5 }} className="bg-white/80 backdrop-blur p-6 rounded-3xl border border-[#E8E0D4] shadow-sm text-center h-full">
+                                <div className="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center mx-auto mb-4 border border-gray-100">{step.icon}</div>
+                                <h4 className="text-[20px] font-black mb-3 text-gray-800" style={serif}>{step.title}</h4>
+                                <p className="text-[15px] text-[#6B6358] font-bold leading-relaxed">{step.desc}</p>
+                            </motion.div>
+                        </FadeIn>
+                    ))}
                 </div>
             </section>
 
@@ -366,17 +412,17 @@ export default function Home() {
             <section className="max-w-7xl mx-auto px-6 py-8">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                     {[
-                        { title: "前期 — 本團隊", items: ["實際參與所有場次形成筆記", "蒐集觀庭多元筆記核對補缺", "蒐集彙整本案相關資料"], borderC: "border-l-blue-400", accent: "text-blue-400" },
+                        { title: "前期 — 本團隊工作", items: ["實際參與所有場次形成筆記", "蒐集觀庭多元筆記核對補缺", "蒐集彙整本案相關資料"], borderC: "border-l-blue-400", accent: "text-blue-400" },
                         { title: "呈現", items: ["觀庭現場還原筆記", "即時論述與評論投稿機制", "形成論述與探討、交流"], borderC: "border-l-[#7B8C4E]", accent: "text-[#7B8C4E]" },
                         { title: "最後", items: ["共構本事件之復原計畫和共識", "透過集體智慧建立新的準則與論述"], borderC: "border-l-[#C67B5C]", accent: "text-[#C67B5C]" },
                     ].map((step, i) => (
                         <FadeIn key={i} delay={i * 0.1}>
                             <motion.div whileHover={{ y: -4, boxShadow: '0 8px 25px rgba(0,0,0,0.08)' }}
-                                className={`bg-white p-6 rounded-2xl border border-[#E8E0D4] border-l-4 ${step.borderC} shadow-sm transition-all`}>
+                                className={`bg-white p-6 rounded-2xl border border-[#E8E0D4] border-l-4 ${step.borderC} shadow-sm transition-all h-full`}>
                                 <h4 className="text-[24px] font-black mb-4" style={serif}>{step.title}</h4>
                                 <ul className="space-y-3">
                                     {step.items.map((item, j) => (
-                                        <li key={j} className="text-[18px] text-[#5A5347] font-medium flex items-start gap-2">
+                                        <li key={j} className="text-[17px] text-[#5A5347] font-medium flex items-start gap-2">
                                             <ChevronRight size={18} className={`${step.accent} mt-1 shrink-0`} />{item}
                                         </li>
                                     ))}
