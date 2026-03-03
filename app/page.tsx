@@ -237,16 +237,16 @@ export default function Home() {
                         <p className="text-[16px] text-[#A09888] font-bold mb-6">感謝 <a href="https://www.legis-pedia.com/" target="_blank" className="text-[#7B8C4E] underline">法律百科</a></p>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {[
-                                { title: '剴剴案：建議先備知識', desc: '整理本案相關的背景脈絡與重要法律名詞釋義。', url: '/prerequisites' },
-                                { title: '開庭情境與階段說明', desc: '深入淺出解說法庭配置、發言順序與各階段的法律意義。', url: '/prerequisites' },
+                                { title: '剴剴案：建議先備知識', desc: '整理本案相關的背景脈絡、重要法律名詞釋義與相關附件下載。', url: 'https://bird-wildebeest-d6d.notion.site/3147e2fdafd880bfb51ce110811c2e34' },
+                                { title: '開庭情境與階段說明', desc: '深入淺出解說法庭配置、發言順序與各階段的法律意義。', url: 'https://bird-wildebeest-d6d.notion.site/3147e2fdafd880e3bb81f280f68680db' },
                             ].map((link, i) => (
-                                <Link key={i} href={link.url} className="block group">
+                                <a key={i} href={link.url} target="_blank" rel="noreferrer" className="block group">
                                     <motion.div whileHover={{ y: -3 }} className="bg-[#F5EFE4] p-6 rounded-xl border border-[#E8E0D4] hover:border-[#7B8C4E] transition-all h-full">
                                         <h4 className="text-[22px] font-black group-hover:text-[#7B8C4E] transition-colors" style={serif}>{link.title}</h4>
                                         <p className="text-[16px] text-[#8A8078] font-bold mt-2">{link.desc}</p>
-                                        <span className="text-[#7B8C4E] text-[14px] font-bold mt-3 flex items-center gap-1">閱讀詳情 <ArrowRight size={14} /></span>
+                                        <span className="text-[#7B8C4E] text-[14px] font-bold mt-3 flex items-center gap-1">前往 Notion 閱讀與下載附件 <ArrowRight size={14} /></span>
                                     </motion.div>
-                                </Link>
+                                </a>
                             ))}
                         </div>
                     </div>
