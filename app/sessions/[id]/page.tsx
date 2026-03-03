@@ -86,6 +86,24 @@ export default function SessionDetailPage() {
             })
             .catch(console.error);
     }, [sessionId]);
+
+    // Handle auto-scrolling to hash anchor when transcript is loaded
+    useEffect(() => {
+        if (transcript.length > 0) {
+            const hash = window.location.hash;
+            if (hash && hash.startsWith('#line-')) {
+                setTimeout(() => {
+                    const el = document.getElementById(hash.substring(1));
+                    if (el) {
+                        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        // Extract the logical ID to select it automatically
+                        const pId = hash.replace('#line-', '');
+                        setSelectedParagraph(pId);
+                    }
+                }, 500); // Give rendering a moment
+            }
+        }
+    }, [transcript]);
     const [newComment, setNewComment] = useState('');
     const [authorName, setAuthorName] = useState('');
     const [topic, setTopic] = useState('制度探討');

@@ -297,21 +297,25 @@ export default function Home() {
                             </div>
                             {hotNotes.length === 0 ? (
                                 <p className="text-white/50 text-center py-6 text-[14px] font-bold">目前尚無熱門觀庭筆記</p>
-                            ) : hotNotes.map((n, i) => (
-                                <Link key={i} href={n.sessionPageId ? `/sessions/${n.sessionPageId}#${n.lineId}` : '/sessions'} className="block">
-                                    <motion.div whileHover={{ x: 4, backgroundColor: 'rgba(255,255,255,0.05)' }}
-                                        className="flex items-start gap-3 py-3 border-b border-white/5 last:border-0 cursor-pointer group rounded-lg px-2 transition-colors">
-                                        <span className={`text-[28px] font-black w-8 shrink-0 ${i === 0 ? 'text-orange-400' : i === 1 ? 'text-gray-400' : 'text-amber-700'}`} style={serif}>{i + 1}</span>
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-[16px] font-bold text-white/90 truncate group-hover:text-orange-300 transition-colors">{n.content.substring(0, 30)}...</p>
-                                            <div className="flex gap-3 mt-1 text-[14px]">
-                                                <span className="text-gray-500 font-bold">{n.sessionName}</span>
-                                                <span className="text-red-400 flex items-center gap-1"><Heart size={13} fill="currentColor" />{n.likeCount}</span>
+                            ) : hotNotes.map((n, i) => {
+                                const s = sessions.find(sess => sess.id === n.sessionPageId);
+                                const noteHref = s ? `/sessions/${s.sessionId}#line-${n.lineId || n.id}` : '/sessions';
+                                return (
+                                    <Link key={i} href={noteHref} className="block">
+                                        <motion.div whileHover={{ x: 4, backgroundColor: 'rgba(255,255,255,0.05)' }}
+                                            className="flex items-start gap-3 py-3 border-b border-white/5 last:border-0 cursor-pointer group rounded-lg px-2 transition-colors">
+                                            <span className={`text-[28px] font-black w-8 shrink-0 ${i === 0 ? 'text-orange-400' : i === 1 ? 'text-gray-400' : 'text-amber-700'}`} style={serif}>{i + 1}</span>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-[16px] font-bold text-white/90 truncate group-hover:text-orange-300 transition-colors">{n.content.substring(0, 30)}...</p>
+                                                <div className="flex gap-3 mt-1 text-[14px]">
+                                                    <span className="text-gray-500 font-bold">{s ? s.title : ''}</span>
+                                                    <span className="text-red-400 flex items-center gap-1"><Heart size={13} fill="currentColor" />{n.likeCount}</span>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </motion.div>
-                                </Link>
-                            ))}
+                                        </motion.div>
+                                    </Link>
+                                );
+                            })}
                         </motion.div>
                     </FadeIn>
                     <FadeIn delay={0.12}>
@@ -324,7 +328,7 @@ export default function Home() {
                                 <p className="text-white/50 text-center py-6 text-[14px] font-bold">目前尚無專業留言</p>
                             ) : hotComments.map((c, i) => {
                                 const s = sessions.find(sess => sess.id === c.targetSessionId);
-                                const commentHref = s ? `/sessions/${s.id}${c.targetLineId ? `#${c.targetLineId}` : ''}` : '/sessions';
+                                const commentHref = s ? `/sessions/${s.sessionId}${c.targetLineId ? `#line-${c.targetLineId}` : ''}` : '/sessions';
                                 return (
                                     <Link key={i} href={commentHref} className="block mb-3 last:mb-0">
                                         <motion.div whileHover={{ scale: 1.02 }}

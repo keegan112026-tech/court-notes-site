@@ -102,8 +102,9 @@ export async function fetchTranscripts(sessionSid: string): Promise<TranscriptLi
             page_size: 100
         });
         for (const p of res.results) {
+            const logicalId = txt(p, 'Line_ID') || p.id;
             all.push({
-                id: p.id,
+                id: logicalId,
                 lineId: txt(p, 'Line_ID'),
                 role: txt(p, 'Role') || sel(p, 'Role'),
                 action: txt(p, 'Action'),
