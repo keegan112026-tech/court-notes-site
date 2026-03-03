@@ -202,6 +202,106 @@ export default function Home() {
                 </div>
             </section>
 
+            {/* ═══ 計畫緣起 (Cinematic Storytelling) ═══ */}
+            <section id="about" className="relative w-full overflow-hidden bg-[#0A0A0A] text-white py-32 md:py-48">
+                {/* 背景 1: 沉重與莊嚴 */}
+                <div className="absolute inset-0 z-0">
+                    <motion.div
+                        className="w-full h-full bg-cover bg-center opacity-40 mix-blend-luminosity"
+                        style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80&w=2070")' }}
+                        initial={{ opacity: 0.1, scale: 1.1 }}
+                        whileInView={{ opacity: 0.4, scale: 1 }}
+                        transition={{ duration: 6, ease: "easeOut" }}
+                        viewport={{ once: false, amount: 0.1 }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-b from-[#FBF7F0] via-[#0A0A0A] to-[#0A0A0A] z-10" />
+                </div>
+
+                <div className="relative z-20 max-w-4xl mx-auto px-6 text-center space-y-32">
+                    <motion.div
+                        initial={{ opacity: 0, y: 40 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 1.2 }}
+                        viewport={{ once: true, margin: "-100px" }}
+                        className="space-y-12"
+                    >
+                        <div>
+                            <span className="text-gray-500 font-black tracking-[0.5em] uppercase text-xs border border-gray-800 bg-gray-900/50 px-6 py-2 rounded-full mb-6 inline-block">About This Project</span>
+                            <h2 className="text-5xl md:text-6xl font-black text-white tracking-tight" style={serif}>計畫緣起</h2>
+                        </div>
+
+                        <div className="w-1 h-24 bg-gradient-to-b from-gray-600 to-transparent mx-auto rounded-full" />
+
+                        <div className="text-xl md:text-2xl text-gray-300 leading-[2] font-medium space-y-8 text-left max-w-3xl mx-auto">
+                            <p>剴剴案已成為助人專業領域集體議題，對民眾及助人領域均產生各項影響。</p>
+                            <p>為了因應衝擊，目前有許多令人尊敬的助人者挺身而出，也引發了各種對話。這些對話並非對立，而是對事件與問題有不同見解的人們，商議朝不同的方向前進，倡議、發聲、行動，不論是替社工報不平、還是與民眾對話、向上抗爭等等，均是為了這個專業群體而努力。<br /><br /><strong className="text-white bg-white/10 px-3 py-1 rounded inline-block">未有對錯，均為夥伴。</strong></p>
+                            <p>我從114年12月11日起開始觀庭，並且加入民眾群組、社工群組、網絡社群，開始學習、觀察、諮詢與訪問，對各種對話與疑惑進行探討、歸因，尋求屬於我自己對事件的理解和問題認定。終於在115年2月26日訂下我對問題的理解，以及我想要去推動的解方。</p>
+                        </div>
+                    </motion.div>
+
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95, filter: "blur(10px)" }}
+                        whileInView={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                        transition={{ duration: 1.5, ease: "easeOut" }}
+                        viewport={{ once: true, margin: "-150px" }}
+                        className="py-32 relative"
+                    >
+                        <div className="absolute inset-0 bg-blue-900/10 blur-[120px] rounded-full" />
+                        <h3 className="text-5xl md:text-7xl font-black text-white leading-[1.2] relative z-10" style={serif}>
+                            「審判已然開始，<br />
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-gray-400 to-gray-600">審判也早已結束。」</span>
+                        </h3>
+                        <p className="mt-12 text-xl text-gray-400 font-bold max-w-2xl mx-auto leading-relaxed relative z-10">社會大眾與助人專業群體均是悲痛的、憤怒的、受傷的、挫敗的。不論判決結果如何，此間已然滿目瘡痍。</p>
+                    </motion.div>
+                </div>
+
+                {/* 背景 2: 希望微光與重建 */}
+                <div className="relative mt-20 z-20 pb-20">
+                    <div className="absolute inset-0 z-0 h-[150%] -top-[25%] pointer-events-none">
+                        <motion.div
+                            className="w-full h-full bg-cover bg-center opacity-30 mix-blend-screen"
+                            style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&q=80&w=2070")' }}
+                            initial={{ opacity: 0, y: 50 }}
+                            whileInView={{ opacity: 0.3, y: 0 }}
+                            transition={{ duration: 3 }}
+                            viewport={{ once: false, amount: 0.2 }}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-b from-[#0A0A0A] via-transparent to-[#E8E0D4] z-10" />
+                    </div>
+
+                    <motion.div
+                        initial={{ opacity: 0, y: 40 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 1.2 }}
+                        viewport={{ once: true, margin: "-100px" }}
+                        className="relative z-20 max-w-3xl mx-auto px-6 text-center space-y-12"
+                    >
+                        <div className="text-xl md:text-2xl text-gray-300 leading-[2] font-medium space-y-8 text-left drop-shadow-2xl">
+                            <p>因此我的出發點，並不想放在糾結對錯與真相上，因為不管對民眾而言還是助人群體而言，傷害與崩壞早已是事實。我想做的是從這個傷害中最務實、最深刻的去探究問題，探討如何修正、優化目前的工作困境，最終共構解方，避免再有人遭逢此難。剴剴、民眾、社工群體，不再遭逢此難。</p>
+                            <p>更白話來說，我接受傷害早已造成並成定局，討論對錯於事無補。我要做的是從斷垣殘壁中回收價值、吸取經驗，建立新的共識與準則，在哀鴻遍野中開始重建、復原，讓我們的同伴們、後輩們，不再如此。</p>
+
+                            <div className="py-12 my-12 relative">
+                                <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-transparent via-[#7B8C4E] to-transparent" />
+                                <p className="text-2xl md:text-3xl text-white font-black pl-8 leading-relaxed" style={serif}>
+                                    但若要這樣，就要去挖掘創傷，暫時放掉胸中悲痛與委屈，最真實的看待問題。
+                                </p>
+                            </div>
+
+                            <p className="text-center italic text-[#C67B5C] font-black text-2xl tracking-wide">這是用饅頭（互助、團結）沾著已然流出的血淚，<br className="hidden md:block" />轉化為成長滋糧的殘酷歷程。</p>
+                        </div>
+
+                        <div className="pt-24 text-center max-w-2xl mx-auto">
+                            <p className="text-[#A09888] font-bold mb-10 text-lg leading-relaxed">要做到這點，那就必須要先學習先備知識，再從現有資料及開庭歷程中，不經他人包裝詮釋，自己閱覽事情的始末，做出完整、獨立、多元觀點的判讀，才能走到下一步：尋求解方。</p>
+                            <Link href="/prerequisites">
+                                <button className="bg-gradient-to-r from-[#7B8C4E] to-[#5a6e38] text-white px-12 py-5 rounded-full text-xl font-black shadow-[0_0_40px_rgba(123,140,78,0.3)] hover:shadow-[0_0_60px_rgba(123,140,78,0.5)] transition-all hover:-translate-y-1 flex items-center gap-3 mx-auto">
+                                    學習先備知識 <ArrowRight size={22} className="group-hover:translate-x-1 transition-transform" />
+                                </button>
+                            </Link>
+                        </div>
+                    </motion.div>
+                </div>
+            </section>
+
             {/* ═══ What We Do ═══ */}
             <Banner title="這個平台在做什麼？" subtitle="What We Do" bg="bg-[#E8E0D4]" text="text-[#3D3832]" />
             <section className="max-w-7xl mx-auto px-6 py-8">
