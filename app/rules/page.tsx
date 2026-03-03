@@ -20,8 +20,8 @@ export default function RulesPage() {
                         <ArrowLeft size={16} /> 返回首頁
                     </Link>
                     <h1 className="text-3xl md:text-5xl font-black text-gray-900 leading-tight mb-4" style={serif}>
-                        先備知識與規範<br className="hidden md:block" />
-                        <span className="text-orange-500">Platform Prerequisites</span>
+                        平台規範與守則<br className="hidden md:block" />
+                        <span className="text-orange-500">Platform Rules</span>
                     </h1>
                     <p className="text-lg text-gray-600 font-medium leading-relaxed max-w-2xl">
                         為了確保專業論述的品質，並守護每一位實務工作者的法律安全，請在參與討論前詳閱以下規範。

@@ -237,8 +237,8 @@ export default function Home() {
                         <p className="text-[16px] text-[#A09888] font-bold mb-6">感謝 <a href="https://www.legis-pedia.com/" target="_blank" className="text-[#7B8C4E] underline">法律百科</a></p>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {[
-                                { title: '平台承諾與投稿須知', desc: '了解參與本平台共構的規範、身分選項與授權聲明。', url: '/rules' },
-                                { title: '專業留言注意事項', desc: '發言前必讀：嚴格去識別化、拒絕公審及法律免責原則。', url: '/rules' },
+                                { title: '剴剴案：建議先備知識', desc: '整理本案相關的背景脈絡與重要法律名詞釋義。', url: '/prerequisites' },
+                                { title: '開庭情境與階段說明', desc: '深入淺出解說法庭配置、發言順序與各階段的法律意義。', url: '/prerequisites' },
                             ].map((link, i) => (
                                 <Link key={i} href={link.url} className="block group">
                                     <motion.div whileHover={{ y: -3 }} className="bg-[#F5EFE4] p-6 rounded-xl border border-[#E8E0D4] hover:border-[#7B8C4E] transition-all h-full">
@@ -249,6 +249,24 @@ export default function Home() {
                                 </Link>
                             ))}
                         </div>
+                    </div>
+                </FadeIn>
+            </section>
+
+            {/* ═══ 平台規範 ═══ */}
+            <Banner title="平台規範" subtitle="Platform Rules" bg="bg-orange-50" text="text-orange-600" />
+            <section className="max-w-7xl mx-auto px-6 py-8">
+                <FadeIn>
+                    <div className="bg-white rounded-2xl p-6 md:p-8 border border-orange-100 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
+                        <div className="max-w-2xl">
+                            <h3 className="text-[24px] font-black text-gray-900 mb-2" style={serif}>發言與共構守則</h3>
+                            <p className="text-[16px] text-gray-600 font-medium leading-relaxed">
+                                為了維持專業論述的品質並守護實務工作者的法律安全，在投稿文章或發表專業見解前，請務必了解我們的「去識別化」及「免責原則」。
+                            </p>
+                        </div>
+                        <Link href="/rules" className="shrink-0 flex items-center gap-2 bg-gradient-to-r from-orange-400 to-red-400 text-white font-black px-8 py-4 rounded-xl hover:shadow-lg transition-all hover:-translate-y-1">
+                            <ShieldAlert size={20} /> 閱讀平台規範
+                        </Link>
                     </div>
                 </FadeIn>
             </section>
