@@ -157,28 +157,30 @@ export default function ForumPage() {
                     ) : (
                         posts.map((post, i) => (
                             <FadeIn key={post.id} delay={i * 0.05}>
-                                <motion.div whileHover={{ y: -2 }}
-                                    className="bg-white p-6 rounded-2xl border border-[#E8E0D4] hover:shadow-md transition-all">
-                                    <div className="flex flex-wrap items-center gap-2 mb-3">
-                                        <span className="bg-[#E3EED3] text-[#3D5220] px-3 py-1 rounded-lg text-[13px] font-black">{post.category}</span>
-                                        {post.targetTopic && (
-                                            <span className="bg-orange-100 text-orange-800 px-3 py-1 rounded-lg text-[13px] font-black">#{post.targetTopic}</span>
-                                        )}
-                                        {post.targetSessionId && (
-                                            <Link href={`/sessions`} className="bg-blue-50 text-blue-700 px-3 py-1 rounded-lg text-[13px] font-black hover:underline cursor-pointer flex items-center gap-1">
-                                                <BookOpen size={12} /> 關聯場次
-                                            </Link>
-                                        )}
-                                        <div className="flex-1"></div>
-                                        <span className="text-[14px] text-[#A09888] font-bold">{post.author || '匿名'}</span>
-                                        <span className="text-[12px] text-[#D4CCC0]">{new Date(post.createdAt).toLocaleDateString('zh-TW')}</span>
-                                    </div>
-                                    <h3 className="text-[22px] font-black" style={serif}>{post.title}</h3>
-                                    <p className="text-[17px] text-[#6B6358] font-medium mt-2 line-clamp-3">{post.content}</p>
-                                    <div className="flex items-center gap-4 mt-4 text-[14px] font-bold text-[#A09888]">
-                                        <span>❤️ {post.likes}</span>
-                                    </div>
-                                </motion.div>
+                                <Link href={`/forum/${post.id}`} className="block">
+                                    <motion.div whileHover={{ y: -2 }}
+                                        className="bg-white p-6 rounded-2xl border border-[#E8E0D4] hover:shadow-md transition-all cursor-pointer">
+                                        <div className="flex flex-wrap items-center gap-2 mb-3">
+                                            <span className="bg-[#E3EED3] text-[#3D5220] px-3 py-1 rounded-lg text-[13px] font-black">{post.category}</span>
+                                            {post.targetTopic && (
+                                                <span className="bg-orange-100 text-orange-800 px-3 py-1 rounded-lg text-[13px] font-black">#{post.targetTopic}</span>
+                                            )}
+                                            {post.targetSessionId && (
+                                                <span className="bg-blue-50 text-blue-700 px-3 py-1 rounded-lg text-[13px] font-black flex items-center gap-1">
+                                                    <BookOpen size={12} /> 關聯場次
+                                                </span>
+                                            )}
+                                            <div className="flex-1"></div>
+                                            <span className="text-[14px] text-[#A09888] font-bold">{post.author || '匿名'}</span>
+                                            <span className="text-[12px] text-[#D4CCC0]">{new Date(post.createdAt).toLocaleDateString('zh-TW')}</span>
+                                        </div>
+                                        <h3 className="text-[22px] font-black" style={serif}>{post.title}</h3>
+                                        <p className="text-[17px] text-[#6B6358] font-medium mt-2 line-clamp-3">{post.content}</p>
+                                        <div className="flex items-center gap-4 mt-4 text-[14px] font-bold text-[#A09888]">
+                                            <span>❤️ {post.likes}</span>
+                                        </div>
+                                    </motion.div>
+                                </Link>
                             </FadeIn>
                         ))
                     )}

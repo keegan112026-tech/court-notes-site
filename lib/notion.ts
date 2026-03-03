@@ -143,7 +143,7 @@ export async function fetchComments(targetLineId: string): Promise<Comment[]> {
         createdAt: p.created_time
     }));
 }
-export async function createComment(targetLineId: string, author: string, content: string, sessionId: string, topic?: string) {
+export async function createComment(targetLineId: string, author: string, content: string, sessionId: string, topic?: string, type: string = '段落留言') {
     const props: any = {
         Comment_ID: { title: [{ text: { content: `c-${Date.now()}` } }] },
         Target_Line_ID: { rich_text: [{ text: { content: targetLineId } }] },
@@ -151,7 +151,7 @@ export async function createComment(targetLineId: string, author: string, conten
         Content: { rich_text: [{ text: { content } }] },
         Likes: { number: 0 },
         Status: { select: { name: '待審核' } },
-        Type: { select: { name: '段落留言' } }
+        Type: { select: { name: type } }
     };
     if (topic) props.Target_Topic = { select: { name: topic } };
     if (sessionId) {
@@ -187,6 +187,49 @@ export async function fetchForumPosts(): Promise<ForumPost[]> {
         targetSessionId: p.properties.Target_Session?.relation?.[0]?.id ?? '',
         likes: num(p, 'Likes'),
         status: sel(p, 'Status'),
+        createdAt: p.created_time
+    }));
+}
+export async function fetchForumPostById(postId: string): Promise<ForumPost | null> {
+    try {
+        const p = await getPage(postId);
+        if (sel(p, 'Status') !== '核准' || sel(p, 'Type') !== '論壇文章') return null;
+        return {
+            id: p.id,
+            postId: txt(p, 'Comment_ID'),
+            author: txt(p, 'Author'),
+            title: txt(p, 'Title'),
+            content: txt(p, 'Content'),
+            category: sel(p, 'Category'),
+            targetTopic: sel(p, 'Target_Topic'),
+            targetSessionId: p.properties.Target_Session?.relation?.[0]?.id ?? '',
+            likes: num(p, 'Likes'),
+            status: sel(p, 'Status'),
+            createdAt: p.created_time
+        };
+    } catch {
+        return null;
+    }
+}
+export async function fetchForumComments(postId: string): Promise<Comment[]> {
+    const res = await qry(DB.interactions, {
+        filter: {
+            and: [
+                { property: 'Target_Line_ID', rich_text: { equals: postId } },
+                { property: 'Status', select: { equals: '核准' } },
+                { property: 'Type', select: { equals: '文章留言' } }
+            ]
+        },
+        sorts: [{ timestamp: 'created_time', direction: 'ascending' }]
+    });
+    return res.results.map((p: any) => ({
+        id: p.id,
+        targetLineId: txt(p, 'Target_Line_ID'),
+        author: txt(p, 'Author'),
+        content: txt(p, 'Content'),
+        likes: num(p, 'Likes'),
+        status: sel(p, 'Status'),
+        type: sel(p, 'Type'),
         createdAt: p.created_time
     }));
 }

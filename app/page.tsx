@@ -237,15 +237,16 @@ export default function Home() {
                         <p className="text-[16px] text-[#A09888] font-bold mb-6">感謝 <a href="https://www.legis-pedia.com/" target="_blank" className="text-[#7B8C4E] underline">法律百科</a></p>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {[
-                                { title: '剴剴案：建議先備知識', desc: '整理本案相關的背景脈絡與重要法律名詞釋義。持續更新中', url: 'https://bird-wildebeest-d6d.notion.site/3147e2fdafd880bfb51ce110811c2e34' },
-                                { title: '彙總：開庭情境與階段說明', desc: '深入淺出解說法庭配置、發言順序與各階段的法律意義。', url: 'https://bird-wildebeest-d6d.notion.site/3147e2fdafd880e3bb81f280f68680db' },
+                                { title: '平台承諾與投稿須知', desc: '了解參與本平台共構的規範、身分選項與授權聲明。', url: '/rules' },
+                                { title: '專業留言注意事項', desc: '發言前必讀：嚴格去識別化、拒絕公審及法律免責原則。', url: '/rules' },
                             ].map((link, i) => (
-                                <motion.a key={i} href={link.url} target="_blank" whileHover={{ y: -3 }}
-                                    className="block bg-[#F5EFE4] p-6 rounded-xl border border-[#E8E0D4] hover:border-[#7B8C4E] transition-all group">
-                                    <h4 className="text-[22px] font-black group-hover:text-[#7B8C4E] transition-colors" style={serif}>{link.title}</h4>
-                                    <p className="text-[16px] text-[#8A8078] font-bold mt-2">{link.desc}</p>
-                                    <span className="text-[#7B8C4E] text-[14px] font-bold mt-3 flex items-center gap-1">閱讀更多 <ArrowRight size={14} /></span>
-                                </motion.a>
+                                <Link key={i} href={link.url} className="block group">
+                                    <motion.div whileHover={{ y: -3 }} className="bg-[#F5EFE4] p-6 rounded-xl border border-[#E8E0D4] hover:border-[#7B8C4E] transition-all h-full">
+                                        <h4 className="text-[22px] font-black group-hover:text-[#7B8C4E] transition-colors" style={serif}>{link.title}</h4>
+                                        <p className="text-[16px] text-[#8A8078] font-bold mt-2">{link.desc}</p>
+                                        <span className="text-[#7B8C4E] text-[14px] font-bold mt-3 flex items-center gap-1">閱讀詳情 <ArrowRight size={14} /></span>
+                                    </motion.div>
+                                </Link>
                             ))}
                         </div>
                     </div>
@@ -293,7 +294,7 @@ export default function Home() {
                             <div className="flex items-center gap-2 mb-4">
                                 <motion.div animate={{ scale: [1, 1.15, 1] }} transition={{ duration: 2, repeat: Infinity }}
                                     className="w-9 h-9 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center text-white shadow-md"><BookOpen size={18} /></motion.div>
-                                <h4 className="text-[20px] font-black text-white" style={serif}>熱門觀庭筆記</h4>
+                                <h4 className="text-[20px] font-black text-white" style={serif}>最受關注的對話紀錄</h4>
                             </div>
                             {hotNotes.length === 0 ? (
                                 <p className="text-white/50 text-center py-6 text-[14px] font-bold">目前尚無熱門觀庭筆記</p>
@@ -362,7 +363,7 @@ export default function Home() {
                             ) : hotArticles.map((a, i) => {
                                 const s = sessions.find(sess => sess.id === a.targetSessionId);
                                 return (
-                                    <Link key={i} href={`/forum#${a.id}`} className="block mb-3 last:mb-0">
+                                    <Link key={i} href={`/forum/${a.id}`} className="block mb-3 last:mb-0">
                                         <motion.div whileHover={{ scale: 1.02 }}
                                             className="p-3 rounded-xl bg-white/[0.04] border border-white/5 hover:border-emerald-500/20 transition-all cursor-pointer">
                                             <div className="flex flex-wrap items-center gap-2 mb-2">
