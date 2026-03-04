@@ -54,12 +54,12 @@ export default function Home() {
     }, []);
 
     const navItems = [
-        { icon: <BookOpen size={18} />, name: '計畫緣起', href: '#mission' },
-        { icon: <BookMarked size={18} />, name: '先備知識', href: '#knowledge' },
-        { icon: <Gavel size={18} />, name: '還原筆記', href: '/sessions' },
-        { icon: <Flame size={18} />, name: '熱門排行', href: '#trending' },
-        { icon: <MessageCircle size={18} />, name: '論壇', href: '/forum' },
-        { icon: <Send size={18} />, name: '聯絡我們', href: '/contact' },
+        { name: '計畫緣起', href: '#mission', icon: <BookOpen className="w-5 h-5 text-[#8B4D35]" /> },
+        { name: '平台規範', href: '#rules', icon: <ShieldAlert className="w-5 h-5 text-[#7B8C4E]" /> },
+        { name: '先備知識', href: '#knowledge', icon: <Layers className="w-5 h-5 text-[#6B5CA5]" /> },
+        { name: '還原筆記', href: '#sessions', icon: <Gavel className="w-5 h-5 text-[#C67B5C]" /> },
+        { name: '論壇交流', href: '/forum', icon: <MessageCircle className="w-5 h-5 text-[#5A6F35]" /> },
+        { name: '聯絡我們', href: '/contact', icon: <Send className="w-5 h-5 text-[#2D2A26]" /> }
     ];
 
     /* ── Demo data (will be replaced by Notion CMS when entries exist) ── */
@@ -277,13 +277,13 @@ export default function Home() {
                         className="relative z-20 max-w-3xl mx-auto px-6 text-center space-y-12"
                     >
                         <div className="text-xl md:text-2xl text-gray-300 leading-[2] font-medium space-y-8 text-left drop-shadow-2xl">
-                            <p>因此我的出發點，並不想放在糾結對錯與真相上，因為不管對民眾而言還是助人群體而言，傷害與崩壞早已是事實。我想做的是從這個傷害中最務實、最深刻的去探究問題，探討如何修正、優化目前的工作困境，最終共構解方，避免再有人遭逢此難。剴剴、民眾、社工群體，不再遭逢此難。</p>
+                            <p>因此我的出發點，並不想放在糾結對錯與真相上，因為不管對民眾而言還是助人群體而言，傷害與崩壞早已是事實。我想做的是從這個傷害中最務實、最深刻地去探究問題，探討如何修正、優化目前的工作困境，最終共構解方，避免再有人遭逢此難。剴剴、民眾、社工群體，不再遭逢此難。</p>
                             <p>更白話來說，我接受傷害早已造成並成定局，討論對錯於事無補。我要做的是從斷垣殘壁中回收價值、吸取經驗，建立新的共識與準則，在哀鴻遍野中開始重建、復原，讓我們的同伴們、後輩們，不再如此。</p>
 
                             <div className="py-12 my-12 relative">
                                 <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-transparent via-[#7B8C4E] to-transparent" />
                                 <p className="text-2xl md:text-3xl text-white font-black pl-8 leading-relaxed" style={serif}>
-                                    但若要這樣，就要去挖掘創傷，暫時放掉胸中悲痛與委屈，最真實的看待問題。
+                                    但若要這樣，就要去挖掘創傷，暫時放掉胸中悲痛與委屈，最真實地看待問題。
                                 </p>
                             </div>
 
@@ -326,6 +326,94 @@ export default function Home() {
                 </div>
             </section>
 
+            {/* ═══ 解決什麼問題 ═══ */}
+            <Banner title="我們要解決什麼問題？" subtitle="Problems We Solve" bg="bg-[#E8D5B8]" text="text-[#8B4D35]" />
+            <section className="max-w-7xl mx-auto px-6 py-8">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
+                    {/* 背景連動線 */}
+                    <div className="hidden md:block absolute top-[40%] left-[15%] right-[15%] h-[2px] bg-gradient-to-r from-[#7B8C4E] via-[#B8860B] to-[#C67B5C] opacity-30 z-0"></div>
+                    <motion.div animate={{ scaleX: [0, 1] }} transition={{ duration: 2, repeat: Infinity }} className="hidden md:block absolute top-[40%] left-[15%] right-[15%] h-[2px] bg-gradient-to-r from-[#7B8C4E] via-[#B8860B] to-[#C67B5C] z-0 origin-left"></motion.div>
+
+                    {[
+                        { title: "資訊紛亂斷裂、門檻高", desc: "資訊紛亂、斷裂、專業壁壘、完整尋找門檻高", icon: <Layers size={24} className="text-blue-500" /> },
+                        { title: "單一敘事與詮釋壟斷", desc: "有條件觀庭者僅少數、雙方敘述封閉於庭上、外界資訊均透過解讀詮釋、觀庭者掌握解釋權、論述各有切入點與立場影響、可獲得關注", icon: <Eye size={24} className="text-[#7B8C4E]" /> },
+                        { title: "對立衝突與無法傾聽", desc: "各自論述對立、衝突、難以理解彼此、也不去聽對方的語言", icon: <MessageSquare size={24} className="text-[#C67B5C]" /> },
+                    ].map((step, i) => (
+                        <FadeIn key={i} delay={i * 0.1} className="relative z-10">
+                            <motion.div whileHover={{ y: -5 }} className="bg-white/80 backdrop-blur p-6 rounded-3xl border border-[#E8E0D4] shadow-sm text-center h-full">
+                                <div className="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center mx-auto mb-4 border border-gray-100">{step.icon}</div>
+                                <h4 className="text-[20px] font-black mb-3 text-gray-800" style={serif}>{step.title}</h4>
+                                <p className="text-[15px] text-[#6B6358] font-bold leading-relaxed">{step.desc}</p>
+                            </motion.div>
+                        </FadeIn>
+                    ))}
+                </div>
+            </section>
+
+            {/* ═══ 平台規範 ═══ */}
+            <Banner title="平台規範" subtitle="Platform Rules" bg="bg-orange-50" text="text-orange-600" />
+            <section id="rules" className="max-w-7xl mx-auto px-6 py-8">
+                <FadeIn>
+                    <div className="bg-white rounded-2xl p-6 md:p-8 border border-orange-100 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
+                        <div className="max-w-2xl">
+                            <h3 className="text-[24px] font-black text-gray-900 mb-2" style={serif}>發言與共構守則</h3>
+                            <p className="text-[16px] text-gray-600 font-medium leading-relaxed">
+                                為了維持專業論述的品質並守護實務工作者的法律安全，在投稿文章或發表專業見解前，請務必了解我們的「去識別化」及「免責原則」。
+                            </p>
+                        </div>
+                        <Link href="/rules" className="shrink-0 flex items-center gap-2 bg-gradient-to-r from-orange-400 to-red-400 text-white font-black px-8 py-4 rounded-xl hover:shadow-lg transition-all hover:-translate-y-1">
+                            <ShieldAlert size={20} /> 閱讀平台規範
+                        </Link>
+                    </div>
+                </FadeIn>
+            </section>
+
+            {/* ═══ 倫理規範 ═══ */}
+            <Banner title="倫理規範與發言守則" subtitle="Ethics & Guidelines" bg="bg-[#F5E0E0]" text="text-[#8B3535]" />
+            <section className="max-w-7xl mx-auto px-6 py-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {[
+                        { icon: <ShieldAlert size={26} />, title: "嚴格去識別化", desc: "徹底移除隱私資訊。禁止揭露真實姓名、居住地或非公開案情細節。", bg: "bg-red-50", accent: "text-red-500", border: "border-red-100" },
+                        { icon: <Scale size={26} />, title: "聚焦職務非個人", desc: "針對「專業判斷」與「機構制度」進行討論。嚴禁人身攻擊。", bg: "bg-emerald-50", accent: "text-[#7B8C4E]", border: "border-emerald-100" },
+                        { icon: <Shield size={26} />, title: "遵守法律基礎", desc: "遵守法規與公共秩序。不得發表違法資訊或煽動仇恨言論。", bg: "bg-gray-50", accent: "text-gray-600", border: "border-gray-200" },
+                    ].map((r, i) => (
+                        <FadeIn key={i} delay={i * 0.08}>
+                            <motion.div whileHover={{ y: -4 }} className={`${r.bg} p-6 rounded-2xl border ${r.border} transition-all`}>
+                                <motion.div whileHover={{ rotate: 8 }} className={`w-12 h-12 rounded-xl ${r.accent} bg-white/80 flex items-center justify-center mb-3`}>{r.icon}</motion.div>
+                                <h4 className="text-[22px] font-black mb-2" style={serif}>{r.title}</h4>
+                                <p className="text-[17px] text-[#6B6358] font-medium leading-relaxed">{r.desc}</p>
+                            </motion.div>
+                        </FadeIn>
+                    ))}
+                </div>
+            </section>
+
+            {/* ═══ 工作流程 ═══ */}
+            <Banner title="網站完整功能與操作方式" subtitle="Workflow & Features" bg="bg-[#E0DAF0]" text="text-[#4A3D7B]" />
+            <section className="max-w-7xl mx-auto px-6 py-8">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    {[
+                        { title: "前期 — 本團隊工作", items: ["實際參與所有場次形成筆記", "蒐集觀庭多元筆記核對補缺", "蒐集彙整本案相關資料"], borderC: "border-l-blue-400", accent: "text-blue-400" },
+                        { title: "呈現", items: ["觀庭現場還原筆記", "即時論述與評論投稿機制", "形成論述與探討、交流"], borderC: "border-l-[#7B8C4E]", accent: "text-[#7B8C4E]" },
+                        { title: "最後", items: ["共構本事件之復原計畫和共識", "透過集體智慧建立新的準則與論述"], borderC: "border-l-[#C67B5C]", accent: "text-[#C67B5C]" },
+                    ].map((step, i) => (
+                        <FadeIn key={i} delay={i * 0.1}>
+                            <motion.div whileHover={{ y: -4, boxShadow: '0 8px 25px rgba(0,0,0,0.08)' }}
+                                className={`bg-white p-6 rounded-2xl border border-[#E8E0D4] border-l-4 ${step.borderC} shadow-sm transition-all h-full`}>
+                                <h4 className="text-[24px] font-black mb-4" style={serif}>{step.title}</h4>
+                                <ul className="space-y-3">
+                                    {step.items.map((item, j) => (
+                                        <li key={j} className="text-[17px] text-[#5A5347] font-medium flex items-start gap-2">
+                                            <ChevronRight size={18} className={`${step.accent} mt-1 shrink-0`} />{item}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </motion.div>
+                        </FadeIn>
+                    ))}
+                </div>
+            </section>
+
             {/* ═══ 先備知識 ═══ */}
             <Banner title="先備知識" subtitle="Prerequisites" bg="bg-[#C67B5C]/15" text="text-[#8B4D35]" />
             <section id="knowledge" className="max-w-7xl mx-auto px-6 py-8">
@@ -353,27 +441,9 @@ export default function Home() {
                 </FadeIn>
             </section>
 
-            {/* ═══ 平台規範 ═══ */}
-            <Banner title="平台規範" subtitle="Platform Rules" bg="bg-orange-50" text="text-orange-600" />
-            <section className="max-w-7xl mx-auto px-6 py-8">
-                <FadeIn>
-                    <div className="bg-white rounded-2xl p-6 md:p-8 border border-orange-100 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
-                        <div className="max-w-2xl">
-                            <h3 className="text-[24px] font-black text-gray-900 mb-2" style={serif}>發言與共構守則</h3>
-                            <p className="text-[16px] text-gray-600 font-medium leading-relaxed">
-                                為了維持專業論述的品質並守護實務工作者的法律安全，在投稿文章或發表專業見解前，請務必了解我們的「去識別化」及「免責原則」。
-                            </p>
-                        </div>
-                        <Link href="/rules" className="shrink-0 flex items-center gap-2 bg-gradient-to-r from-orange-400 to-red-400 text-white font-black px-8 py-4 rounded-xl hover:shadow-lg transition-all hover:-translate-y-1">
-                            <ShieldAlert size={20} /> 閱讀平台規範
-                        </Link>
-                    </div>
-                </FadeIn>
-            </section>
-
             {/* ═══ 最新還原 ═══ */}
             <Banner title="最新還原場次" subtitle="Latest Restoration" bg="bg-[#E3EED3]" text="text-[#3D5220]" />
-            <section className="max-w-7xl mx-auto px-6 py-6">
+            <section id="sessions" className="max-w-7xl mx-auto px-6 py-6">
                 <FadeIn>
                     <motion.div whileHover={{ borderColor: '#7B8C4E', boxShadow: '0 12px 40px rgba(123,140,78,0.15)' }}
                         className="bg-white rounded-2xl p-6 md:p-8 shadow-sm border-2 border-[#E8E0D4] flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 transition-all">
@@ -509,88 +579,6 @@ export default function Home() {
                 </div>
             </section>
 
-            {/* ═══ 解決什麼問題 ═══ */}
-            <Banner title="我們要解決什麼問題？" subtitle="Problems We Solve" bg="bg-[#E8D5B8]" text="text-[#8B4D35]" />
-            <section className="max-w-7xl mx-auto px-6 py-8">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
-                    {/* 背景連動線 */}
-                    <div className="hidden md:block absolute top-[40%] left-[15%] right-[15%] h-[2px] bg-gradient-to-r from-[#7B8C4E] via-[#B8860B] to-[#C67B5C] opacity-30 z-0"></div>
-                    <motion.div animate={{ scaleX: [0, 1] }} transition={{ duration: 2, repeat: Infinity }} className="hidden md:block absolute top-[40%] left-[15%] right-[15%] h-[2px] bg-gradient-to-r from-[#7B8C4E] via-[#B8860B] to-[#C67B5C] z-0 origin-left"></motion.div>
-
-                    {[
-                        { title: "資訊紛亂斷裂、門檻高", desc: "資訊紛亂、斷裂、專業壁壘、完整尋找門檻高", icon: <Layers size={24} className="text-blue-500" /> },
-                        { title: "單一敘事與詮釋壟斷", desc: "有條件觀庭者僅少數、雙方敘述封閉於庭上、外界資訊均透過解讀詮釋、觀庭者掌握解釋權、論述各有切入點與立場影響、可獲得關注", icon: <Eye size={24} className="text-[#7B8C4E]" /> },
-                        { title: "對立衝突與無法傾聽", desc: "各自論述對立、衝突、難以理解彼此、也不去聽對方的語言", icon: <MessageSquare size={24} className="text-[#C67B5C]" /> },
-                    ].map((step, i) => (
-                        <FadeIn key={i} delay={i * 0.1} className="relative z-10">
-                            <motion.div whileHover={{ y: -5 }} className="bg-white/80 backdrop-blur p-6 rounded-3xl border border-[#E8E0D4] shadow-sm text-center h-full">
-                                <div className="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center mx-auto mb-4 border border-gray-100">{step.icon}</div>
-                                <h4 className="text-[20px] font-black mb-3 text-gray-800" style={serif}>{step.title}</h4>
-                                <p className="text-[15px] text-[#6B6358] font-bold leading-relaxed">{step.desc}</p>
-                            </motion.div>
-                        </FadeIn>
-                    ))}
-                </div>
-            </section>
-
-            {/* ═══ 工作流程 ═══ */}
-            <Banner title="網站完整功能與操作方式" subtitle="Workflow & Features" bg="bg-[#E0DAF0]" text="text-[#4A3D7B]" />
-            <section className="max-w-7xl mx-auto px-6 py-8">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                    {[
-                        { title: "前期 — 本團隊工作", items: ["實際參與所有場次形成筆記", "蒐集觀庭多元筆記核對補缺", "蒐集彙整本案相關資料"], borderC: "border-l-blue-400", accent: "text-blue-400" },
-                        { title: "呈現", items: ["觀庭現場還原筆記", "即時論述與評論投稿機制", "形成論述與探討、交流"], borderC: "border-l-[#7B8C4E]", accent: "text-[#7B8C4E]" },
-                        { title: "最後", items: ["共構本事件之復原計畫和共識", "透過集體智慧建立新的準則與論述"], borderC: "border-l-[#C67B5C]", accent: "text-[#C67B5C]" },
-                    ].map((step, i) => (
-                        <FadeIn key={i} delay={i * 0.1}>
-                            <motion.div whileHover={{ y: -4, boxShadow: '0 8px 25px rgba(0,0,0,0.08)' }}
-                                className={`bg-white p-6 rounded-2xl border border-[#E8E0D4] border-l-4 ${step.borderC} shadow-sm transition-all h-full`}>
-                                <h4 className="text-[24px] font-black mb-4" style={serif}>{step.title}</h4>
-                                <ul className="space-y-3">
-                                    {step.items.map((item, j) => (
-                                        <li key={j} className="text-[17px] text-[#5A5347] font-medium flex items-start gap-2">
-                                            <ChevronRight size={18} className={`${step.accent} mt-1 shrink-0`} />{item}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </motion.div>
-                        </FadeIn>
-                    ))}
-                </div>
-            </section>
-
-            {/* ═══ 計畫緣起 ═══ */}
-            <Banner title="計畫緣起" subtitle="About This Project" bg="bg-[#F5E6D3]" text="text-[#7A5C3D]" />
-            <section id="about" className="max-w-7xl mx-auto px-6 py-8">
-                <FadeIn>
-                    <div className="bg-white rounded-2xl p-6 md:p-10 border border-[#E8E0D4] shadow-sm">
-                        <div className="space-y-6 text-[18px] md:text-[20px] text-[#5A5347] font-medium leading-[2.1]">
-                            <p>{cms.Mission_Para_1 || '剴剴案已成為助人專業領域集體議題，對民眾及助人領域均產生各項影響。'}</p>
-                            <p>{cms.Mission_Para_2 || '為了因應衝擊，目前有許多令人尊敬的助人者挺身而出，也引發了各種對話。這些對話並非對立，而是對事件與問題有不同見解的人們，商議朝不同的方向前進，倡議、發聲、行動，不論是替社工報不平、還是與民眾對話、向上抗爭等等，均是為了這個專業群體而努力。未有對錯，均為夥伴。'}</p>
-                            <p>{cms.Mission_Para_3 || '我從114年12月11日起開始觀庭，並且加入民眾群組、社工群組、網絡社群，開始學習、觀察、諮詢與訪問，對各種對話與疑惑進行探討、歸因，尋求屬於我自己對事件的理解和問題認定。終於在115年2月26日訂下我對問題的理解，以及我想要去推動的解方。'}</p>
-
-                            <blockquote className="border-l-[6px] border-[#C67B5C] pl-6 md:pl-8 py-4 my-10 bg-[#FDE8D8]/30 rounded-r-3xl" style={serif}>
-                                <p className="text-[24px] md:text-[30px] font-black text-[#5A5347] mb-4 leading-relaxed tracking-wide">
-                                    {cms.Mission_Quote || '對於我而言——「審判已然開始，審判也早已結束。」'}
-                                </p>
-                                <p className="text-[18px] font-bold text-[#7A5C3D]">
-                                    {cms.Mission_Quote_Sub || '社會大眾與助人專業群體均是悲痛的、憤怒的、受傷的、挫敗的。不論判決結果如何，此間已然滿目瘡痍。'}
-                                </p>
-                            </blockquote>
-
-                            <p>{cms.Mission_Para_4 || '因此我的出發點，並不想放在糾結對錯與真相上，因為不管對民眾而言還是助人群體而言，傷害與崩壞早已是事實。我想做的是從這個傷害中最務實、最深刻的去探究問題，探討如何修正、優化目前的工作困境，最終共構解方，避免再有人遭逢此難。剴剴、民眾、社工群體，不再遭逢此難。'}</p>
-                            <p>{cms.Mission_Para_5 || '更白話來說，我接受傷害早已造成並成定局，討論對錯於事無補。我要做的是從斷垣殘壁中回收價值、吸取經驗，建立新的共識與準則，在哀鴻遍野中開始重建、復原，讓我們的同伴們、後輩們，不再如此。但若要這樣，就要去挖掘創傷，暫時放掉胸中悲痛與委屈，最真實的看待問題。'}</p>
-
-                            <div className="bg-[#E3EED3]/50 p-8 md:p-10 rounded-[2rem] text-[#3D5220] font-black border border-[#C5D9A8] text-center shadow-sm my-10 text-[20px] md:text-[22px] leading-relaxed tracking-wider">
-                                {cms.Mission_Highlight || '這是用饅頭（互助、團結）沾著已然流出的血淚，轉化為成長滋糧的殘酷歷程。'}
-                            </div>
-
-                            <p>{cms.Mission_Para_6 || '要做到這點，那就必須要先學習先備知識，再從現有資料及開庭歷程中，不經他人包裝詮釋，自己閱覽事情的始末，做出完整、獨立、多元觀點的判讀，才能走到下一步：尋求解方。'}</p>
-                        </div>
-                    </div>
-                </FadeIn>
-            </section>
-
             {/* ═══ 論壇精神 ═══ */}
             <Banner title="專業論壇與經驗交流" subtitle="Forum & Discussion" bg="bg-[#E3EED3]" text="text-[#3D5220]" />
             <section className="max-w-7xl mx-auto px-6 py-8">
@@ -612,7 +600,7 @@ export default function Home() {
 
             {/* ═══ 匿名聯絡 ═══ */}
             <Banner title="匿名聯絡與資料提供" subtitle="Anonymous Contact" bg="bg-[#FDE8D8]" text="text-[#8B4D35]" />
-            <section className="max-w-7xl mx-auto px-6 py-6">
+            <section id="contact" className="max-w-7xl mx-auto px-6 py-6">
                 <FadeIn>
                     <div className="bg-white rounded-2xl p-6 md:p-8 border border-[#E8E0D4] shadow-sm flex flex-col md:flex-row items-center gap-6">
                         <motion.div animate={{ y: [0, -4, 0] }} transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
@@ -627,26 +615,6 @@ export default function Home() {
                         </Link>
                     </div>
                 </FadeIn>
-            </section>
-
-            {/* ═══ 倫理規範 ═══ */}
-            <Banner title="倫理規範與發言守則" subtitle="Ethics & Guidelines" bg="bg-[#F5E0E0]" text="text-[#8B3535]" />
-            <section className="max-w-7xl mx-auto px-6 py-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {[
-                        { icon: <ShieldAlert size={26} />, title: "嚴格去識別化", desc: "徹底移除隱私資訊。禁止揭露真實姓名、居住地或非公開案情細節。", bg: "bg-red-50", accent: "text-red-500", border: "border-red-100" },
-                        { icon: <Scale size={26} />, title: "聚焦職務非個人", desc: "針對「專業判斷」與「機構制度」進行討論。嚴禁人身攻擊。", bg: "bg-emerald-50", accent: "text-[#7B8C4E]", border: "border-emerald-100" },
-                        { icon: <Shield size={26} />, title: "遵守法律基礎", desc: "遵守法規與公共秩序。不得發表違法資訊或煽動仇恨言論。", bg: "bg-gray-50", accent: "text-gray-600", border: "border-gray-200" },
-                    ].map((r, i) => (
-                        <FadeIn key={i} delay={i * 0.08}>
-                            <motion.div whileHover={{ y: -4 }} className={`${r.bg} p-6 rounded-2xl border ${r.border} transition-all`}>
-                                <motion.div whileHover={{ rotate: 8 }} className={`w-12 h-12 rounded-xl ${r.accent} bg-white/80 flex items-center justify-center mb-3`}>{r.icon}</motion.div>
-                                <h4 className="text-[22px] font-black mb-2" style={serif}>{r.title}</h4>
-                                <p className="text-[17px] text-[#6B6358] font-medium leading-relaxed">{r.desc}</p>
-                            </motion.div>
-                        </FadeIn>
-                    ))}
-                </div>
             </section>
 
             {/* ═══ 團隊鳴謝 ═══ */}

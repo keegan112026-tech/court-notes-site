@@ -19,7 +19,11 @@ export default function SessionsPage() {
 
     useEffect(() => {
         fetch('/api/sessions').then(r => r.json()).then(d => {
-            if (d.ok) setPublishedSessions(d.data);
+            if (d.ok) {
+                // Deduplicate sessions by sessionId to prevent duplicate cards
+                const uniqueSessions = Array.from(new Map(d.data.map((item: any) => [item.sessionId, item])).values());
+                setPublishedSessions(uniqueSessions as SessionData[]);
+            }
         }).catch(() => { }).finally(() => setLoading(false));
     }, []);
 
@@ -45,12 +49,16 @@ export default function SessionsPage() {
             witnesses: ['蔡函妤 (牙醫師)', '林心慈 (文山居托)', '黃鈴芳 (文山居托督導)']
         },
         {
-            title: '第5次開庭', date: '2026-01-29', displayDate: '1 月 29 日',
+            title: '第5次開庭', date: '2026-01-29', displayDate: '01 月 29 日',
             topic: '主管機關行政監督責任', desc: '釐清台北市社會局對合格保母的考核與居家托育服務中心的管理機制是否存在漏洞',
             witnesses: ['粘羽涵 (北市社會局)']
         },
         {
-            title: '第十次開庭：最終言詞辯論 (第6次審理程序開庭)', date: '2026-02-26', displayDate: '2 月 26 日', highlight: true,
+            title: '加開庭次', date: '2026-02-23', displayDate: '02 月 23 日',
+            topic: '程序進行與準備', desc: '細節待確認或補充'
+        },
+        {
+            title: '第十次開庭：最終言詞辯論 (第6次審理程序開庭)', date: '2026-02-26', displayDate: '02 月 26 日', highlight: true,
             topic: '檢察官論告與辯護律師簡報與陳述還原', desc: '全案辯論終結，檢方依過失致死與偽造文書罪論告，辯護律師進行法理辯護。'
         }
     ];
@@ -144,10 +152,10 @@ export default function SessionsPage() {
                         </div>
                         <div className="grid gap-3 pl-[1.65rem] border-l-2 border-gray-100">
                             {[
-                                { date: '7 月 17 日', desc: '首度開庭，陳姓社工不認罪。' },
-                                { date: '8 月 27 日', desc: '第二次準備程序庭。' },
+                                { date: '07 月 17 日', desc: '首度開庭，陳姓社工不認罪。' },
+                                { date: '08 月 27 日', desc: '第二次準備程序庭。' },
                                 { date: '10 月 15 日', desc: '第三次準備程序庭。' },
-                                { date: '12 月 4 日', desc: '第四次準備程序庭。' },
+                                { date: '12 月 04 日', desc: '第四次準備程序庭。' },
                             ].map((s, i) => (
                                 <div key={i} className="bg-gray-50 p-4 rounded-2xl border border-gray-100 text-[16px] relative flex items-start -ml-[1.6rem] gap-4">
                                     <div className="w-3 h-3 bg-gray-300 rounded-full mt-1.5 border-2 border-white shrink-0" />
