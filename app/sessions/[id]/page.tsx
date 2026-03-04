@@ -143,6 +143,14 @@ export default function SessionDetailPage() {
         } catch { setSubmitMsg('❌ 網路錯誤'); } finally { setSubmitting(false); }
     };
 
+    const [isCopied, setIsCopied] = useState(false);
+
+    const handleShare = () => {
+        navigator.clipboard.writeText(window.location.href);
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 2000);
+    };
+
     return (
         <div className="min-h-screen bg-[#FAFAFA] text-gray-800 font-sans selection:bg-[#6B8E23]/20 pb-20">
             {/* Header */}
@@ -153,7 +161,13 @@ export default function SessionDetailPage() {
                     </Link>
                     <h1 className="text-base lg:text-xl font-black text-gray-900 tracking-tight">法庭實況還原與專業共構筆記</h1>
                 </div>
-                <button className="bg-[#6B8E23] text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm">分享報告</button>
+                <button
+                    onClick={handleShare}
+                    className="flex items-center gap-2 bg-[#6B8E23] text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm hover:bg-[#5a781d] transition-colors"
+                >
+                    <Share2 size={16} />
+                    {isCopied ? '已複製連結！' : '分享連結'}
+                </button>
             </header>
 
             <main className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 px-4 lg:px-8 pt-8">

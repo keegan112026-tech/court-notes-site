@@ -208,7 +208,7 @@ export default function Home() {
                 <div className="absolute inset-0 z-0">
                     <motion.div
                         className="w-full h-full bg-cover bg-center opacity-40 mix-blend-luminosity"
-                        style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80&w=2070")' }}
+                        style={{ backgroundImage: 'url("/images/about_solemn_bg.png")' }}
                         initial={{ opacity: 0.1, scale: 1.1 }}
                         whileInView={{ opacity: 0.4, scale: 1 }}
                         transition={{ duration: 6, ease: "easeOut" }}
@@ -244,29 +244,29 @@ export default function Home() {
                         whileInView={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
                         transition={{ duration: 1.5, ease: "easeOut" }}
                         viewport={{ once: true, margin: "-150px" }}
-                        className="py-32 relative"
+                        className="py-16 md:py-32 relative z-30"
                     >
                         <div className="absolute inset-0 bg-blue-900/10 blur-[120px] rounded-full" />
-                        <h3 className="text-5xl md:text-7xl font-black text-white leading-[1.2] relative z-10" style={serif}>
+                        <h3 className="text-5xl md:text-7xl font-black text-white leading-[1.2] relative z-20" style={serif}>
                             「審判已然開始，<br />
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-gray-400 to-gray-600">審判也早已結束。」</span>
                         </h3>
-                        <p className="mt-12 text-xl text-gray-400 font-bold max-w-2xl mx-auto leading-relaxed relative z-10">社會大眾與助人專業群體均是悲痛的、憤怒的、受傷的、挫敗的。不論判決結果如何，此間已然滿目瘡痍。</p>
+                        <p className="mt-12 text-xl text-gray-400 font-bold max-w-2xl mx-auto leading-relaxed relative z-20 drop-shadow-lg">社會大眾與助人專業群體均是悲痛的、憤怒的、受傷的、挫敗的。不論判決結果如何，此間已然滿目瘡痍。</p>
                     </motion.div>
-                </div>
+                </div> {/* End of max-w-4xl mx-auto */}
 
                 {/* 背景 2: 希望微光與重建 */}
                 <div className="relative mt-20 z-20 pb-20">
                     <div className="absolute inset-0 z-0 h-[150%] -top-[25%] pointer-events-none">
                         <motion.div
                             className="w-full h-full bg-cover bg-center opacity-30 mix-blend-screen"
-                            style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&q=80&w=2070")' }}
+                            style={{ backgroundImage: 'url("/images/about_hope_bg.png")' }}
                             initial={{ opacity: 0, y: 50 }}
                             whileInView={{ opacity: 0.3, y: 0 }}
                             transition={{ duration: 3 }}
                             viewport={{ once: false, amount: 0.2 }}
                         />
-                        <div className="absolute inset-0 bg-gradient-to-b from-[#0A0A0A] via-transparent to-[#E8E0D4] z-10" />
+                        <div className="absolute inset-0 bg-gradient-to-b from-[#0A0A0A] via-[#0A0A0A]/80 to-[#E8E0D4] z-10" />
                     </div>
 
                     <motion.div
@@ -290,8 +290,11 @@ export default function Home() {
                             <p className="text-center italic text-[#C67B5C] font-black text-2xl tracking-wide">這是用饅頭（互助、團結）沾著已然流出的血淚，<br className="hidden md:block" />轉化為成長滋糧的殘酷歷程。</p>
                         </div>
 
-                        <div className="pt-24 text-center max-w-2xl mx-auto">
-                            <p className="text-[#A09888] font-bold mb-10 text-lg leading-relaxed">要做到這點，那就必須要先學習先備知識，再從現有資料及開庭歷程中，不經他人包裝詮釋，自己閱覽事情的始末，做出完整、獨立、多元觀點的判讀，才能走到下一步：尋求解方。</p>
+                        <div className="pt-24 text-center max-w-2xl mx-auto relative z-30 drop-shadow-md">
+                            <p className="text-[#3D3832] font-black mb-10 text-[19px] leading-relaxed relative z-30 bg-white/40 px-8 py-6 rounded-3xl border border-white/50 backdrop-blur-sm shadow-xl">
+                                要做到這點，那就必須要先學習先備知識，再從現有資料及開庭歷程中，不經他人包裝詮釋，自己閱覽事情的始末，做出完整、獨立、多元觀點的判讀，<br />
+                                <span className="text-[#7B8C4E] text-2xl mt-4 block">一起走到下一步：尋求解方。</span>
+                            </p>
                             <Link href="/prerequisites">
                                 <button className="bg-gradient-to-r from-[#7B8C4E] to-[#5a6e38] text-white px-12 py-5 rounded-full text-xl font-black shadow-[0_0_40px_rgba(123,140,78,0.3)] hover:shadow-[0_0_60px_rgba(123,140,78,0.5)] transition-all hover:-translate-y-1 flex items-center gap-3 mx-auto">
                                     學習先備知識 <ArrowRight size={22} className="group-hover:translate-x-1 transition-transform" />
