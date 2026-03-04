@@ -208,7 +208,7 @@ export default function Home() {
                 <div className="absolute inset-0 z-0">
                     <motion.div
                         className="w-full h-full bg-cover bg-center opacity-40 mix-blend-luminosity"
-                        style={{ backgroundImage: 'url("/images/about_solemn_bg.png")' }}
+                        style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80&w=2070")' }}
                         initial={{ opacity: 0.1, scale: 1.1 }}
                         whileInView={{ opacity: 0.4, scale: 1 }}
                         transition={{ duration: 6, ease: "easeOut" }}
@@ -260,7 +260,7 @@ export default function Home() {
                     <div className="absolute inset-0 z-0 h-[150%] -top-[25%] pointer-events-none">
                         <motion.div
                             className="w-full h-full bg-cover bg-center opacity-30 mix-blend-screen"
-                            style={{ backgroundImage: 'url("/images/about_hope_bg.png")' }}
+                            style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&q=80&w=2070")' }}
                             initial={{ opacity: 0, y: 50 }}
                             whileInView={{ opacity: 0.3, y: 0 }}
                             transition={{ duration: 3 }}
