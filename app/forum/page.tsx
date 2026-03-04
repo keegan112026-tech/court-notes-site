@@ -12,6 +12,7 @@ export default function ForumPage() {
     const [sessionsList, setSessionsList] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
+    const [activeCategory, setActiveCategory] = useState('綜合看板');
     const [formData, setFormData] = useState({ author: '', title: '', content: '', category: '經驗分享', topic: '制度探討', targetSessionSid: '' });
     const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
@@ -46,7 +47,10 @@ export default function ForumPage() {
     };
 
     const categories = ['經驗分享', '專業討論', '資料補充', '提問', '糾錯回報'];
+    const filterCategories = ['綜合看板', ...categories];
     const topics = ['制度探討', '實務經驗', '倫理界線', '流程爭議', '資源配置', '其他'];
+
+    const displayedPosts = posts.filter(post => activeCategory === '綜合看板' ? true : post.category === activeCategory);
 
     return (
         <div className="min-h-screen" style={{ backgroundColor: '#FBF7F0', color: '#2D2A26' }}>
@@ -63,8 +67,17 @@ export default function ForumPage() {
                 <FadeIn>
                     <div className="flex justify-between items-center mb-6">
                         <div className="flex flex-wrap gap-2">
-                            {categories.map(c => (
-                                <span key={c} className="bg-[#E3EED3] text-[#3D5220] px-4 py-2 rounded-xl text-[15px] font-black border border-[#C5D9A8]">{c}</span>
+                            {filterCategories.map(c => (
+                                <button
+                                    key={c}
+                                    onClick={() => setActiveCategory(c)}
+                                    className={`px-4 py-2 rounded-xl text-[15px] font-black border transition-colors ${activeCategory === c
+                                            ? 'bg-[#E3EED3] text-[#3D5220] border-[#C5D9A8] shadow-sm'
+                                            : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'
+                                        }`}
+                                >
+                                    {c}
+                                </button>
                             ))}
                         </div>
                         <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setShowForm(!showForm)}
@@ -146,16 +159,16 @@ export default function ForumPage() {
                         <div className="text-center py-16">
                             <p className="text-[20px] text-[#8A8078] font-bold">載入中...</p>
                         </div>
-                    ) : posts.length === 0 ? (
+                    ) : displayedPosts.length === 0 ? (
                         <FadeIn>
                             <div className="text-center py-16 bg-white rounded-2xl border border-[#E8E0D4]">
-                                <MessageCircle size={48} className="mx-auto text-[#D4CCC0] mb-4" />
-                                <p className="text-[20px] font-black text-[#8A8078]" style={serif}>論壇尚無已發布文章</p>
+                                <Filter size={48} className="mx-auto text-[#D4CCC0] mb-4" />
+                                <p className="text-[20px] font-black text-[#8A8078]" style={serif}>此分類尚無已發布文章</p>
                                 <p className="text-[16px] text-[#A09888] mt-2">成為第一位投稿的人吧！</p>
                             </div>
                         </FadeIn>
                     ) : (
-                        posts.map((post, i) => (
+                        displayedPosts.map((post, i) => (
                             <FadeIn key={post.id} delay={i * 0.05}>
                                 <Link href={`/forum/${post.id}`} className="block">
                                     <motion.div whileHover={{ y: -2 }}
