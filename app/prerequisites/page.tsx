@@ -67,14 +67,14 @@ export default function PrerequisitesPage() {
                                             監察院已於 114 年 5 月底發布對本案的調查報告，重點聚焦於體制漏洞與行政過失，是理解「結構性問題」的重要文本。
                                         </p>
                                         <div className="flex flex-col sm:flex-row gap-4">
-                                            <a href="#" className="flex-1 bg-white border border-[#E8E0D4] p-4 rounded-2xl hover:border-[#C67B5C] transition-colors group">
-                                                <h4 className="font-black text-gray-800 group-hover:text-[#C67B5C] mb-1">114.05.29 記者會簡報</h4>
-                                                <span className="text-[#C67B5C] text-sm font-bold flex items-center gap-1">觀看重點摘要 <ChevronRight size={14} /></span>
-                                            </a>
-                                            <a href="#" className="flex-1 bg-white border border-[#E8E0D4] p-4 rounded-2xl hover:border-[#C67B5C] transition-colors group">
-                                                <h4 className="font-black text-gray-800 group-hover:text-[#C67B5C] mb-1">監察院正式調查報告</h4>
-                                                <span className="text-[#C67B5C] text-sm font-bold flex items-center gap-1">檢視完整報告 <ChevronRight size={14} /></span>
-                                            </a>
+                                            <div className="flex-1 bg-white border border-[#E8E0D4] p-5 rounded-2xl">
+                                                <h4 className="font-black text-gray-800 text-lg mb-1">114.05.29 記者會簡報</h4>
+                                                <p className="text-[#8A8078] text-sm font-bold mt-2">（本平台將陸續整理後放上）</p>
+                                            </div>
+                                            <div className="flex-1 bg-white border border-[#E8E0D4] p-5 rounded-2xl">
+                                                <h4 className="font-black text-gray-800 text-lg mb-1">監察院正式調查報告</h4>
+                                                <p className="text-[#8A8078] text-sm font-bold mt-2">（本平台將陸續整理後放上）</p>
+                                            </div>
                                         </div>
                                     </div>
                                 </section>
