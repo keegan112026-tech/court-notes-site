@@ -5,7 +5,8 @@ import { motion, useScroll, AnimatePresence } from 'framer-motion';
 import {
     PenTool, BookOpen, Heart, Eye, MessageSquare, ChevronRight, Flame,
     Gavel, Clock, ArrowRight, BookMarked, Layers, Flag, Menu, X, Users,
-    HeartHandshake, Sparkles, Send, FileText, MessageCircle, Shield, Scale, ShieldAlert
+    HeartHandshake, Sparkles, Send, FileText, MessageCircle, Shield, Scale, ShieldAlert,
+    AlertCircle
 } from 'lucide-react';
 import { FadeIn, Counter, TypeWriter, Banner, WarmGradientBg } from '@/components/ui-shared';
 
@@ -208,7 +209,7 @@ export default function Home() {
                 <div className="absolute inset-0 z-0">
                     <motion.div
                         className="w-full h-full bg-cover bg-center opacity-40 mix-blend-luminosity"
-                        style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80&w=2070")' }}
+                        style={{ backgroundImage: 'url("/images/about_solemn_bg.png")' }}
                         initial={{ opacity: 0.1, scale: 1.1 }}
                         whileInView={{ opacity: 0.4, scale: 1 }}
                         transition={{ duration: 6, ease: "easeOut" }}
@@ -260,7 +261,7 @@ export default function Home() {
                     <div className="absolute inset-0 z-0 h-[150%] -top-[25%] pointer-events-none">
                         <motion.div
                             className="w-full h-full bg-cover bg-center opacity-30 mix-blend-screen"
-                            style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&q=80&w=2070")' }}
+                            style={{ backgroundImage: 'url("/images/about_hope_bg.png")' }}
                             initial={{ opacity: 0, y: 50 }}
                             whileInView={{ opacity: 0.3, y: 0 }}
                             transition={{ duration: 3 }}
@@ -419,26 +420,100 @@ export default function Home() {
 
             {/* ═══ 先備知識 ═══ */}
             <Banner title="先備知識" subtitle="Prerequisites" bg="bg-[#C67B5C]/15" text="text-[#8B4D35]" />
-            <section id="knowledge" className="max-w-7xl mx-auto px-6 py-8">
+            <section id="knowledge" className="max-w-7xl mx-auto px-6 py-12 md:py-20">
                 <FadeIn>
-                    <div className="bg-white rounded-2xl p-6 md:p-8 border border-[#E8E0D4] shadow-sm">
-                        <p className="text-[20px] text-[#6B6358] font-medium leading-[1.8] mb-6">
-                            希望夥伴們理解法庭規則後再往下看，才能在清楚脈絡與規則下判讀，理解開庭中的動力與詰問的背後意義。 例：何謂合議庭？為何一場開庭會有三名法官？證人詰問是什麼？
-                        </p>
-                        <p className="text-[16px] text-[#A09888] font-bold mb-6">感謝 <a href="https://www.legis-pedia.com/" target="_blank" className="text-[#7B8C4E] underline">法律百科</a></p>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {[
-                                { title: '剴剴案：建議先備知識', desc: '整理本案相關的背景脈絡、重要法律名詞釋義與相關附件下載。', url: '/prerequisites' },
-                                { title: '開庭情境與階段說明', desc: '深入淺出解說法庭配置、發言順序與各階段的法律意義。', url: '/prerequisites' },
-                            ].map((link, i) => (
-                                <Link key={i} href={link.url} className="block group">
-                                    <motion.div whileHover={{ y: -3 }} className="bg-[#F5EFE4] p-6 rounded-xl border border-[#E8E0D4] hover:border-[#7B8C4E] transition-all h-full">
-                                        <h4 className="text-[22px] font-black group-hover:text-[#7B8C4E] transition-colors" style={serif}>{link.title}</h4>
-                                        <p className="text-[16px] text-[#8A8078] font-bold mt-2">{link.desc}</p>
-                                        <span className="text-[#7B8C4E] text-[14px] font-bold mt-3 flex items-center gap-1">前往閱讀完整先備知識 <ArrowRight size={14} /></span>
-                                    </motion.div>
-                                </Link>
-                            ))}
+                    <div className="bg-white rounded-[2.5rem] border border-[#E8E0D4] p-8 md:p-16 shadow-xl relative overflow-hidden">
+                        <div className="max-w-4xl mx-auto mb-16">
+                            <h3 className="text-3xl md:text-4xl font-black text-gray-900 mb-6 text-center" style={serif}>閱讀筆記前的準備</h3>
+                            <p className="text-[20px] text-[#6B6358] font-medium leading-[1.8] text-center italic">
+                                「希望夥伴們理解法庭規則後再往下看，才能在清楚脈絡與規則下判讀，理解開庭中的動力與詰問的背後意義。」
+                            </p>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                            {/* Left: Timeline & Case Info */}
+                            <div className="space-y-12">
+                                <section>
+                                    <div className="flex items-center gap-4 mb-8">
+                                        <div className="w-12 h-12 rounded-2xl bg-[#C67B5C]/10 flex items-center justify-center text-[#C67B5C]">
+                                            <Clock size={24} />
+                                        </div>
+                                        <h4 className="text-2xl font-black" style={serif}>事件大事記 (Timeline)</h4>
+                                    </div>
+                                    <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-1 before:bg-gradient-to-b before:from-[#F0E6D2] before:to-transparent">
+                                        {[
+                                            { date: '111/3/17', desc: '新北市中心將 A 童轉介兒盟辦理收出養。' },
+                                            { date: '112/9/1', desc: 'A 童轉送至劉姓保母（本案被告）處安置。' },
+                                            { date: '112/12/24', desc: 'A 童不幸死亡。' },
+                                            { date: '114/5/29', desc: '監察院發布對本案調查報告。' },
+                                        ].map((item, idx) => (
+                                            <div key={idx} className="relative flex items-center group pl-12">
+                                                <div className="absolute left-0 w-10 h-10 rounded-full border-4 border-white bg-[#C67B5C] text-white shadow-sm flex items-center justify-center z-10" />
+                                                <div className="bg-[#FDFBF7] p-5 rounded-2xl border border-[#F0E6D2] w-full hover:shadow-md transition-shadow">
+                                                    <span className="text-xs font-black text-white bg-[#C67B5C] px-2 py-1 rounded inline-block mb-2">{item.date}</span>
+                                                    <p className="text-[15px] font-bold text-gray-700 leading-relaxed">{item.desc}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <Link href="/prerequisites" className="mt-8 inline-flex items-center gap-2 text-[#C67B5C] font-black hover:underline pl-12 pt-4">
+                                        查看完整詳細大事記 <ArrowRight size={16} />
+                                    </Link>
+                                </section>
+                            </div>
+
+                            {/* Right: Court Stages */}
+                            <div className="space-y-12">
+                                <section>
+                                    <div className="flex items-center gap-4 mb-8">
+                                        <div className="w-12 h-12 rounded-2xl bg-[#7B8C4E]/10 flex items-center justify-center text-[#7B8C4E]">
+                                            <Scale size={24} />
+                                        </div>
+                                        <h4 className="text-2xl font-black" style={serif}>法庭程序四大階段</h4>
+                                    </div>
+                                    <div className="grid grid-cols-1 gap-4">
+                                        {[
+                                            { stage: '階段一', title: '審理啟動 (程序確認)', icon: <Gavel size={20} />, color: 'text-blue-600', bg: 'bg-blue-50' },
+                                            { stage: '階段二', title: '證據整理與意見表達', icon: <FileText size={20} />, color: 'text-purple-600', bg: 'bg-purple-50' },
+                                            { stage: '階段三', title: '詰問部署 (順序與隔離)', icon: <AlertCircle size={20} />, color: 'text-orange-600', bg: 'bg-orange-50' },
+                                            { stage: '階段四', title: '交互詰問流程', icon: <MessageSquare size={20} />, color: 'text-[#5A6E2B]', bg: 'bg-[#F9FBE7]' },
+                                        ].map((s, i) => (
+                                            <div key={i} className={`${s.bg} p-6 rounded-2xl border border-black/5 flex items-center gap-4 group hover:shadow-md transition-all`}>
+                                                <div className={`w-12 h-12 rounded-xl bg-white flex items-center justify-center ${s.color} shadow-sm group-hover:scale-110 transition-transform`}>
+                                                    {s.icon}
+                                                </div>
+                                                <div>
+                                                    <span className={`text-xs font-black uppercase tracking-wider ${s.color}`}>{s.stage}</span>
+                                                    <h5 className="text-[17px] font-black text-gray-900" style={serif}>{s.title}</h5>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <Link href="/prerequisites" className="mt-8 inline-flex items-center gap-2 text-[#7B8C4E] font-black hover:underline pt-4">
+                                        查看各階段詳細內容解說 <ArrowRight size={16} />
+                                    </Link>
+                                </section>
+                            </div>
+                        </div>
+
+                        {/* External Notion Links */}
+                        <div className="mt-16 pt-16 border-t border-[#E8E0D4]">
+                            <h4 className="text-xl font-black mb-8 text-center" style={serif}>Notion 深度閱讀與原始資料</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {[
+                                    { title: '剴剴案：建議先備知識', desc: '整理本案相關的背景脈絡、重要法律名詞釋義與相關附件下載。', url: 'https://bird-wildebeest-d6d.notion.site/3147e2fdafd880bfb51ce110811c2e34' },
+                                    { title: '開庭情境與階段說明', desc: '深入淺出解說法庭配置、發言順序與各階段的法律意義。', url: 'https://bird-wildebeest-d6d.notion.site/3147e2fdafd880e3bb81f280f68680db' },
+                                ].map((link, i) => (
+                                    <a key={i} href={link.url} target="_blank" rel="noreferrer" className="block group">
+                                        <motion.div whileHover={{ y: -3 }} className="bg-[#F5EFE4] p-6 rounded-xl border border-[#E8E0D4] hover:border-[#7B8C4E] transition-all h-full">
+                                            <h4 className="text-[18px] font-black group-hover:text-[#7B8C4E] transition-colors" style={serif}>{link.title}</h4>
+                                            <p className="text-[14px] text-[#8A8078] font-bold mt-2">{link.desc}</p>
+                                            <span className="text-[#7B8C4E] text-[13px] font-bold mt-3 flex items-center gap-1">前往 Notion 閱讀完整版本 <ArrowRight size={14} /></span>
+                                        </motion.div>
+                                    </a>
+                                ))}
+                            </div>
+                            <p className="text-center mt-8 text-[14px] text-gray-400 font-bold">感謝 <a href="https://www.legis-pedia.com/" target="_blank" className="text-[#7B8C4E] underline">法律百科</a> 及各專業法實務工作者協助彙整</p>
                         </div>
                     </div>
                 </FadeIn>
