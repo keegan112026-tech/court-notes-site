@@ -111,9 +111,9 @@ export default function Home() {
                     <div className="hidden lg:flex items-center gap-0.5">
                         {navItems.map(item => (
                             <Link key={item.name} href={item.href}
-                                className="relative flex items-center gap-2 px-4 py-2.5 rounded-xl text-[17px] font-bold text-[#5A5347] hover:text-[#7B8C4E] transition-colors group">
-                                {item.icon}<span>{item.name}</span>
-                                <span className="absolute bottom-1 left-1/2 -translate-x-1/2 h-[2px] bg-[#7B8C4E] rounded-full w-0 group-hover:w-8 transition-all duration-300" />
+                                className="relative flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl text-[13px] font-bold text-[#5A5347] hover:text-[#7B8C4E] transition-colors group leading-tight text-center whitespace-nowrap">
+                                {item.icon}<span className="leading-[1.3]" style={{ writingMode: 'horizontal-tb' }}>{item.name.slice(0, 2)}<br />{item.name.slice(2)}</span>
+                                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 h-[2px] bg-[#7B8C4E] rounded-full w-0 group-hover:w-8 transition-all duration-300" />
                             </Link>
                         ))}
                         <Link href="/forum">
@@ -206,12 +206,12 @@ export default function Home() {
             {/* ═══ 計畫緣起 (Cinematic Storytelling - Art Expert Redesign) ═══ */}
             <section id="about" className="relative w-full overflow-hidden bg-[#0A0A0A] text-white">
                 {/* 底部融合層 - 確保與上下區塊自然銜接 */}
-                <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-[#FBF7F0] to-transparent z-50 pointer-events-none" />
+                <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-[#FBF7F0] to-transparent z-50 pointer-events-none" />
 
                 {/* 核心敘事容器 */}
                 <div className="relative">
                     {/* 背景層 1: 莊嚴與沈重 */}
-                    <div className="sticky top-0 h-screen w-full overflow-hidden z-0">
+                    <div className="sticky top-0 h-[60vh] w-full overflow-hidden z-0">
                         <motion.div
                             className="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-luminosity scale-110"
                             style={{ backgroundImage: 'url("/images/about_solemn_bg.png")' }}
@@ -223,12 +223,12 @@ export default function Home() {
                     </div>
 
                     {/* 文案層 1 */}
-                    <div className="relative z-10 -mt-[80vh] pb-[20vh] max-w-5xl mx-auto px-6">
+                    <div className="relative z-10 -mt-[50vh] pb-[5vh] max-w-5xl mx-auto px-6">
                         <motion.div
                             initial={{ opacity: 0, y: 100 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             transition={{ duration: 1.5, ease: "easeOut" }}
-                            className="text-center space-y-16"
+                            className="text-center space-y-8"
                         >
                             <div className="inline-block">
                                 <span className="text-[#C67B5C] font-black tracking-[0.4em] uppercase text-sm mb-4 block">About This Project</span>
@@ -238,7 +238,7 @@ export default function Home() {
 
                             <div className="grid grid-cols-1 md:grid-cols-12 gap-12 items-start text-left">
                                 <div className="md:col-span-1 hidden md:block border-l border-white/20 h-full" />
-                                <div className="md:col-span-10 text-xl md:text-2xl text-gray-300 leading-[2.2] font-serif italic space-y-10">
+                                <div className="md:col-span-10 text-xl md:text-2xl text-gray-300 leading-[2] font-serif italic space-y-6">
                                     <p className="first-letter:text-5xl first-letter:font-black first-letter:text-white first-letter:mr-3 first-letter:float-left">
                                         剴剴案已成為助人專業領域集體議題，對民眾及助人領域均產生各項影響。為了因應衝擊，目前有許多令人尊敬的助人者挺身而出，也引發了各種對話。
                                     </p>
@@ -259,7 +259,7 @@ export default function Home() {
                     </div>
 
                     {/* 金句層 - 全螢幕衝擊 */}
-                    <div className="relative h-screen flex items-center justify-center bg-black z-20">
+                    <div className="relative min-h-[40vh] py-16 flex items-center justify-center bg-black z-20">
                         <motion.div
                             initial={{ opacity: 0, scale: 0.8 }}
                             whileInView={{ opacity: 1, scale: 1 }}
@@ -270,7 +270,7 @@ export default function Home() {
                                 「審判已然開始，<br />
                                 <span className="text-red-900/80 blur-[1px] hover:blur-0 transition-all">審判也早已結束。」</span>
                             </h3>
-                            <div className="max-w-2xl mx-auto h-[1px] bg-gradient-to-r from-transparent via-gray-500 to-transparent my-10" />
+                            <div className="max-w-2xl mx-auto h-[1px] bg-gradient-to-r from-transparent via-gray-500 to-transparent my-6" />
                             <p className="text-xl md:text-2xl text-gray-500 font-bold tracking-widest italic">
                                 社會大眾與助人專業群體均是悲痛的、憤怒的、受傷的、挫敗的。<br />
                                 不論判決結果如何，此間已然滿目瘡痍。
@@ -279,7 +279,7 @@ export default function Home() {
                     </div>
 
                     {/* 背景層 2: 轉向希望與重建 */}
-                    <div className="sticky top-0 h-screen w-full overflow-hidden z-0">
+                    <div className="sticky top-0 h-[60vh] w-full overflow-hidden z-0">
                         <motion.div
                             className="absolute inset-0 bg-cover bg-center opacity-30 mix-blend-screen"
                             style={{ backgroundImage: 'url("/images/about_hope_bg.png")' }}
@@ -291,17 +291,17 @@ export default function Home() {
                     </div>
 
                     {/* 文案層 2 */}
-                    <div className="relative z-10 -mt-[80vh] pb-32 max-w-4xl mx-auto px-6">
+                    <div className="relative z-10 -mt-[50vh] pb-12 max-w-4xl mx-auto px-6">
                         <motion.div
                             initial={{ opacity: 0, x: -50 }}
                             whileInView={{ opacity: 1, x: 0 }}
                             transition={{ duration: 1.5 }}
-                            className="space-y-16"
+                            className="space-y-8"
                         >
-                            <div className="space-y-10 text-xl md:text-2xl text-gray-300 leading-[2.2] font-medium">
+                            <div className="space-y-6 text-xl md:text-2xl text-gray-300 leading-[2] font-medium">
                                 <p>因此我的出發點，並不想放在糾結對錯與真相上，因為傷害與崩壞早已是事實。我想做的是從這個傷害中最務實、最深刻地去探究問題，探討如何修正、優化目前的工作困境，最終共構解方，避免再有人遭逢此難。</p>
 
-                                <blockquote className="relative py-12 px-12 bg-white/5 backdrop-blur-md rounded-[2rem] border border-white/10 shadow-2xl overflow-hidden">
+                                <blockquote className="relative py-8 px-10 bg-white/5 backdrop-blur-md rounded-[2rem] border border-white/10 shadow-2xl overflow-hidden">
                                     <div className="absolute left-0 top-0 w-2 h-full bg-[#7B8C4E]" />
                                     <span className="absolute top-4 right-8 text-9xl text-white/5 font-serif italic select-none">"</span>
                                     <p className="text-2xl md:text-3xl text-white font-black leading-relaxed relative z-10" style={serif}>
@@ -309,7 +309,7 @@ export default function Home() {
                                     </p>
                                 </blockquote>
 
-                                <div className="text-center py-20">
+                                <div className="text-center py-10">
                                     <p className="italic text-[#C67B5C] font-black text-3xl md:text-4xl tracking-tighter leading-tight">
                                         這是用饅頭沾著已然流出的血淚，<br />
                                         轉化為成長滋糧的殘酷歷程。
@@ -319,7 +319,7 @@ export default function Home() {
                                     </div>
                                 </div>
 
-                                <div className="bg-white/80 backdrop-blur-xl p-10 md:p-16 rounded-[3rem] border border-white shadow-2xl text-center">
+                                <div className="bg-white/80 backdrop-blur-xl p-8 md:p-12 rounded-[2rem] border border-white shadow-2xl text-center">
                                     <p className="text-[#3D3832] font-black text-[22px] md:text-[24px] leading-relaxed">
                                         要做到這點，那就必須要先學習先備知識，<br />
                                         再從不經他人包裝詮釋的始末中做出判讀，<br />
@@ -332,7 +332,7 @@ export default function Home() {
                 </div>
 
                 {/* 底部融合層 */}
-                <div className="h-32 bg-gradient-to-t from-[#FBF7F0] to-transparent" />
+                <div className="h-16 bg-gradient-to-t from-[#FBF7F0] to-transparent" />
             </section>
 
 
