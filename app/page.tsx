@@ -477,38 +477,6 @@ export default function Home() {
                 </FadeIn>
             </section>
 
-            {/* ═══ 最新還原 ═══ */}
-            <Banner title="最新還原場次" subtitle="Latest Restoration" bg="bg-[#E3EED3]" text="text-[#3D5220]" />
-            <section id="sessions" className="max-w-7xl mx-auto px-6 py-6">
-                <FadeIn>
-                    <motion.div whileHover={{ borderColor: '#7B8C4E', boxShadow: '0 12px 40px rgba(123,140,78,0.15)' }}
-                        className="bg-white rounded-2xl p-6 md:p-8 shadow-sm border-2 border-[#E8E0D4] flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 transition-all">
-                        <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-3">
-                                <motion.span animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 2, repeat: Infinity }}
-                                    className="bg-[#C67B5C] text-white text-[14px] font-black px-3 py-1 rounded-lg shadow-sm">最新還原</motion.span>
-                                <span className="text-[#7B8C4E] text-[16px] font-bold flex items-center gap-1"><Clock size={16} />2026 年 2 月 26 日</span>
-                            </div>
-                            <h3 className="text-[28px] md:text-[32px] font-black leading-tight" style={serif}>檢察官論告與辯護律師簡報與陳述還原</h3>
-                            <div className="mt-3 bg-[#FBF7F0] p-4 rounded-xl border border-[#E8E0D4]">
-                                <p className="text-[18px] font-bold text-[#5A5347]">⚠️ 114年度訴字第51號 過失致死等案（一審審理庭第六場次）</p>
-                                <p className="text-[16px] font-bold text-[#8A8078] mt-1 flex items-center gap-2">
-                                    <motion.span animate={{ scale: [1, 1.4, 1] }} transition={{ duration: 1.5, repeat: Infinity }} className="w-2 h-2 rounded-full bg-[#7B8C4E] inline-block" />
-                                    程序：言詞辯論、檢方論告與最後陳述
-                                </p>
-                            </div>
-                        </div>
-                        <Link href="/sessions">
-                            <motion.button whileHover={{ scale: 1.05, boxShadow: '0 16px 40px rgba(123,140,78,0.3)' }} whileTap={{ scale: 0.97 }}
-                                className="bg-gradient-to-br from-[#7B8C4E] to-[#5a6e38] text-white px-8 py-5 rounded-2xl text-[22px] font-black shadow-lg shrink-0 flex flex-col items-center gap-1">
-                                <span>點我看現場還原！</span>
-                                <span className="text-[13px] font-bold opacity-80 flex items-center gap-1">立即進入場次全文 <ArrowRight size={14} /></span>
-                            </motion.button>
-                        </Link>
-                    </motion.div>
-                </FadeIn>
-            </section>
-
             {/* ═══ What We Do ═══ */}
             <Banner title="這個平台在做什麼？" subtitle="What We Do" bg="bg-[#E8E0D4]" text="text-[#3D3832]" />
             <section className="max-w-7xl mx-auto px-6 py-8">
