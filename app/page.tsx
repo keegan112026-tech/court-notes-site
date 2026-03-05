@@ -108,12 +108,12 @@ export default function Home() {
                             <p className="text-[11px] text-[#A09888] font-bold tracking-[0.15em]">SOCIAL WORK COURT NOTES</p>
                         </div>
                     </Link>
-                    <div className="hidden lg:flex items-center gap-0.5">
+                    <div className="hidden lg:flex items-center gap-0">
                         {navItems.map(item => (
                             <Link key={item.name} href={item.href}
-                                className="relative flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl text-[13px] font-bold text-[#5A5347] hover:text-[#7B8C4E] transition-colors group leading-tight text-center whitespace-nowrap">
-                                {item.icon}<span className="leading-[1.3]" style={{ writingMode: 'horizontal-tb' }}>{item.name.slice(0, 2)}<br />{item.name.slice(2)}</span>
-                                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 h-[2px] bg-[#7B8C4E] rounded-full w-0 group-hover:w-8 transition-all duration-300" />
+                                className="relative flex items-center gap-1.5 px-3 py-2 rounded-lg text-[15px] font-bold text-[#5A5347] hover:text-[#7B8C4E] hover:bg-[#7B8C4E]/8 transition-all group whitespace-nowrap">
+                                {item.icon}<span>{item.name}</span>
+                                <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 h-[2px] bg-[#7B8C4E] rounded-full w-0 group-hover:w-6 transition-all duration-300" />
                             </Link>
                         ))}
                         <Link href="/forum">
@@ -168,7 +168,7 @@ export default function Home() {
                             <p>這不只是一份開庭紀錄，而是一場<strong className="text-[#2D2A26]">化血淚為滋養</strong>的集體療癒與重建。</p>
                             <p className="mt-2">
                                 <span className="text-[#7B8C4E] font-bold">
-                                    <TypeWriter texts={['唯有直視真實，才能共構解方', '讓同伴與後輩不再孤單', '用專業視角為社工實務留下註腳', '不造神・重文字・匿名化・去權威']} />
+                                    <TypeWriter texts={['唯有直視真實，才能共構未來', '讓我們去除籓籬', '用專業視角為這個事件留下註腳', '不造神・重文字・匿名化・去權威', '讓人們不再遭逢此難']} speed={120} />
                                 </span>
                             </p>
                         </div>
