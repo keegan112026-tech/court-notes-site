@@ -143,61 +143,127 @@ export default function Home() {
             {/* ═══ Hero ═══ */}
             <section id="mission" className="relative bg-gradient-to-b from-[#F5EFE4] to-[#FBF7F0] pt-10 pb-8 px-6 border-b border-[#E8E0D4] overflow-hidden">
                 <WarmGradientBg />
-                <div className="max-w-5xl mx-auto relative z-10">
-                    <FadeIn>
-                        <motion.div whileHover={{ scale: 1.05 }} className="inline-flex items-center gap-2 px-5 py-2 bg-white/60 backdrop-blur-sm text-[#7B8C4E] rounded-full text-[15px] font-black tracking-wider border border-[#7B8C4E]/20 shadow-sm cursor-default">
-                            <motion.span animate={{ rotate: [0, -10, 10, 0] }} transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}><Gavel size={16} /></motion.span>
-                            社會工作與法律的實務共構
-                        </motion.div>
-                    </FadeIn>
-                    <FadeIn delay={0.1}>
-                        <h2 className="mt-5 text-[48px] md:text-[64px] lg:text-[72px] font-black leading-[1.15] tracking-tight" style={serif}>
-                            法庭實況還原<br />
-                            <span className="relative inline-block text-[#7B8C4E]">專業共構筆記
-                                <motion.svg className="absolute -bottom-3 left-0 w-full" height="14" viewBox="0 0 200 14" preserveAspectRatio="none"
-                                    initial={{ pathLength: 0, opacity: 0 }} whileInView={{ pathLength: 1, opacity: 1 }} transition={{ duration: 1.8, delay: 0.6, ease: 'easeOut' }}>
-                                    <motion.path d="M4 10 Q 50 2 100 8 Q 150 14 196 6" stroke="#C5D9A8" strokeWidth="6" strokeLinecap="round" fill="transparent"
-                                        initial={{ pathLength: 0 }} whileInView={{ pathLength: 1 }} transition={{ duration: 1.8, delay: 0.6 }} />
-                                </motion.svg>
-                            </span>
-                            <span className="text-[#A09888] text-[36px] md:text-[42px] font-bold ml-2">計畫</span>
-                        </h2>
-                    </FadeIn>
-                    <FadeIn delay={0.2}>
-                        <div className="mt-5 max-w-3xl text-[20px] md:text-[22px] text-[#6B6358] font-medium leading-[1.9]">
-                            <p>這不只是一份開庭紀錄，而是一場<strong className="text-[#2D2A26]">化血淚為滋養</strong>的集體療癒與重建。</p>
-                            <p className="mt-2">
-                                <span className="text-[#7B8C4E] font-bold">
-                                    <TypeWriter texts={['唯有直視真實，才能共構未來', '讓我們去除籓籬', '用專業視角為這個事件留下註腳', '不造神・重文字・匿名化・去權威', '讓人們不再遭逢此難']} speed={120} />
+                <div className="max-w-7xl mx-auto relative z-10 flex flex-col lg:flex-row gap-8 items-start">
+                    {/* Left Column - Main Hero Content */}
+                    <div className="flex-1 min-w-0">
+                        <FadeIn>
+                            <motion.div whileHover={{ scale: 1.05 }} className="inline-flex items-center gap-2 px-5 py-2 bg-white/60 backdrop-blur-sm text-[#7B8C4E] rounded-full text-[15px] font-black tracking-wider border border-[#7B8C4E]/20 shadow-sm cursor-default">
+                                <motion.span animate={{ rotate: [0, -10, 10, 0] }} transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}><Gavel size={16} /></motion.span>
+                                社會工作與法律的實務共構
+                            </motion.div>
+                        </FadeIn>
+                        <FadeIn delay={0.1}>
+                            <h2 className="mt-5 text-[48px] md:text-[64px] lg:text-[72px] font-black leading-[1.15] tracking-tight" style={serif}>
+                                法庭實況還原<br />
+                                <span className="relative inline-block text-[#7B8C4E]">專業共構筆記
+                                    <motion.svg className="absolute -bottom-3 left-0 w-full" height="14" viewBox="0 0 200 14" preserveAspectRatio="none"
+                                        initial={{ pathLength: 0, opacity: 0 }} whileInView={{ pathLength: 1, opacity: 1 }} transition={{ duration: 1.8, delay: 0.6, ease: 'easeOut' }}>
+                                        <motion.path d="M4 10 Q 50 2 100 8 Q 150 14 196 6" stroke="#C5D9A8" strokeWidth="6" strokeLinecap="round" fill="transparent"
+                                            initial={{ pathLength: 0 }} whileInView={{ pathLength: 1 }} transition={{ duration: 1.8, delay: 0.6 }} />
+                                    </motion.svg>
                                 </span>
-                            </p>
-                        </div>
-                    </FadeIn>
+                                <span className="text-[#A09888] text-[36px] md:text-[42px] font-bold ml-2">計畫</span>
+                            </h2>
+                        </FadeIn>
+                        <FadeIn delay={0.2}>
+                            <div className="mt-5 max-w-3xl text-[20px] md:text-[22px] text-[#6B6358] font-medium leading-[1.9]">
+                                <p>這不只是一份開庭紀錄，而是一場<strong className="text-[#2D2A26]">化血淚為滋養</strong>的集體療癒與重建。</p>
+                                <p className="mt-2">
+                                    <span className="text-[#7B8C4E] font-bold">
+                                        <TypeWriter texts={['唯有直視真實，才能共構未來', '讓我們去除籓籬', '用專業視角為這個事件留下註腳', '不造神・重文字・匿名化・去權威', '讓人們不再遭逢此難']} speed={120} />
+                                    </span>
+                                </p>
+                            </div>
+                        </FadeIn>
+                        <FadeIn delay={0.3}>
+                            <div className="mt-6 flex flex-wrap gap-4 items-center">
+                                <Link href="/sessions">
+                                    <motion.button whileHover={{ scale: 1.05, boxShadow: '0 16px 40px rgba(123,140,78,0.3)' }} whileTap={{ scale: 0.97 }}
+                                        className="group relative bg-gradient-to-r from-[#7B8C4E] to-[#5a6e38] text-white px-10 py-4 rounded-2xl text-[22px] font-black shadow-lg shadow-[#7B8C4E]/20 transition-all overflow-hidden">
+                                        <span className="relative z-10 flex items-center gap-3">點我看現場還原！ <ArrowRight size={22} className="group-hover:translate-x-2 transition-transform" /></span>
+                                    </motion.button>
+                                </Link>
+                                <a href="#about">
+                                    <motion.span className="px-8 py-4 rounded-2xl text-[20px] font-bold border-2 border-[#D4CCC0] text-[#6B6358] hover:border-[#7B8C4E] hover:text-[#7B8C4E] transition-all inline-block cursor-pointer">計畫說明 ↓</motion.span>
+                                </a>
+                            </div>
+                        </FadeIn>
+                        <FadeIn delay={0.4}>
+                            <div className="mt-6 flex gap-10 text-center">
+                                {[
+                                    { n: stats.totalSessions, l: '場開庭紀錄' },
+                                    { n: stats.restoredSessions, l: '場已還原' },
+                                    { n: stats.approvedComments, l: '則專業留言', s: '+' }
+                                ].map((s, i) => (
+                                    <div key={i}>
+                                        <p className="text-[36px] font-black text-[#7B8C4E]" style={serif}><Counter target={s.n} suffix={'s' in s ? s.s as string : undefined} /></p>
+                                        <p className="text-[14px] font-bold text-[#A09888]">{s.l}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </FadeIn>
+                    </div>
+
+                    {/* Right Column - Latest Restoration Quick Access */}
                     <FadeIn delay={0.3}>
-                        <div className="mt-6 flex flex-wrap gap-4 items-center">
+                        <div className="hidden lg:block w-[360px] shrink-0 sticky top-24">
                             <Link href="/sessions">
-                                <motion.button whileHover={{ scale: 1.05, boxShadow: '0 16px 40px rgba(123,140,78,0.3)' }} whileTap={{ scale: 0.97 }}
-                                    className="group relative bg-gradient-to-r from-[#7B8C4E] to-[#5a6e38] text-white px-10 py-4 rounded-2xl text-[22px] font-black shadow-lg shadow-[#7B8C4E]/20 transition-all overflow-hidden">
-                                    <span className="relative z-10 flex items-center gap-3">點我看現場還原！ <ArrowRight size={22} className="group-hover:translate-x-2 transition-transform" /></span>
-                                </motion.button>
+                                <motion.div
+                                    whileHover={{ y: -6, boxShadow: '0 20px 50px rgba(123,140,78,0.2)' }}
+                                    className="bg-white rounded-2xl border-2 border-[#E8E0D4] shadow-lg overflow-hidden cursor-pointer group transition-all"
+                                >
+                                    {/* Header */}
+                                    <div className="bg-gradient-to-r from-[#7B8C4E] to-[#5a6e38] px-5 py-3 flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <motion.span animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 2, repeat: Infinity }}
+                                                className="w-2 h-2 rounded-full bg-white/80" />
+                                            <span className="text-white text-[13px] font-black tracking-wider">最新場次還原</span>
+                                        </div>
+                                        <span className="text-white/70 text-[12px] font-bold flex items-center gap-1"><Clock size={12} />2026.02.26</span>
+                                    </div>
+
+                                    {/* Content */}
+                                    <div className="p-5 space-y-3">
+                                        <h4 className="text-[18px] font-black text-[#2D2A26] leading-tight group-hover:text-[#7B8C4E] transition-colors" style={serif}>
+                                            檢察官論告與辯護律師<br />簡報與陳述還原
+                                        </h4>
+
+                                        <div className="bg-[#FBF7F0] p-3 rounded-xl border border-[#E8E0D4] space-y-1.5">
+                                            <p className="text-[13px] font-bold text-[#5A5347] flex items-start gap-1.5">
+                                                <span className="text-[#C67B5C] shrink-0 mt-0.5">⚠️</span>
+                                                114年度訴字第51號<br />過失致死等案（一審第六場次）
+                                            </p>
+                                            <p className="text-[12px] font-bold text-[#8A8078] flex items-center gap-1.5">
+                                                <motion.span animate={{ scale: [1, 1.4, 1] }} transition={{ duration: 1.5, repeat: Infinity }}
+                                                    className="w-1.5 h-1.5 rounded-full bg-[#7B8C4E] inline-block shrink-0" />
+                                                言詞辯論、檢方論告與最後陳述
+                                            </p>
+                                        </div>
+
+                                        {/* Session list preview */}
+                                        <div className="space-y-1.5 pt-1">
+                                            {[
+                                                { label: '第六場次', tag: '最新', active: true },
+                                                { label: '第五場次', tag: '已還原', active: false },
+                                            ].map((s, i) => (
+                                                <div key={i} className={`flex items-center justify-between px-3 py-2 rounded-lg text-[13px] font-bold ${s.active ? 'bg-[#7B8C4E]/10 text-[#5a6e38] border border-[#7B8C4E]/20' : 'bg-gray-50 text-[#8A8078]'}`}>
+                                                    <span className="flex items-center gap-1.5">
+                                                        <BookOpen size={12} />{s.label}
+                                                    </span>
+                                                    <span className={`text-[11px] px-2 py-0.5 rounded ${s.active ? 'bg-[#C67B5C] text-white' : 'bg-gray-200 text-gray-500'}`}>{s.tag}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        {/* CTA */}
+                                        <motion.div
+                                            className="bg-gradient-to-r from-[#7B8C4E] to-[#5a6e38] text-white text-center py-3 rounded-xl text-[15px] font-black group-hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                                        >
+                                            立即進入還原筆記 <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                                        </motion.div>
+                                    </div>
+                                </motion.div>
                             </Link>
-                            <a href="#about">
-                                <motion.span className="px-8 py-4 rounded-2xl text-[20px] font-bold border-2 border-[#D4CCC0] text-[#6B6358] hover:border-[#7B8C4E] hover:text-[#7B8C4E] transition-all inline-block cursor-pointer">計畫說明 ↓</motion.span>
-                            </a>
-                        </div>
-                    </FadeIn>
-                    <FadeIn delay={0.4}>
-                        <div className="mt-6 flex gap-10 text-center">
-                            {[
-                                { n: stats.totalSessions, l: '場開庭紀錄' },
-                                { n: stats.restoredSessions, l: '場已還原' },
-                                { n: stats.approvedComments, l: '則專業留言', s: '+' }
-                            ].map((s, i) => (
-                                <div key={i}>
-                                    <p className="text-[36px] font-black text-[#7B8C4E]" style={serif}><Counter target={s.n} suffix={'s' in s ? s.s as string : undefined} /></p>
-                                    <p className="text-[14px] font-bold text-[#A09888]">{s.l}</p>
-                                </div>
-                            ))}
                         </div>
                     </FadeIn>
                 </div>
