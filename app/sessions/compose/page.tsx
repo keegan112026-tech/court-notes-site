@@ -1,13 +1,15 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import Link from 'next/link';
-import { ArrowLeft, ChevronDown, Quote, Send } from 'lucide-react';
+import { ChevronDown, Quote, Send } from 'lucide-react';
 import { EditorContent, useEditor } from '@tiptap/react';
 import Placeholder from '@tiptap/extension-placeholder';
 import StarterKit from '@tiptap/starter-kit';
 import { Node as TiptapNode } from '@tiptap/core';
-import { getLocalSessionDetail, getLocalSessionsIndex, getTranscriptCitationMap } from '@/lib/local-data';
+import { toast } from 'sonner';
+import SubpageHeader from '@/components/SubpageHeader';
+import WorkbenchHeader from '@/components/workbench/WorkbenchHeader';
+import { getLocalSessionDetail, getLocalSessionsIndex, getSessionDisplayTitle, getTranscriptCitationMap } from '@/lib/local-data';
 
 const CitationChip = TiptapNode.create({
     name: 'citation',
@@ -45,6 +47,7 @@ export default function CrossSessionComposePage() {
     const sessionBundle = useMemo(() => getLocalSessionDetail(activeSessionId), [activeSessionId]);
     const transcriptMap = useMemo(() => getTranscriptCitationMap(activeSessionId), [activeSessionId]);
     const transcript = sessionBundle?.transcripts || [];
+    const activeSessionTitle = activeSessionId ? getSessionDisplayTitle(activeSessionId) : '';
 
     const editor = useEditor({
         extensions: [
@@ -102,37 +105,53 @@ export default function CrossSessionComposePage() {
                 }),
             });
             const data = await res.json();
-            setSubmitState(data.message || data.error || '已送出。');
+            if (data.ok) {
+                const message = data.message || '投稿已送出，待審核後發布。';
+                setSubmitState(message);
+                toast.success(message);
+                setArticleTitle('');
+                setAuthorName('');
+                setContactEmail('');
+                setSourceSessionIds([activeSessionId]);
+                editor.commands.clearContent(true);
+                return;
+            }
+
+            const message = data.error || '送出失敗，請稍後再試。';
+            setSubmitState(message);
+            toast.error(message);
         } catch {
-            setSubmitState('送出失敗，請稍後再試。');
+            const message = '送出失敗，請稍後再試。';
+            setSubmitState(message);
+            toast.error(message);
         } finally {
             setSubmitting(false);
         }
     };
 
     return (
-        <div className="min-h-screen bg-[#FAFAFA] text-[#2D2A26]">
-            <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <Link href="/sessions" className="p-2 rounded-xl bg-gray-50 hover:bg-gray-100">
-                        <ArrowLeft size={18} />
-                    </Link>
-                    <div>
-                        <h1 className="text-xl font-black">跨場次共通工作檯</h1>
-                        <p className="text-sm text-[#8A8078] font-bold">切換不同庭次逐字稿，撰寫綜合性論述</p>
-                    </div>
-                </div>
-                <button
-                    onClick={handleSubmit}
-                    disabled={submitting}
-                    className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#6B8E23] text-white font-black disabled:opacity-50"
-                >
-                    <Send size={16} />
-                    {submitting ? '送出中...' : '送出審核'}
-                </button>
-            </header>
+        <>
+            <SubpageHeader variant="light" />
+            <div className="flex min-h-screen flex-col bg-[#FAFAFA] text-[#2D2A26]">
+            <WorkbenchHeader
+                backHref="/sessions"
+                backLabel="返回筆記總覽頁"
+                eyebrow="跨場工作檯"
+                title="跨場次觀庭共構工作檯"
+                subtitle={activeSessionTitle ? `目前可切換引用來源場次：${activeSessionTitle}。你可以整合多場次逐字稿，形成跨場次的完整論述。` : '可切換不同庭次逐字稿，整合多場次還原筆記並撰寫綜合性論述。'}
+                actions={
+                    <button
+                        onClick={handleSubmit}
+                        disabled={submitting}
+                        className="inline-flex items-center gap-2 rounded-xl bg-[#6B8E23] px-5 py-3 text-xs font-black text-white shadow-md disabled:opacity-50"
+                    >
+                        <Send size={16} />
+                        {submitting ? '送出中...' : '送出審核'}
+                    </button>
+                }
+            />
 
-            <main className="grid lg:grid-cols-[420px_1fr] gap-0 min-h-[calc(100vh-81px)]">
+            <main className="grid flex-1 gap-0 lg:min-h-0 lg:grid-cols-[420px_1fr]">
                 <aside className="border-r border-gray-200 bg-white">
                     <div className="p-4 border-b border-gray-200">
                         <label className="text-xs font-black text-[#8A8078] block mb-2">目前引用來源場次</label>
@@ -144,7 +163,7 @@ export default function CrossSessionComposePage() {
                             >
                                 {sessions.map((session) => (
                                     <option key={session.id} value={session.id}>
-                                        {session.id}｜{session.title}
+                                        {getSessionDisplayTitle(session.id)}
                                     </option>
                                 ))}
                             </select>
@@ -197,7 +216,7 @@ export default function CrossSessionComposePage() {
                                 className="w-full rounded-xl border border-gray-200 px-4 py-3"
                             />
                             <div className="text-xs font-bold text-[#8A8078]">
-                                已引用場次：{sourceSessionIds.length ? sourceSessionIds.join('、') : '尚未引用'}
+                                已引用場次：{sourceSessionIds.length ? sourceSessionIds.map((id) => getSessionDisplayTitle(id)).join('、') : '尚未引用'}
                             </div>
                             {submitState && <div className="text-sm font-bold text-[#6B8E23]">{submitState}</div>}
                         </div>
@@ -207,6 +226,7 @@ export default function CrossSessionComposePage() {
                     </div>
                 </section>
             </main>
+            </div>
 
             <style jsx global>{`
                 .workspace-editor .ProseMirror {
@@ -227,6 +247,6 @@ export default function CrossSessionComposePage() {
                     box-shadow: inset 0 0 0 1px rgba(107, 142, 35, 0.18);
                 }
             `}</style>
-        </div>
+        </>
     );
 }

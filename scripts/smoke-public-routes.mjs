@@ -10,19 +10,19 @@ const baseUrl =
 const checks = [
     {
         path: '/',
-        markers: ['觀庭還原筆記共構平台', '點我看現場還原！', '熱門入口', '聯絡與支持'],
+        markers: ['觀庭還原筆記', '平台限制與規範', '目前已發布的完整筆記'],
     },
     {
         path: '/about',
-        markers: ['觀庭還原筆記共構平台'],
+        markers: ['計畫緣起', '觀庭還原筆記共構平台'],
     },
     {
         path: '/sessions',
-        markers: ['本站須知', '目前已發布的完整筆記'],
+        markers: ['114年度訴字第51號過失致死等案', '目前已發布的完整筆記'],
     },
     {
         path: '/forum',
-        markers: ['共構筆記呈現'],
+        markers: ['觀庭筆記匯集區', '遵守法律基礎'],
     },
 ];
 
@@ -59,4 +59,3 @@ for (const check of checks) {
 if (hasFailure) {
     process.exit(1);
 }
-

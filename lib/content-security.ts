@@ -93,7 +93,7 @@ export function sanitizeArticleForSession(input: unknown, sessionId: string) {
     const sanitized = sanitizeArticleHtml(input);
     if (!sessionId) return sanitized;
 
-    return sanitized.replace(/<cite([^>]*)data-session="([^"]*)"([^>]*)>/gi, (full, before, citeSession, after) => {
+    return sanitized.replace(/<cite([^>]*)data-session="([^"]*)"([^>]*)>/gi, (full, _before, citeSession, _after) => {
         return citeSession === sessionId ? full : '';
     });
 }

@@ -26,14 +26,14 @@ export default function AdminLoginClient({ nextPath }: { nextPath: string }) {
             const data = await res.json();
 
             if (!data.ok) {
-                setError(data.error || '登入失敗。');
+                setError(data.error || '登入失敗，請稍後再試。');
                 return;
             }
 
             router.push(nextPath);
             router.refresh();
         } catch {
-            setError('登入失敗。');
+            setError('登入失敗，請稍後再試。');
         } finally {
             setSubmitting(false);
         }
@@ -49,7 +49,7 @@ export default function AdminLoginClient({ nextPath }: { nextPath: string }) {
                     <p className="text-sm font-black uppercase tracking-[0.2em] text-[#8A8078]">Admin Access</p>
                     <h1 className="mt-2 text-3xl font-black text-[#2D2A26]" style={serif}>管理後台登入</h1>
                     <p className="mt-3 text-sm leading-7 text-[#6B6358]">
-                        請輸入管理後台登入碼。登入後可進入文章與留言的審查頁面。
+                        請輸入管理後台 token。登入後可進入待審、文章管理、留言管理與收件匣。
                     </p>
                 </div>
 
@@ -58,7 +58,7 @@ export default function AdminLoginClient({ nextPath }: { nextPath: string }) {
                         type="password"
                         value={token}
                         onChange={(e) => setToken(e.target.value)}
-                        placeholder="請輸入登入碼"
+                        placeholder="請輸入管理 token"
                         className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium text-gray-700 outline-none focus:border-[#6B8E23]"
                     />
 
@@ -73,7 +73,7 @@ export default function AdminLoginClient({ nextPath }: { nextPath: string }) {
                         disabled={submitting}
                         className="w-full rounded-xl bg-[#6B8E23] py-3 text-sm font-black text-white hover:bg-[#5a781d] disabled:opacity-50"
                     >
-                        {submitting ? '登入中...' : '進入管理後台'}
+                        {submitting ? '登入中…' : '進入管理後台'}
                     </button>
                 </form>
             </div>

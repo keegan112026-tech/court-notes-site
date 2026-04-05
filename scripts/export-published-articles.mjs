@@ -11,7 +11,7 @@ function fail(message) {
 
 function hasSuspiciousQuestionCorruption(value) {
   const text = String(value || '');
-  return text.includes('????') || text.includes('？？') || /^\?+$/.test(text.trim());
+  return text.includes('?'.repeat(4)) || text.includes('\uFF1F'.repeat(2)) || /^\?+$/.test(text.trim());
 }
 
 function parseArgs(argv) {

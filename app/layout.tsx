@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Toaster } from 'sonner';
 import './globals.css';
 import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE_SUFFIX } from '@/lib/public-site';
 
@@ -38,7 +39,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     rel="stylesheet"
                 />
             </head>
-            <body style={{ fontFamily: "'Noto Sans TC', sans-serif" }}>{children}</body>
+            <body style={{ fontFamily: "'Noto Sans TC', sans-serif" }}>
+                {children}
+                <Toaster
+                    position="top-center"
+                    richColors
+                    closeButton
+                    toastOptions={{
+                        className: 'border border-[#E8E0D4] bg-white text-[#2D2A26]',
+                    }}
+                />
+            </body>
         </html>
     );
 }

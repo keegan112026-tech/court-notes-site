@@ -1,12 +1,11 @@
 'use client';
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import SubpageHeader from '@/components/SubpageHeader';
+import WorkbenchHeader from '@/components/workbench/WorkbenchHeader';
 import {
     AlertCircle,
-    ArrowLeft,
     BookOpen,
     Maximize2,
     PenTool,
@@ -18,8 +17,9 @@ import { Node as TiptapNode } from '@tiptap/core';
 import { EditorContent, useEditor } from '@tiptap/react';
 import Placeholder from '@tiptap/extension-placeholder';
 import StarterKit from '@tiptap/starter-kit';
+import { toast } from 'sonner';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
-import { getLocalSessionDetail, getTranscriptCitationMap } from '@/lib/local-data';
+import { getLocalSessionDetail, getSessionDisplayTitle, getTranscriptCitationMap } from '@/lib/local-data';
 
 const serif = { fontFamily: "'Noto Serif TC', serif" };
 
@@ -199,12 +199,6 @@ export default function SessionWorkspacePage() {
             showCitationPreview(cite);
         };
 
-        const onMouseMove = (event: MouseEvent) => {
-            const cite = getCitationElement(event.target);
-            if (!cite) return;
-            showCitationPreview(cite);
-        };
-
         const onMouseOut = (event: MouseEvent) => {
             const cite = getCitationElement(event.target);
             if (!cite) return;
@@ -228,13 +222,11 @@ export default function SessionWorkspacePage() {
         };
 
         root.addEventListener('mouseover', onMouseOver);
-        root.addEventListener('mousemove', onMouseMove);
         root.addEventListener('mouseout', onMouseOut);
         root.addEventListener('click', onClick);
 
         return () => {
             root.removeEventListener('mouseover', onMouseOver);
-            root.removeEventListener('mousemove', onMouseMove);
             root.removeEventListener('mouseout', onMouseOut);
             root.removeEventListener('click', onClick);
             setCitationPreview(null);
@@ -300,13 +292,23 @@ export default function SessionWorkspacePage() {
             const data = await res.json();
 
             if (data.ok) {
-                setSubmitState('文章已送出，待審核後會進入公開文章區。');
+                const message = data.message || '文章已送出，待審核後會進入觀庭筆記匯集區。';
+                setSubmitState(message);
+                toast.success(message);
+                setArticleTitle('');
+                setAuthorName('');
+                setContactEmail('');
+                editor.commands.clearContent(true);
                 return;
             }
 
-            setSubmitState(data.error || '送出失敗，請稍後再試。');
+            const message = data.error || '送出失敗，請稍後再試。';
+            setSubmitState(message);
+            toast.error(message);
         } catch {
-            setSubmitState('送出失敗，請稍後再試。');
+            const message = '送出失敗，請稍後再試。';
+            setSubmitState(message);
+            toast.error(message);
         } finally {
             setSubmitting(false);
         }
@@ -465,38 +467,30 @@ export default function SessionWorkspacePage() {
         <>
             <SubpageHeader variant="light" />
             <div className="flex min-h-screen flex-col bg-[#FAFAFA] font-sans selection:bg-[#6B8E23]/20 lg:h-screen lg:overflow-hidden">
-                <header className="z-10 flex shrink-0 flex-col gap-4 border-b border-gray-100 bg-white px-4 py-3 shadow-sm sm:flex-row sm:items-center sm:justify-between lg:px-8">
-                    <div className="flex items-start gap-4 sm:items-center">
-                        <Link href="/sessions" className="rounded-xl bg-gray-50 p-2 transition-colors hover:bg-gray-100">
-                            <ArrowLeft size={20} className="text-gray-600" />
-                        </Link>
-                        <div>
-                            <h1 className="flex flex-wrap items-center gap-2 text-sm font-black tracking-tight text-gray-900 lg:text-lg">
-                                場次工作檯
-                                <span className="rounded-full bg-orange-100 px-2 py-0.5 text-xs text-orange-700">{sessionId}</span>
-                            </h1>
-                            <p className="mt-0.5 text-[11px] font-bold text-gray-400">
-                                {session ? session.title : '載入場次資訊...'}
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-3">
-                        <button
-                            onClick={handleShare}
-                            className="flex items-center gap-2 rounded-xl bg-gray-100 px-4 py-2 text-xs font-bold text-gray-600 transition-colors hover:bg-gray-200"
-                        >
-                            <Share2 size={14} /> {isCopied ? '已複製' : '複製連結'}
-                        </button>
-                        <button
-                            onClick={submitArticle}
-                            disabled={submitting}
-                            className="flex items-center gap-2 rounded-xl bg-[#6B8E23] px-5 py-2 text-xs font-bold text-white shadow-md transition-colors hover:bg-[#5a781d] disabled:opacity-60"
-                        >
-                            <Send size={14} /> {submitting ? '送出中...' : '送出審核'}
-                        </button>
-                    </div>
-                </header>
+                <WorkbenchHeader
+                    backHref="/sessions"
+                    backLabel="返回筆記總覽頁"
+                    eyebrow="單場次工作檯"
+                    title={session ? getSessionDisplayTitle(sessionId) : '載入場次資訊中'}
+                    subtitle="可直接在左側逐字紀錄插入引用，整理單一場次的觀庭共構筆記與專業論述。"
+                    actions={
+                        <>
+                            <button
+                                onClick={handleShare}
+                                className="flex items-center gap-2 rounded-xl bg-gray-100 px-4 py-2 text-xs font-bold text-gray-600 transition-colors hover:bg-gray-200"
+                            >
+                                <Share2 size={14} /> {isCopied ? '已複製' : '複製連結'}
+                            </button>
+                            <button
+                                onClick={submitArticle}
+                                disabled={submitting}
+                                className="flex items-center gap-2 rounded-xl bg-[#6B8E23] px-5 py-2 text-xs font-bold text-white shadow-md transition-colors hover:bg-[#5a781d] disabled:opacity-60"
+                            >
+                                <Send size={14} /> {submitting ? '送出中...' : '送出審核'}
+                            </button>
+                        </>
+                    }
+                />
 
                 <main className="flex-1 overflow-visible p-4 lg:overflow-hidden lg:p-6">
                     {isMobileLayout ? (
@@ -562,7 +556,7 @@ export default function SessionWorkspacePage() {
                                     引用預覽
                                 </span>
                                 <span className="text-[11px] font-bold text-[#8A8078]">
-                                    {sessionId} / {citationPreview.lineId}
+                                    {getSessionDisplayTitle(sessionId)} / {citationPreview.lineId}
                                 </span>
                             </div>
                             <p className="mb-1 text-[12px] font-black text-[#5A5347]">{citationPreview.speaker}</p>

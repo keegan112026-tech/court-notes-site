@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
 import Navbar from '@/components/Navbar';
+import AdminConsoleNav from '@/components/admin/AdminConsoleNav';
 import {
     AlertCircle,
     Check,
@@ -68,7 +68,7 @@ export default function AdminReviewPage() {
             const data = await res.json();
 
             if (!data.ok) {
-                setMessage(data.error || '讀取待審資料失敗。');
+                setMessage(data.error || '讀取待審資料時發生錯誤。');
                 return;
             }
 
@@ -76,7 +76,7 @@ export default function AdminReviewPage() {
             setPendingArticles(Array.isArray(data.data.pendingArticles) ? data.data.pendingArticles : []);
             setPendingComments(Array.isArray(data.data.pendingComments) ? data.data.pendingComments : []);
         } catch {
-            setMessage('讀取待審資料失敗。');
+            setMessage('讀取待審資料時發生錯誤。');
         } finally {
             setLoading(false);
         }
@@ -114,17 +114,17 @@ export default function AdminReviewPage() {
             const data = await res.json();
 
             if (!data.ok) {
-                setMessage(data.error || '操作失敗。');
+                setMessage(data.error || '更新審核狀態時發生錯誤。');
                 return;
             }
 
             if (action === 'approve') setMessage('已核准並更新狀態。');
-            if (action === 'reject') setMessage('已退回此筆資料。');
-            if (action === 'delete') setMessage('已刪除此筆資料。');
+            if (action === 'reject') setMessage('已退回修改。');
+            if (action === 'delete') setMessage('已封存刪除。');
 
             await loadPending();
         } catch {
-            setMessage('操作失敗。');
+            setMessage('更新審核狀態時發生錯誤。');
         } finally {
             setWorkingKey('');
         }
@@ -138,9 +138,9 @@ export default function AdminReviewPage() {
                     <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                         <div className="space-y-3">
                             <p className="text-sm font-black uppercase tracking-[0.2em] text-[#8A8078]">Admin Review</p>
-                            <h1 className="text-4xl font-black text-[#2D2A26]" style={serif}>審查台</h1>
+                            <h1 className="text-4xl font-black text-[#2D2A26]" style={serif}>待審核</h1>
                             <p className="max-w-3xl text-lg leading-relaxed text-[#6B6358]">
-                                這裡集中處理待審文章與待審留言，操作結果會同步寫入審查紀錄。
+                                這裡只處理待審文章與待審留言。已上架文章請到文章管理，私密傳訊請到收件匣。
                             </p>
                         </div>
 
@@ -148,9 +148,9 @@ export default function AdminReviewPage() {
                             <div className="min-w-[220px] rounded-2xl border border-[#DDE6C8] bg-[#F9FBE7] px-4 py-3">
                                 <div className="flex items-center gap-2 text-sm font-black text-[#5A6F35]">
                                     <Shield size={16} />
-                                    目前登入身分
+                                    目前登入身份
                                 </div>
-                                <p className="mt-1 text-lg font-black text-[#2D2A26]">{currentAdmin?.name || '未登入'}</p>
+                                <p className="mt-1 text-lg font-black text-[#2D2A26]">{currentAdmin?.name || '尚未登入'}</p>
                                 <p className="text-sm font-bold uppercase tracking-[0.12em] text-[#8A8078]">{currentAdmin?.role || 'unknown'}</p>
                             </div>
                             <button
@@ -163,11 +163,13 @@ export default function AdminReviewPage() {
                         </div>
                     </div>
 
+                    <AdminConsoleNav current="review" />
+
                     <input
                         value={note}
                         onChange={(e) => setNote(e.target.value)}
-                        placeholder="可填寫審查備註，將同步寫入 Moderation Log。"
-                        className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium text-gray-700 outline-none focus:border-[#6B8E23]"
+                        placeholder="可先填寫審核備註，會同步寫入審查紀錄。"
+                        className="mt-6 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium text-gray-700 outline-none focus:border-[#6B8E23]"
                     />
 
                     {message && (
@@ -192,7 +194,7 @@ export default function AdminReviewPage() {
 
                         <div className="space-y-4">
                             {loading ? (
-                                <p className="text-sm font-bold text-gray-500">載入中...</p>
+                                <p className="text-sm font-bold text-gray-500">讀取中…</p>
                             ) : pendingArticles.length === 0 ? (
                                 <p className="text-sm font-bold text-gray-400">目前沒有待審文章。</p>
                             ) : pendingArticles.map((article) => (
@@ -210,7 +212,7 @@ export default function AdminReviewPage() {
                                     <div className="mb-4 space-y-2 text-sm">
                                         {article.sourceSessionIds && article.sourceSessionIds.length > 0 && (
                                             <div className="flex flex-wrap items-center gap-2">
-                                                <span className="font-black text-[#6B6358]">引用來源場次</span>
+                                                <span className="font-black text-[#6B6358]">來源場次</span>
                                                 {article.sourceSessionIds.map((sessionId) => (
                                                     <span
                                                         key={sessionId}
@@ -259,12 +261,6 @@ export default function AdminReviewPage() {
                                                 刪除
                                             </button>
                                         )}
-                                        <Link
-                                            href={`/forum/${article.id}`}
-                                            className="inline-flex items-center rounded-xl border border-gray-200 px-4 py-2 text-sm font-black text-gray-600 hover:border-[#6B8E23] hover:text-[#6B8E23]"
-                                        >
-                                            查看文章
-                                        </Link>
                                     </div>
                                 </div>
                             ))}
@@ -284,7 +280,7 @@ export default function AdminReviewPage() {
 
                         <div className="space-y-4">
                             {loading ? (
-                                <p className="text-sm font-bold text-gray-500">載入中...</p>
+                                <p className="text-sm font-bold text-gray-500">讀取中…</p>
                             ) : pendingComments.length === 0 ? (
                                 <p className="text-sm font-bold text-gray-400">目前沒有待審留言。</p>
                             ) : pendingComments.map((comment) => (
@@ -293,7 +289,7 @@ export default function AdminReviewPage() {
                                         <div>
                                             <p className="text-base font-black text-[#2D2A26]">{comment.author || '匿名留言'}</p>
                                             <p className="text-sm font-bold text-[#8A8078]">
-                                                目標 ID：{comment.targetLineId} / 類型：{comment.type}
+                                                文章 ID：{comment.targetLineId} / 類型：{comment.type}
                                             </p>
                                         </div>
                                         <p className="text-xs font-bold text-gray-400">{formatDate(comment.createdAt)}</p>
