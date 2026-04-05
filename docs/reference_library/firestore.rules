@@ -1,0 +1,40 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    /**
+     * Current project posture:
+     * - frontend does not read/write Firestore directly
+     * - all production traffic goes through Next.js server APIs
+     * - Firebase Admin SDK bypasses these rules for trusted server operations
+     *
+     * Therefore the safest baseline is:
+     * - deny all client writes
+     * - deny all direct client reads unless a future explicit web-SDK use case is introduced
+     */
+
+    match /cms/{docId} {
+      allow read, write: if false;
+    }
+
+    match /articles/{docId} {
+      allow read, write: if false;
+    }
+
+    match /comments/{docId} {
+      allow read, write: if false;
+    }
+
+    match /contacts/{docId} {
+      allow read, write: if false;
+    }
+
+    match /reviewLogs/{docId} {
+      allow read, write: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

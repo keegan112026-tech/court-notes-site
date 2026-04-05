@@ -1,10 +1,30 @@
-import type { Metadata } from "next";
-import "./globals.css";
+import type { Metadata } from 'next';
+import './globals.css';
+import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE_SUFFIX } from '@/lib/public-site';
+
+const siteUrl = 'https://court-notes-site.vercel.app';
 
 export const metadata: Metadata = {
-    title: "法庭實況還原與專業共構筆記 | 社會工作與法律的實務共構",
-    description: "這不只是一份開庭紀錄，而是一場化血淚為滋養的集體療癒與重建。透過法庭對話的檢視與辨讀，為社工實務留下寶貴的註腳。",
-    keywords: ["社工", "法庭", "觀庭筆記", "共構", "兒少保護", "司法社工"],
+    metadataBase: new URL(siteUrl),
+    title: `${SITE_NAME} | ${SITE_TITLE_SUFFIX}`,
+    description: SITE_DESCRIPTION,
+    keywords: ['社工', '觀庭', '還原筆記', '共構平台', '法庭觀察', '兒少保護'],
+    alternates: {
+        canonical: '/',
+    },
+    openGraph: {
+        type: 'website',
+        url: siteUrl,
+        title: SITE_NAME,
+        description: SITE_DESCRIPTION,
+        siteName: SITE_NAME,
+        locale: 'zh_TW',
+    },
+    twitter: {
+        card: 'summary_large_image',
+        title: SITE_NAME,
+        description: SITE_DESCRIPTION,
+    },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -13,11 +33,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <head>
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-                <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Noto+Serif+TC:wght@400;700;900&display=swap" rel="stylesheet" />
+                <link
+                    href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Noto+Serif+TC:wght@400;700;900&display=swap"
+                    rel="stylesheet"
+                />
             </head>
-            <body style={{ fontFamily: "'Noto Sans TC', sans-serif" }}>
-                {children}
-            </body>
+            <body style={{ fontFamily: "'Noto Sans TC', sans-serif" }}>{children}</body>
         </html>
     );
 }

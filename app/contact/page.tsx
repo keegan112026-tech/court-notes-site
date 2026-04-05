@@ -1,24 +1,37 @@
 'use client';
-import React, { useState } from 'react';
+
+import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Send, Shield, FileText, MessageCircle } from 'lucide-react';
-import { FadeIn, Banner } from '@/components/ui-shared';
+import { ArrowLeft, FileText, MessageCircle, Send, Shield } from 'lucide-react';
+import { FadeIn } from '@/components/ui-shared';
+import SubpageHeader from '@/components/SubpageHeader';
 
 const serif = { fontFamily: "'Noto Serif TC', serif" };
 
+const categories = ['一般聯絡', '錯誤回報', '內容更正', '使用建議', '私密傳訊'] as const;
+
 export default function ContactPage() {
-    const [formData, setFormData] = useState({ name: '', category: '意見回饋', content: '', attachmentUrl: '' });
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        category: '一般聯絡',
+        content: '',
+        attachmentUrl: '',
+    });
     const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const [error, setError] = useState('');
 
-    const categories = ['逐字稿提供', '資料補充', '意見回饋', '糾錯回報', '其他'];
+    const isPrivate = useMemo(() => formData.category === '私密傳訊', [formData.category]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!formData.content.trim()) return;
-        setSubmitting(true); setError('');
+
+        setSubmitting(true);
+        setError('');
+
         try {
             const res = await fetch('/api/contact', {
                 method: 'POST',
@@ -26,98 +39,181 @@ export default function ContactPage() {
                 body: JSON.stringify(formData),
             });
             const data = await res.json();
+
             if (data.ok) {
                 setSubmitted(true);
-                setFormData({ name: '', category: '意見回饋', content: '', attachmentUrl: '' });
+                setFormData({
+                    name: '',
+                    email: '',
+                    category: '一般聯絡',
+                    content: '',
+                    attachmentUrl: '',
+                });
             } else {
-                setError(data.error || '提交失敗，請稍後再試');
+                setError(data.error || '訊息送出失敗，請稍後再試。');
             }
-        } catch { setError('網路錯誤，請稍後再試'); } finally { setSubmitting(false); }
+        } catch {
+            setError('訊息送出失敗，請稍後再試。');
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     return (
-        <div className="min-h-screen" style={{ backgroundColor: '#FBF7F0', color: '#2D2A26' }}>
-            <div className="bg-gradient-to-b from-[#FDE8D8] to-[#FBF7F0] border-b border-[#E8E0D4]">
-                <div className="max-w-3xl mx-auto px-6 py-8">
-                    <Link href="/" className="text-[#C67B5C] text-[16px] font-bold flex items-center gap-1 mb-4 hover:underline"><ArrowLeft size={16} /> 返回首頁</Link>
-                    <h1 className="text-[42px] md:text-[56px] font-black" style={serif}>匿名聯絡</h1>
-                    <p className="text-[20px] text-[#6B6358] font-medium mt-2">安全匿名的向我們傳遞訊息</p>
+        <div className="min-h-screen text-[#2D2A26]" style={{ backgroundColor: '#FBF7F0' }}>
+            <SubpageHeader />
+            <div className="border-b border-[#E8E0D4] bg-gradient-to-b from-[#FDE8D8] to-[#FBF7F0]">
+                <div className="mx-auto max-w-3xl px-6 py-8">
+                    <Link href="/" className="mb-4 flex items-center gap-1 text-[16px] font-bold text-[#C67B5C] hover:underline">
+                        <ArrowLeft size={16} />
+                        返回首頁
+                    </Link>
+                    <h1 className="text-[42px] font-black md:text-[56px]" style={serif}>聯絡與回報</h1>
+                    <p className="mt-2 text-[20px] font-medium text-[#6B6358]">
+                        這裡提供一般聯絡、錯誤回報、內容更正、使用建議與私密傳訊入口。
+                    </p>
                 </div>
             </div>
 
-            <section className="max-w-3xl mx-auto px-6 py-8">
+            <section className="mx-auto max-w-3xl px-6 py-8">
                 <FadeIn>
-                    <div className="bg-white rounded-2xl p-8 border border-[#E8E0D4] shadow-sm mb-6">
-                        <div className="flex items-start gap-4 mb-6 p-4 bg-[#E3EED3] rounded-xl border border-[#C5D9A8]">
-                            <Shield size={24} className="text-[#7B8C4E] mt-1 shrink-0" />
+                    <div className="mb-6 rounded-2xl border border-[#E8E0D4] bg-white p-8 shadow-sm">
+                        <motion.div
+                            whileHover={{ y: -2 }}
+                            className="mb-6 flex items-start gap-4 rounded-xl border border-[#C5D9A8] bg-[#E3EED3] p-4 shadow-sm transition-all hover:shadow-md"
+                        >
+                            <motion.div
+                                animate={{ scale: [1, 1.06, 1] }}
+                                transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
+                                className="mt-1 shrink-0 text-[#7B8C4E]"
+                            >
+                                <Shield size={24} />
+                            </motion.div>
                             <div>
-                                <p className="text-[18px] font-black text-[#3D5220]">您的隱私受到保護</p>
-                                <p className="text-[16px] text-[#5A5347] mt-1">此表單不收集任何可識別個人身份的資訊。所有欄位均為選填（除訊息內容外），您可完全匿名提交。</p>
+                                <p className="text-[18px] font-black text-[#3D5220]">私密傳訊說明</p>
+                                <p className="mt-1 text-[16px] text-[#5A5347]">
+                                    此為私密傳訊，您的傳訊不會公開。您可選擇是否留下姓名或信箱，若有文獻或是證據提供也歡迎。
+                                </p>
                             </div>
-                        </div>
+                        </motion.div>
 
                         {submitted ? (
-                            <div className="text-center py-12">
+                            <div className="py-12 text-center">
                                 <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring' }}>
-                                    <Send size={48} className="mx-auto text-[#7B8C4E] mb-4" />
+                                    <Send size={48} className="mx-auto mb-4 text-[#7B8C4E]" />
                                 </motion.div>
-                                <p className="text-[28px] font-black text-[#7B8C4E]" style={serif}>訊息已送出！</p>
-                                <p className="text-[18px] text-[#8A8078] mt-2">感謝您的回饋，團隊將盡快處理。</p>
-                                <motion.button whileHover={{ scale: 1.05 }} onClick={() => setSubmitted(false)}
-                                    className="mt-6 bg-[#7B8C4E] text-white px-6 py-3 rounded-xl font-black">再次傳送</motion.button>
+                                <p className="text-[28px] font-black text-[#7B8C4E]" style={serif}>訊息已送出</p>
+                                <p className="mt-2 text-[18px] text-[#8A8078]">我們已收到你的來訊，會依內容安排後續處理。</p>
+                                <motion.button
+                                    whileHover={{ scale: 1.05 }}
+                                    onClick={() => setSubmitted(false)}
+                                    className="mt-6 rounded-xl bg-[#7B8C4E] px-6 py-3 font-black text-white"
+                                >
+                                    再送出一則
+                                </motion.button>
                             </div>
                         ) : (
                             <form onSubmit={handleSubmit} className="space-y-5">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                     <div>
-                                        <label className="block text-[14px] font-black text-[#8A8078] mb-1">您的稱呼（選填）</label>
-                                        <input value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                            className="w-full bg-[#FBF7F0] border border-[#E8E0D4] rounded-xl px-4 py-3 text-[17px] focus:outline-none focus:ring-2 focus:ring-[#C67B5C]"
-                                            placeholder="留空即為匿名" />
+                                        <label className="mb-1 block text-[14px] font-black text-[#8A8078]">姓名或代稱</label>
+                                        <input
+                                            value={formData.name}
+                                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                            className="w-full rounded-xl border border-[#E8E0D4] bg-[#FBF7F0] px-4 py-3 text-[17px] focus:outline-none focus:ring-2 focus:ring-[#C67B5C]"
+                                            placeholder="可不填"
+                                        />
                                     </div>
                                     <div>
-                                        <label className="block text-[14px] font-black text-[#8A8078] mb-1">訊息分類</label>
-                                        <select value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })}
-                                            className="w-full bg-[#FBF7F0] border border-[#E8E0D4] rounded-xl px-4 py-3 text-[17px] focus:outline-none focus:ring-2 focus:ring-[#C67B5C]">
-                                            {categories.map(c => <option key={c} value={c}>{c}</option>)}
-                                        </select>
+                                        <label className="mb-1 block text-[14px] font-black text-[#8A8078]">電子信箱</label>
+                                        <input
+                                            value={formData.email}
+                                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                            className="w-full rounded-xl border border-[#E8E0D4] bg-[#FBF7F0] px-4 py-3 text-[17px] focus:outline-none focus:ring-2 focus:ring-[#C67B5C]"
+                                            placeholder="可不填"
+                                        />
                                     </div>
                                 </div>
+
                                 <div>
-                                    <label className="block text-[14px] font-black text-[#8A8078] mb-1">訊息內容 *</label>
-                                    <textarea value={formData.content} onChange={e => setFormData({ ...formData, content: e.target.value })} required rows={8}
-                                        className="w-full bg-[#FBF7F0] border border-[#E8E0D4] rounded-xl px-4 py-3 text-[17px] focus:outline-none focus:ring-2 focus:ring-[#C67B5C] resize-y"
-                                        placeholder="請輸入您要傳達的內容..." />
+                                    <label className="mb-1 block text-[14px] font-black text-[#8A8078]">類型</label>
+                                    <select
+                                        value={formData.category}
+                                        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                                        className="w-full rounded-xl border border-[#E8E0D4] bg-[#FBF7F0] px-4 py-3 text-[17px] focus:outline-none focus:ring-2 focus:ring-[#C67B5C]"
+                                    >
+                                        {categories.map((c) => <option key={c} value={c}>{c}</option>)}
+                                    </select>
                                 </div>
+
                                 <div>
-                                    <label className="block text-[14px] font-black text-[#8A8078] mb-1">附件連結（選填，可貼 Google Drive 連結）</label>
-                                    <input value={formData.attachmentUrl} onChange={e => setFormData({ ...formData, attachmentUrl: e.target.value })}
-                                        className="w-full bg-[#FBF7F0] border border-[#E8E0D4] rounded-xl px-4 py-3 text-[17px] focus:outline-none focus:ring-2 focus:ring-[#C67B5C]"
-                                        placeholder="https://drive.google.com/..." />
+                                    <label className="mb-1 block text-[14px] font-black text-[#8A8078]">訊息內容 *</label>
+                                    <textarea
+                                        value={formData.content}
+                                        onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                                        required
+                                        rows={8}
+                                        className="w-full resize-y rounded-xl border border-[#E8E0D4] bg-[#FBF7F0] px-4 py-3 text-[17px] focus:outline-none focus:ring-2 focus:ring-[#C67B5C]"
+                                        placeholder={
+                                            isPrivate
+                                                ? '請輸入你想私下提供的內容、補充資訊、證據或提醒。'
+                                                : '請輸入你的聯絡內容、回報或建議。'
+                                        }
+                                    />
+                                    <p className="mt-2 text-xs font-bold text-[#8A8078]">內容上限 3000 字</p>
                                 </div>
-                                {error && <p className="text-red-500 text-[15px] font-bold bg-red-50 p-3 rounded-xl">{error}</p>}
-                                <motion.button type="submit" disabled={submitting} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                                    className="w-full bg-gradient-to-r from-[#C67B5C] to-[#a8634a] text-white py-4 rounded-xl text-[20px] font-black shadow-lg disabled:opacity-50">
-                                    {submitting ? '傳送中...' : '開始傳送 →'}
+
+                                <div>
+                                    <label className="mb-1 block text-[14px] font-black text-[#8A8078]">附件連結</label>
+                                    <input
+                                        value={formData.attachmentUrl}
+                                        onChange={(e) => setFormData({ ...formData, attachmentUrl: e.target.value })}
+                                        className="w-full rounded-xl border border-[#E8E0D4] bg-[#FBF7F0] px-4 py-3 text-[17px] focus:outline-none focus:ring-2 focus:ring-[#C67B5C]"
+                                        placeholder="可貼上雲端硬碟或檔案連結"
+                                    />
+                                    <p className="mt-2 text-xs font-bold text-[#8A8078]">
+                                        若有文獻、證據或截圖，請提供可供管理端查看的連結。
+                                    </p>
+                                </div>
+
+                                {error && <p className="rounded-xl bg-red-50 p-3 text-[15px] font-bold text-red-500">{error}</p>}
+
+                                <motion.button
+                                    type="submit"
+                                    disabled={submitting}
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    className="relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-[#C67B5C] to-[#a8634a] py-4 text-[20px] font-black text-white shadow-lg disabled:opacity-50"
+                                >
+                                    <motion.span
+                                        aria-hidden="true"
+                                        animate={{ x: ['-140%', '140%'] }}
+                                        transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
+                                        className="absolute inset-y-0 left-0 w-20 bg-white/15 blur-xl"
+                                    />
+                                    {submitting ? '送出中...' : '送出訊息'}
                                 </motion.button>
                             </form>
                         )}
                     </div>
                 </FadeIn>
 
-                {/* 聯絡說明 */}
                 <FadeIn delay={0.1}>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                         {[
-                            { icon: <FileText size={22} />, title: '逐字稿投稿', desc: '提供您的觀庭筆記或逐字稿補充' },
-                            { icon: <MessageCircle size={22} />, title: '意見回饋', desc: '對平台功能或內容提出建議' },
-                            { icon: <Shield size={22} />, title: '糾錯回報', desc: '發現內容錯誤或遺漏，協助修正' },
-                        ].map((item, i) => (
-                            <div key={i} className="bg-white p-5 rounded-2xl border border-[#E8E0D4] text-center">
-                                <div className="w-12 h-12 bg-[#FDE8D8] text-[#C67B5C] rounded-xl flex items-center justify-center mx-auto mb-3">{item.icon}</div>
+                            { icon: <FileText size={22} />, title: '內容更正', desc: '針對文章內容、場次資訊或關聯資料提供補充與修正。' },
+                            { icon: <MessageCircle size={22} />, title: '使用建議', desc: '回饋網站使用體驗、介面問題與功能建議。' },
+                            { icon: <Shield size={22} />, title: '私密傳訊', desc: '提供不適合公開的補充資訊、提醒或證據。' },
+                        ].map((item) => (
+                            <motion.div
+                                key={item.title}
+                                whileHover={{ y: -3 }}
+                                className="rounded-2xl border border-[#E8E0D4] bg-white p-5 text-center shadow-sm transition-all hover:shadow-md"
+                            >
+                                <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-[#FDE8D8] text-[#C67B5C]">{item.icon}</div>
                                 <p className="text-[18px] font-black" style={serif}>{item.title}</p>
-                                <p className="text-[15px] text-[#8A8078] font-bold mt-1">{item.desc}</p>
-                            </div>
+                                <p className="mt-1 text-[15px] font-bold text-[#8A8078]">{item.desc}</p>
+                            </motion.div>
                         ))}
                     </div>
                 </FadeIn>

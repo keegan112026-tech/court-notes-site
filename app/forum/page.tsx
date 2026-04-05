@@ -1,204 +1,226 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { PenTool, Gavel, Send, MessageCircle, Filter, Menu, X, ArrowLeft, Flame, BookOpen } from 'lucide-react';
-import { FadeIn, Banner } from '@/components/ui-shared';
+import { ArrowLeft, BookOpen, FileText, Heart, Layers3, MessageSquare } from 'lucide-react';
+import { FadeIn } from '@/components/ui-shared';
+import SubpageHeader from '@/components/SubpageHeader';
 
 const serif = { fontFamily: "'Noto Serif TC', serif" };
 
+type ForumArticle = {
+  id: string;
+  title: string;
+  author: string;
+  content: string;
+  likes: number;
+  createdAt: string;
+  targetSessionId?: string;
+  sourceSessionIds?: string[];
+};
+
+function stripHtml(html: string) {
+  return html.replace(/<[^>]+>/g, '').trim();
+}
+
 export default function ForumPage() {
-    const [posts, setPosts] = useState<any[]>([]);
-    const [sessionsList, setSessionsList] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [showForm, setShowForm] = useState(false);
-    const [activeCategory, setActiveCategory] = useState('綜合看板');
-    const [formData, setFormData] = useState({ author: '', title: '', content: '', category: '經驗分享', topic: '制度探討', targetSessionSid: '' });
-    const [submitting, setSubmitting] = useState(false);
-    const [submitted, setSubmitted] = useState(false);
+  const [posts, setPosts] = useState<ForumArticle[]>([]);
+  const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        Promise.all([
-            fetch('/api/forum').then(r => r.json()),
-            fetch('/api/sessions').then(r => r.json())
-        ]).then(([forumData, sessionsData]) => {
-            if (forumData.ok) setPosts(forumData.data);
-            if (sessionsData.ok) setSessionsList(sessionsData.data);
-        }).catch(() => { }).finally(() => setLoading(false));
-    }, []);
+  useEffect(() => {
+    fetch('/api/forum')
+      .then((r) => r.json())
+      .then((forumData) => {
+        if (forumData.ok && Array.isArray(forumData.data)) {
+          setPosts(forumData.data);
+          return;
+        }
+        setPosts([]);
+      })
+      .catch(() => setPosts([]))
+      .finally(() => setLoading(false));
+  }, []);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!formData.title.trim() || !formData.content.trim()) return;
-        setSubmitting(true);
-        try {
-            const res = await fetch('/api/forum', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData),
-            });
-            const data = await res.json();
-            if (data.ok) {
-                setSubmitted(true);
-                setFormData({ author: '', title: '', content: '', category: '經驗分享', topic: '制度探討', targetSessionSid: '' });
-                setTimeout(() => { setSubmitted(false); setShowForm(false); }, 3000);
-            }
-        } catch { } finally { setSubmitting(false); }
-    };
+  return (
+    <div className="min-h-screen text-[#2D2A26]" style={{ backgroundColor: '#FBF7F0' }}>
+      <SubpageHeader />
 
-    const categories = ['經驗分享', '專業討論', '資料補充', '提問', '糾錯回報'];
-    const filterCategories = ['綜合看板', ...categories];
-    const topics = ['制度探討', '實務經驗', '倫理界線', '流程爭議', '資源配置', '其他'];
+      <div className="border-b border-[#E8E0D4] bg-gradient-to-b from-[#E3EED3] to-[#FBF7F0]">
+        <div className="mx-auto max-w-4xl px-6 py-8">
+          <Link href="/" className="mb-4 flex items-center gap-1 text-[16px] font-bold text-[#7B8C4E] hover:underline">
+            <ArrowLeft size={16} />
+            返回首頁
+          </Link>
+          <h1 className="text-[42px] font-black md:text-[56px]" style={serif}>
+            公開文章
+          </h1>
+          <p className="mt-2 text-[20px] font-medium text-[#6B6358]">
+            這裡收錄經審核後公開的觀庭共構文章，可由單一場次或跨場次工作檯整理而成。
+          </p>
+          <div className="mt-5 flex flex-wrap gap-3">
+            <Link
+              href="/sessions"
+              className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-black text-[#6B8E23] shadow-sm ring-1 ring-[#DDE6C8] transition-all hover:-translate-y-0.5 hover:bg-[#F9FBE7] hover:shadow-md"
+            >
+              <BookOpen size={16} />
+              查看場次
+            </Link>
+            <Link
+              href="/sessions/compose"
+              className="inline-flex items-center gap-2 rounded-full bg-[#6B8E23] px-4 py-2 text-sm font-black text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-[#5d7c1f] hover:shadow-md"
+            >
+              <Layers3 size={16} />
+              跨場次工作檯
+            </Link>
+          </div>
+        </div>
+      </div>
 
-    const displayedPosts = posts.filter(post => activeCategory === '綜合看板' ? true : post.category === activeCategory);
-
-    return (
-        <div className="min-h-screen" style={{ backgroundColor: '#FBF7F0', color: '#2D2A26' }}>
-            <div className="bg-gradient-to-b from-[#E3EED3] to-[#FBF7F0] border-b border-[#E8E0D4]">
-                <div className="max-w-4xl mx-auto px-6 py-8">
-                    <Link href="/" className="text-[#7B8C4E] text-[16px] font-bold flex items-center gap-1 mb-4 hover:underline"><ArrowLeft size={16} /> 返回首頁</Link>
-                    <h1 className="text-[42px] md:text-[56px] font-black" style={serif}>專業論壇</h1>
-                    <p className="text-[20px] text-[#6B6358] font-medium mt-2">不造神・重文字・匿名化・去權威</p>
-                </div>
+      <section className="mx-auto max-w-4xl px-6 py-8">
+        <FadeIn>
+          <motion.div
+            whileHover={{ y: -3 }}
+            className="mb-8 rounded-3xl border border-[#DDE6C8] bg-white p-6 shadow-sm transition-all hover:shadow-md md:p-8"
+          >
+            <div className="flex items-start gap-4">
+              <motion.div
+                animate={{ y: [0, -3, 0] }}
+                transition={{ duration: 3.4, repeat: Infinity, ease: 'easeInOut' }}
+                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#E3EED3] text-[#3D5220]"
+              >
+                <FileText size={24} />
+              </motion.div>
+              <div className="space-y-3">
+                <h2 className="text-[24px] font-black text-[#2D2A26]" style={serif}>
+                  共構筆記呈現
+                </h2>
+                <p className="text-[17px] font-medium leading-relaxed text-[#6B6358]">
+                  這是所有人共同建構的觀庭筆記，歡迎閱覽分享！
+                </p>
+                <p className="text-[17px] font-medium leading-relaxed text-[#6B6358]">
+                  這裡收錄經審核後公開的觀庭共構文章，可由單一場次或跨場次工作檯整理而成。
+                </p>
+                <p className="text-[16px] font-medium leading-relaxed text-[#8A8078]">
+                  為了維持專業論述的品質並守護實務工作者的法律安全，在投稿文章或發表專業見解前，請務必了解我們的「去識別化」及「免責原則」。
+                </p>
+              </div>
             </div>
 
-            <section className="max-w-4xl mx-auto px-6 py-8">
-                {/* 投稿按鈕 */}
-                <FadeIn>
-                    <div className="flex justify-between items-center mb-6">
-                        <div className="flex flex-wrap gap-2">
-                            {filterCategories.map(c => (
-                                <button
-                                    key={c}
-                                    onClick={() => setActiveCategory(c)}
-                                    className={`px-4 py-2 rounded-xl text-[15px] font-black border transition-colors ${activeCategory === c
-                                            ? 'bg-[#E3EED3] text-[#3D5220] border-[#C5D9A8] shadow-sm'
-                                            : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'
-                                        }`}
-                                >
-                                    {c}
-                                </button>
-                            ))}
-                        </div>
-                        <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setShowForm(!showForm)}
-                            className="bg-gradient-to-r from-[#7B8C4E] to-[#5a6e38] text-white px-6 py-3 rounded-xl text-[16px] font-black shadow-lg">
-                            {showForm ? '收起' : '我要投稿 ✍️'}
-                        </motion.button>
+            <div className="mt-8 rounded-[2rem] border border-[#E8E0D4] bg-[#FFFEFC] p-6">
+              <h2 className="mb-4 text-[30px] font-black leading-tight text-[#2D2A26]" style={serif}>
+                不造神・重文字
+                <br />
+                匿名化・去權威
+              </h2>
+              <p className="mb-6 max-w-3xl text-[20px] font-medium leading-[1.8] text-[#6B6358]">
+                在這個演算法獎勵情緒、意見領袖壟斷話語權的時代，我們反其道而行。在這裡，不看職級、不分地域，只論專業論述與發言。
+              </p>
+              <div className="grid gap-3 md:grid-cols-3">
+                {[
+                  { title: '嚴格去識別化', desc: '不揭露真實姓名、居住地或非公開案情。', tone: 'bg-[#FFF5F5] border-[#F3D8D8] text-[#B65656]' },
+                  { title: '聚焦職務非個人', desc: '聚焦專業判斷與制度，不做情緒化獵巫。', tone: 'bg-[#F5FAEB] border-[#D7E5BB] text-[#5A6F35]' },
+                  { title: '遵守法律基礎', desc: '在合法與可回溯的範圍內交流與補充資料。', tone: 'bg-[#F6F8FB] border-[#D9E1EC] text-[#4F5D71]' },
+                ].map((item) => (
+                  <div key={item.title} className={`rounded-2xl border p-4 ${item.tone}`}>
+                    <p className="text-[18px] font-black" style={serif}>{item.title}</p>
+                    <p className="mt-2 text-[14px] font-bold leading-relaxed">{item.desc}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-6 flex flex-wrap gap-2">
+                {['經驗分享', '專業討論', '資料補充', '提問', '糾錯回報'].map((tag) => (
+                  <span
+                    key={tag}
+                    className="inline-block rounded-xl border border-[#C5D9A8] bg-[#E3EED3] px-5 py-2.5 text-[16px] font-black text-[#3D5220] shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        </FadeIn>
+
+        <div className="space-y-4">
+          {loading ? (
+            <div className="py-16 text-center">
+              <p className="text-[20px] font-bold text-[#8A8078]">載入文章中...</p>
+            </div>
+          ) : posts.length === 0 ? (
+            <FadeIn>
+              <div className="rounded-2xl border border-[#E8E0D4] bg-white py-16 text-center">
+                <FileText size={48} className="mx-auto mb-4 text-[#D4CCC0]" />
+                <p className="text-[20px] font-black text-[#8A8078]" style={serif}>
+                  目前尚無已公開文章
+                </p>
+                <p className="mt-2 text-[16px] text-[#A09888]">待審核稿件完成後，會在這裡集中展示。</p>
+              </div>
+            </FadeIn>
+          ) : (
+            posts.map((post, i) => (
+              <FadeIn key={post.id} delay={i * 0.05}>
+                <Link href={`/forum/${post.id}`} className="block">
+                  <motion.div
+                    whileHover={{ y: -2 }}
+                    className="cursor-pointer rounded-2xl border border-[#E8E0D4] bg-white p-6 transition-all hover:shadow-md"
+                  >
+                    <div className="mb-3 flex flex-wrap items-center gap-2">
+                      <span className="rounded-lg bg-[#E3EED3] px-3 py-1 text-[13px] font-black text-[#3D5220]">
+                        已發布文章
+                      </span>
+                      {post.targetSessionId && (
+                        <span className="flex items-center gap-1 rounded-lg bg-blue-50 px-3 py-1 text-[13px] font-black text-blue-700">
+                          <BookOpen size={12} />
+                          主要場次 {post.targetSessionId}
+                        </span>
+                      )}
+                      {post.sourceSessionIds && post.sourceSessionIds.length > 1 && (
+                        <span className="flex items-center gap-1 rounded-lg bg-[#F9FBE7] px-3 py-1 text-[13px] font-black text-[#5A6F35]">
+                          <Layers3 size={12} />
+                          來源 {post.sourceSessionIds.length} 個場次
+                        </span>
+                      )}
+                      <div className="flex-1" />
+                      <span className="text-[14px] font-bold text-[#A09888]">{post.author || '匿名投稿'}</span>
+                      <span className="text-[12px] text-[#D4CCC0]">{new Date(post.createdAt).toLocaleDateString('zh-TW')}</span>
                     </div>
-                </FadeIn>
 
-                {/* 投稿表單 */}
-                {showForm && (
-                    <FadeIn>
-                        <div className="bg-white rounded-2xl p-6 md:p-8 border border-[#E8E0D4] shadow-sm mb-8">
-                            {submitted ? (
-                                <div className="text-center py-8">
-                                    <p className="text-[24px] font-black text-[#7B8C4E]" style={serif}>✅ 投稿已送出！</p>
-                                    <p className="text-[18px] text-[#8A8078] mt-2">待審核後即會顯示在論壇中</p>
-                                </div>
-                            ) : (
-                                <form onSubmit={handleSubmit} className="space-y-4">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-[14px] font-black text-[#8A8078] mb-1">您的稱呼（選填，留空=匿名）</label>
-                                            <input value={formData.author} onChange={e => setFormData({ ...formData, author: e.target.value })}
-                                                className="w-full bg-[#FBF7F0] border border-[#E8E0D4] rounded-xl px-4 py-3 text-[17px] focus:outline-none focus:ring-2 focus:ring-[#7B8C4E]"
-                                                placeholder="e.g. 兒保社工 C" />
-                                        </div>
-                                        <div>
-                                            <label className="block text-[14px] font-black text-[#8A8078] mb-1">分類</label>
-                                            <select value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })}
-                                                className="w-full bg-[#FBF7F0] border border-[#E8E0D4] rounded-xl px-4 py-3 text-[17px] focus:outline-none focus:ring-2 focus:ring-[#7B8C4E]">
-                                                {categories.map(c => <option key={c} value={c}>{c}</option>)}
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-[14px] font-black text-[#8A8078] mb-1">主題標籤</label>
-                                            <select value={formData.topic} onChange={e => setFormData({ ...formData, topic: e.target.value })}
-                                                className="w-full bg-[#FBF7F0] border border-[#E8E0D4] rounded-xl px-4 py-3 text-[17px] focus:outline-none focus:ring-2 focus:ring-[#7B8C4E]">
-                                                {topics.map(t => <option key={t} value={t}>{t}</option>)}
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label className="block text-[14px] font-black text-[#8A8078] mb-1">關聯場次（選填）</label>
-                                            <select value={formData.targetSessionSid} onChange={e => setFormData({ ...formData, targetSessionSid: e.target.value })}
-                                                className="w-full bg-[#FBF7F0] border border-[#E8E0D4] rounded-xl px-4 py-3 text-[17px] focus:outline-none focus:ring-2 focus:ring-[#7B8C4E] truncate">
-                                                <option value="">-- 不指定場次 --</option>
-                                                {sessionsList.map(s => <option key={s.sessionId} value={s.sessionId}>{s.sessionId} - {s.title}</option>)}
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label className="block text-[14px] font-black text-[#8A8078] mb-1">標題 *</label>
-                                        <input value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} required
-                                            className="w-full bg-[#FBF7F0] border border-[#E8E0D4] rounded-xl px-4 py-3 text-[17px] focus:outline-none focus:ring-2 focus:ring-[#7B8C4E]"
-                                            placeholder="請輸入投稿標題" />
-                                    </div>
-                                    <div>
-                                        <label className="block text-[14px] font-black text-[#8A8078] mb-1">內容 *</label>
-                                        <textarea value={formData.content} onChange={e => setFormData({ ...formData, content: e.target.value })} required rows={6}
-                                            className="w-full bg-[#FBF7F0] border border-[#E8E0D4] rounded-xl px-4 py-3 text-[17px] focus:outline-none focus:ring-2 focus:ring-[#7B8C4E] resize-y"
-                                            placeholder="請輸入您的專業觀察、經驗分享或討論..." />
-                                    </div>
-                                    <motion.button type="submit" disabled={submitting} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                                        className="w-full bg-gradient-to-r from-[#7B8C4E] to-[#5a6e38] text-white py-4 rounded-xl text-[18px] font-black shadow-lg disabled:opacity-50">
-                                        {submitting ? '送出中...' : '送出審核'}
-                                    </motion.button>
-                                    <p className="text-[14px] text-[#A09888] font-bold text-center">所有投稿需經審核後才會公開顯示</p>
-                                </form>
-                            )}
-                        </div>
-                    </FadeIn>
-                )}
-
-                {/* 帖子列表 */}
-                <div className="space-y-4">
-                    {loading ? (
-                        <div className="text-center py-16">
-                            <p className="text-[20px] text-[#8A8078] font-bold">載入中...</p>
-                        </div>
-                    ) : displayedPosts.length === 0 ? (
-                        <FadeIn>
-                            <div className="text-center py-16 bg-white rounded-2xl border border-[#E8E0D4]">
-                                <Filter size={48} className="mx-auto text-[#D4CCC0] mb-4" />
-                                <p className="text-[20px] font-black text-[#8A8078]" style={serif}>此分類尚無已發布文章</p>
-                                <p className="text-[16px] text-[#A09888] mt-2">成為第一位投稿的人吧！</p>
-                            </div>
-                        </FadeIn>
-                    ) : (
-                        displayedPosts.map((post, i) => (
-                            <FadeIn key={post.id} delay={i * 0.05}>
-                                <Link href={`/forum/${post.id}`} className="block">
-                                    <motion.div whileHover={{ y: -2 }}
-                                        className="bg-white p-6 rounded-2xl border border-[#E8E0D4] hover:shadow-md transition-all cursor-pointer">
-                                        <div className="flex flex-wrap items-center gap-2 mb-3">
-                                            <span className="bg-[#E3EED3] text-[#3D5220] px-3 py-1 rounded-lg text-[13px] font-black">{post.category}</span>
-                                            {post.targetTopic && (
-                                                <span className="bg-orange-100 text-orange-800 px-3 py-1 rounded-lg text-[13px] font-black">#{post.targetTopic}</span>
-                                            )}
-                                            {post.targetSessionId && (
-                                                <span className="bg-blue-50 text-blue-700 px-3 py-1 rounded-lg text-[13px] font-black flex items-center gap-1">
-                                                    <BookOpen size={12} /> 關聯場次
-                                                </span>
-                                            )}
-                                            <div className="flex-1"></div>
-                                            <span className="text-[14px] text-[#A09888] font-bold">{post.author || '匿名'}</span>
-                                            <span className="text-[12px] text-[#D4CCC0]">{new Date(post.createdAt).toLocaleDateString('zh-TW')}</span>
-                                        </div>
-                                        <h3 className="text-[22px] font-black" style={serif}>{post.title}</h3>
-                                        <p className="text-[17px] text-[#6B6358] font-medium mt-2 line-clamp-3">{post.content}</p>
-                                        <div className="flex items-center gap-4 mt-4 text-[14px] font-bold text-[#A09888]">
-                                            <span>❤️ {post.likes}</span>
-                                        </div>
-                                    </motion.div>
-                                </Link>
-                            </FadeIn>
-                        ))
+                    {post.sourceSessionIds && post.sourceSessionIds.length > 0 && (
+                      <div className="mb-3 flex flex-wrap gap-2">
+                        {post.sourceSessionIds.map((sessionId) => (
+                          <span
+                            key={sessionId}
+                            className="rounded-full bg-[#F5F1E8] px-3 py-1 text-[12px] font-black text-[#6B6358]"
+                          >
+                            {sessionId}
+                          </span>
+                        ))}
+                      </div>
                     )}
-                </div>
-            </section>
+
+                    <h3 className="text-[22px] font-black" style={serif}>
+                      {post.title}
+                    </h3>
+                    <p className="mt-2 line-clamp-3 text-[17px] font-medium text-[#6B6358]">{stripHtml(post.content)}</p>
+
+                    <div className="mt-4 flex items-center gap-4 text-[14px] font-bold text-[#A09888]">
+                      <span className="inline-flex items-center gap-1">
+                        <Heart size={14} />
+                        {post.likes}
+                      </span>
+                      <span className="inline-flex items-center gap-1">
+                        <MessageSquare size={14} />
+                        留言互動
+                      </span>
+                    </div>
+                  </motion.div>
+                </Link>
+              </FadeIn>
+            ))
+          )}
         </div>
-    );
+      </section>
+    </div>
+  );
 }

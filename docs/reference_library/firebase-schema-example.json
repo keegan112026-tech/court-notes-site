@@ -1,0 +1,47 @@
+{
+  "cms": [
+    {
+      "key": "Hero_Title",
+      "content": "法庭實況還原\n專業共構筆記計畫",
+      "updatedAt": "2026-03-31T00:00:00.000Z"
+    }
+  ],
+  "articles": [
+    {
+      "postId": "article-1743360000000",
+      "author": "匿名夥伴",
+      "title": "從第六場次觀察法庭攻防節奏",
+      "content": "<p>文章內容</p>",
+      "category": "觀庭共構文章",
+      "targetTopic": "觀庭共構發表",
+      "targetSessionId": "s-114-1-6",
+      "likes": 0,
+      "status": "approved",
+      "source": "workspace",
+      "createdAt": "2026-03-31T00:00:00.000Z"
+    }
+  ],
+  "comments": [
+    {
+      "targetLineId": "article-doc-id-or-line-id",
+      "author": "匿名夥伴",
+      "content": "留言內容",
+      "likes": 0,
+      "status": "approved",
+      "type": "文章留言",
+      "targetTopic": "",
+      "targetSessionId": "s-114-1-6",
+      "createdAt": "2026-03-31T00:00:00.000Z"
+    }
+  ],
+  "contacts": [
+    {
+      "name": "匿名夥伴",
+      "category": "其他",
+      "content": "聯絡內容",
+      "attachmentUrl": "",
+      "status": "pending",
+      "createdAt": "2026-03-31T00:00:00.000Z"
+    }
+  ]
+}

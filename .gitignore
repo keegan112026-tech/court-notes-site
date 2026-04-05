@@ -8,6 +8,8 @@
 
 # next.js
 /.next/
+/next-dev-cache/
+/next-build-cache/
 /out/
 
 # production
@@ -21,12 +23,16 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+/server_*.log
+/out.log
+/error.log
 
 # local env files
 .env*.local
 
 # vercel
 .vercel
+/.claude/
 
 # typescript
 *.tsbuildinfo
@@ -37,3 +43,14 @@ next-env.d.ts
 /*.txt
 !README.md
 _backup_gh_pages/
+/homepage.html
+/error.html
+/curl.txt
+
+# old prototype exclusions
+old_prototype_archive/node_modules
+old_prototype_archive/.git
+next-build-cache/
+next-dev-cache/
+server*.log
+tsconfig.tsbuildinfo
