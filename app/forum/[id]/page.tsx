@@ -414,17 +414,38 @@ export default function ForumPostPage() {
                                             placeholder="姓名或代稱"
                                             className="w-full rounded-xl border border-gray-200 bg-white p-4 text-sm font-bold text-gray-700 outline-none focus:border-[#6B8E23]"
                                         />
-                                        <textarea
-                                            required
-                                            rows={4}
-                                            value={newComment}
-                                            onChange={(e) => setNewComment(e.target.value)}
-                                            placeholder="請輸入留言內容..."
-                                            className="w-full resize-none rounded-xl border border-gray-200 bg-white p-4 text-sm font-medium text-gray-700 outline-none focus:border-[#6B8E23]"
-                                        />
+                                        <div className="space-y-1">
+                                            <textarea
+                                                required
+                                                rows={4}
+                                                value={newComment}
+                                                onChange={(e) => setNewComment(e.target.value.slice(0, 1000))}
+                                                placeholder="請輸入留言內容（最多 1000 字）..."
+                                                className={`w-full resize-none rounded-xl border bg-white p-4 text-sm font-medium text-gray-700 outline-none transition-colors ${
+                                                    newComment.length >= 1000
+                                                        ? 'border-red-400 focus:border-red-500'
+                                                        : newComment.length >= 900
+                                                        ? 'border-amber-400 focus:border-amber-500'
+                                                        : 'border-gray-200 focus:border-[#6B8E23]'
+                                                }`}
+                                            />
+                                            <div className="flex items-center justify-end gap-2">
+                                                {newComment.length >= 900 && newComment.length < 1000 && (
+                                                    <span className="text-xs font-bold text-amber-600">即將達到字數上限</span>
+                                                )}
+                                                {newComment.length >= 1000 && (
+                                                    <span className="text-xs font-bold text-red-600">已達 1000 字上限</span>
+                                                )}
+                                                <span className={`text-xs font-black tabular-nums ${
+                                                    newComment.length >= 1000 ? 'text-red-500' : newComment.length >= 900 ? 'text-amber-500' : 'text-gray-400'
+                                                }`}>
+                                                    {newComment.length} / 1000
+                                                </span>
+                                            </div>
+                                        </div>
                                         <button
                                             type="submit"
-                                            disabled={submitting}
+                                            disabled={submitting || newComment.length === 0 || newComment.length > 1000}
                                             className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#6B8E23] py-4 font-black text-white shadow-md transition-all hover:scale-[1.01] disabled:opacity-50"
                                         >
                                             {submitting ? '送出中...' : '送出留言'}

@@ -28,7 +28,7 @@ const CitationChip = TiptapNode.create({
     group: 'inline',
     inline: true,
     atom: true,
-    selectable: true,
+    selectable: false,
 
     addAttributes() {
         return {

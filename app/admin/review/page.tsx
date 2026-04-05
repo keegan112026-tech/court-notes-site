@@ -6,6 +6,8 @@ import AdminConsoleNav from '@/components/admin/AdminConsoleNav';
 import {
     AlertCircle,
     Check,
+    ChevronDown,
+    ChevronUp,
     FileText,
     LogOut,
     Mail,
@@ -60,6 +62,7 @@ export default function AdminReviewPage() {
     const [loading, setLoading] = useState(true);
     const [message, setMessage] = useState('');
     const [workingKey, setWorkingKey] = useState('');
+    const [expandedArticleId, setExpandedArticleId] = useState<string | null>(null);
 
     const loadPending = async () => {
         setLoading(true);
@@ -232,7 +235,19 @@ export default function AdminReviewPage() {
                                         )}
                                     </div>
 
-                                    <p className="line-clamp-4 text-sm leading-7 text-[#5A5347]">{stripHtml(article.content)}</p>
+                                    <div className={`text-sm leading-7 text-[#5A5347] ${expandedArticleId === article.id ? '' : 'line-clamp-4'}`}>
+                                        {stripHtml(article.content)}
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => setExpandedArticleId(expandedArticleId === article.id ? null : article.id)}
+                                        className="mt-1 inline-flex items-center gap-1 text-xs font-black text-[#6B8E23] hover:text-[#5a781d]"
+                                    >
+                                        {expandedArticleId === article.id
+                                            ? <><ChevronUp size={13} /> 收合</>
+                                            : <><ChevronDown size={13} /> 展開全文</>
+                                        }
+                                    </button>
 
                                     <div className="mt-4 flex flex-wrap gap-2">
                                         <button
