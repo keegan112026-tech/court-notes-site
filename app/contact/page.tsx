@@ -152,17 +152,35 @@ export default function ContactPage() {
                   <label className="mb-1 block text-[14px] font-black text-[#8A8078]">訊息內容 *</label>
                   <textarea
                     value={formData.content}
-                    onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, content: e.target.value.slice(0, 3000) })}
                     required
                     rows={8}
-                    className="w-full resize-y rounded-xl border border-[#E8E0D4] bg-[#FBF7F0] px-4 py-3 text-[17px] focus:outline-none focus:ring-2 focus:ring-[#C67B5C]"
+                    className={`w-full resize-y rounded-xl border bg-[#FBF7F0] px-4 py-3 text-[17px] focus:outline-none focus:ring-2 transition-colors ${
+                      formData.content.length >= 3000
+                        ? 'border-red-400 focus:ring-red-400'
+                        : formData.content.length >= 2700
+                        ? 'border-amber-400 focus:ring-amber-400'
+                        : 'border-[#E8E0D4] focus:ring-[#C67B5C]'
+                    }`}
                     placeholder={
                       isPrivate
                         ? '這裡可填寫需要保密的內容、補充說明或私下聯繫事項。'
                         : '這裡可以填寫聯絡事項、錯誤回報、內容更正或使用建議。'
                     }
                   />
-                  <p className="mt-2 text-xs font-bold text-[#8A8078]">內容上限 3000 字</p>
+                  <div className="mt-1 flex items-center justify-end gap-2">
+                    {formData.content.length >= 2700 && formData.content.length < 3000 && (
+                      <span className="text-xs font-bold text-amber-600">即將達到字數上限</span>
+                    )}
+                    {formData.content.length >= 3000 && (
+                      <span className="text-xs font-bold text-red-600">已達 3000 字上限</span>
+                    )}
+                    <span className={`text-xs font-black tabular-nums ${
+                      formData.content.length >= 3000 ? 'text-red-500' : formData.content.length >= 2700 ? 'text-amber-500' : 'text-[#8A8078]'
+                    }`}>
+                      {formData.content.length} / 3000
+                    </span>
+                  </div>
                 </div>
 
                 <div>

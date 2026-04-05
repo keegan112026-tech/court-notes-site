@@ -101,6 +101,7 @@ export default function SessionWorkspacePage() {
     const [submitState, setSubmitState] = useState('');
     const [submitting, setSubmitting] = useState(false);
     const [activeLineId, setActiveLineId] = useState('');
+    const [editorLength, setEditorLength] = useState(0);
     const [citationPreview, setCitationPreview] = useState<CitationPreview | null>(null);
     const [isMobileLayout, setIsMobileLayout] = useState(false);
     const [mobilePanel, setMobilePanel] = useState<'transcript' | 'editor'>('transcript');
@@ -121,6 +122,7 @@ export default function SessionWorkspacePage() {
         ],
         content: '',
         immediatelyRender: false,
+        onUpdate: ({ editor: e }) => setEditorLength(e.getText().length),
         editorProps: {
             attributes: {
                 class: 'prose prose-sm md:prose-base focus:outline-none min-h-[500px] max-w-none text-gray-700 leading-[1.85] p-6',
@@ -460,6 +462,19 @@ export default function SessionWorkspacePage() {
                     </div>
                 )}
             </div>
+            <div className="flex items-center justify-end gap-2 border-t border-gray-100 bg-white px-4 py-2">
+                {editorLength >= 9000 && editorLength < 10000 && (
+                    <span className="text-[11px] font-bold text-amber-600">即將達到字數上限</span>
+                )}
+                {editorLength >= 10000 && (
+                    <span className="text-[11px] font-bold text-red-600">已達上限，請精簡後再送出</span>
+                )}
+                <span className={`text-[11px] font-black tabular-nums ${
+                    editorLength >= 10000 ? 'text-red-500' : editorLength >= 9000 ? 'text-amber-500' : 'text-gray-400'
+                }`}>
+                    {editorLength} / 10000
+                </span>
+            </div>
         </div>
     );
 
@@ -483,7 +498,7 @@ export default function SessionWorkspacePage() {
                             </button>
                             <button
                                 onClick={submitArticle}
-                                disabled={submitting}
+                                disabled={submitting || editorLength > 10000}
                                 className="flex items-center gap-2 rounded-xl bg-[#6B8E23] px-5 py-2 text-xs font-bold text-white shadow-md transition-colors hover:bg-[#5a781d] disabled:opacity-60"
                             >
                                 <Send size={14} /> {submitting ? '送出中...' : '送出審核'}

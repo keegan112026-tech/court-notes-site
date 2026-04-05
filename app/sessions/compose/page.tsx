@@ -43,6 +43,7 @@ export default function CrossSessionComposePage() {
     const [submitState, setSubmitState] = useState('');
     const [submitting, setSubmitting] = useState(false);
     const [sourceSessionIds, setSourceSessionIds] = useState<string[]>([]);
+    const [editorLength, setEditorLength] = useState(0);
 
     const sessionBundle = useMemo(() => getLocalSessionDetail(activeSessionId), [activeSessionId]);
     const transcriptMap = useMemo(() => getTranscriptCitationMap(activeSessionId), [activeSessionId]);
@@ -59,6 +60,7 @@ export default function CrossSessionComposePage() {
         ],
         content: '',
         immediatelyRender: false,
+        onUpdate: ({ editor: e }) => setEditorLength(e.getText().length),
     });
 
     const insertCitation = (lineId: string) => {
@@ -142,7 +144,7 @@ export default function CrossSessionComposePage() {
                 actions={
                     <button
                         onClick={handleSubmit}
-                        disabled={submitting}
+                        disabled={submitting || editorLength > 10000}
                         className="inline-flex items-center gap-2 rounded-xl bg-[#6B8E23] px-5 py-3 text-xs font-black text-white shadow-md disabled:opacity-50"
                     >
                         <Send size={16} />
@@ -222,6 +224,19 @@ export default function CrossSessionComposePage() {
                         </div>
                         <div className="p-6">
                             <EditorContent editor={editor} className="workspace-editor min-h-[420px]" />
+                            <div className="mt-3 flex items-center justify-end gap-2 border-t border-gray-100 pt-3">
+                                {editorLength >= 9000 && editorLength < 10000 && (
+                                    <span className="text-xs font-bold text-amber-600">即將達到字數上限</span>
+                                )}
+                                {editorLength >= 10000 && (
+                                    <span className="text-xs font-bold text-red-600">已達 10000 字上限，請精簡內容</span>
+                                )}
+                                <span className={`text-xs font-black tabular-nums ${
+                                    editorLength >= 10000 ? 'text-red-500' : editorLength >= 9000 ? 'text-amber-500' : 'text-gray-400'
+                                }`}>
+                                    {editorLength} / 10000
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </section>
