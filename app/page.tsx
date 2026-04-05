@@ -3,25 +3,296 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, useScroll, AnimatePresence } from 'framer-motion';
 import {
-    PenTool, BookOpen, Heart, Eye, MessageSquare, ChevronRight, Flame,
-    Gavel, Clock, ArrowRight, BookMarked, Layers, Flag, Menu, X, Users,
-    HeartHandshake, Sparkles, Send, FileText, MessageCircle, Shield, Scale, ShieldAlert,
-    AlertCircle
+    PenTool, BookOpen, Heart, Eye, MessageSquare, Flame,
+    Gavel, ArrowRight, Layers, Menu, X, ChevronLeft, ChevronRight,
+    HeartHandshake, Send, FileText, MessageCircle, ShieldAlert, Shield, Scale, AlertCircle
 } from 'lucide-react';
 import { FadeIn, Counter, TypeWriter, Banner, WarmGradientBg } from '@/components/ui-shared';
+import SessionsOverviewSection from '@/components/SessionsOverviewSection';
+import { Skeleton } from '@/components/ui/skeleton';
+import { BETA_NOTICE, COPYRIGHT_NOTICE, FOOTER_NAV_ITEMS, PUBLIC_NAV_ITEMS, SITE_NAME, SITE_TAGLINE, TEAM_BLURB } from '@/lib/public-site';
 
 const serif = { fontFamily: "'Noto Serif TC', serif" };
 
-type SiteStats = { totalSessions: number; restoredSessions: number; approvedComments: number };
+type SiteStats = { totalSessions: number; restoredSessions: number; publishedArticles: number };
+
+function normalizeArrayPayload<T>(payload: unknown): T[] {
+    if (Array.isArray(payload)) return payload as T[];
+    if (payload && typeof payload === 'object' && 'data' in payload) {
+        const nested = (payload as { data?: unknown }).data;
+        return Array.isArray(nested) ? (nested as T[]) : [];
+    }
+    return [];
+}
+
+function normalizeStatsPayload(payload: unknown, sessionsFallback: any[]): SiteStats {
+    const safeObject = payload && typeof payload === 'object' ? payload as Partial<SiteStats> : {};
+    const totalSessions = typeof safeObject.totalSessions === 'number' ? safeObject.totalSessions : sessionsFallback.length;
+    const restoredSessions = typeof safeObject.restoredSessions === 'number' ? safeObject.restoredSessions : sessionsFallback.length;
+    const publishedArticles = typeof safeObject.publishedArticles === 'number' ? safeObject.publishedArticles : 0;
+    return { totalSessions, restoredSessions, publishedArticles };
+}
+
+const homepageGuidePanels = [
+    {
+        id: 'rules',
+        label: '平台限制與規範',
+        hint: '重要與計畫限制',
+        icon: ShieldAlert,
+        cardClass: 'bg-[#E3EED3] border-[#D6E3B2] hover:border-[#BCCC80]',
+        iconClass: 'text-[#6B8E23]',
+    },
+    {
+        id: 'ethics',
+        label: '倫理規範與發言守則',
+        hint: '去識別化、聚焦職務、遵守法律',
+        icon: Shield,
+        cardClass: 'bg-[#F7E8E8] border-[#EFCACA] hover:border-[#DFB0B0]',
+        iconClass: 'text-[#B75A5A]',
+    },
+    {
+        id: 'workflow',
+        label: '平台運作模式',
+        hint: '前期、呈現、最後',
+        icon: Scale,
+        cardClass: 'bg-[#E4DDF4] border-[#D4C9F0] hover:border-[#BEB0E3]',
+        iconClass: 'text-[#6B5CA5]',
+    },
+    {
+        id: 'what-we-do',
+        label: '這個平台在做什麼？',
+        hint: '整合資訊、觀庭還原、共構解方',
+        icon: Layers,
+        cardClass: 'bg-[#EEF4DB] border-[#DCE7BA] hover:border-[#C7D995]',
+        iconClass: 'text-[#6B8E23]',
+    },
+    {
+        id: 'problems',
+        label: '我們要解決什麼問題？',
+        hint: '資訊門檻、詮釋壟斷、對立衝突',
+        icon: AlertCircle,
+        cardClass: 'bg-[#FDEBDD] border-[#F2D7C1] hover:border-[#E6C09C]',
+        iconClass: 'text-[#C67B5C]',
+    },
+];
+
+const homepageGuidePlayfulNote = '因為都是大家下班育兒時間騰出時間維護和審閱網站，還請大家幫忙避免批評謾罵、洩漏個資或吵架到脆、靠北社工、滴卡、IG之類的平台，我們這裡就心平氣和地講，也讓我們這些中年社畜好過一些哈 (´･ω･`) 🙏';
+
+const homepageGuideRules = [
+    {
+        title: '重要',
+        paragraphs: [
+            '重要本計畫旨在提供相對還原˙現場之還原筆記，並佐以相關法庭知能、案情資訊彙整，降低取得資料與學習先備知識之門檻，使大眾均能從具備法庭現場詰問交互脈絡、可核對證人間陳述之異同、亦希望幫助檢閱陳述之一致性。',
+            '避免由個人認知偏誤所導致之斷章取義或避重就輕、立場詮釋。',
+        ],
+        panelClass: 'border-orange-100 bg-white',
+        labelClass: 'bg-orange-50 text-orange-600',
+    },
+    {
+        title: '計畫限制',
+        paragraphs: [
+            '本團隊會善盡網站管理責任，並恪守原則，但仍有以下限制：',
+            '本網站還原筆記由本團隊觀庭手記並蒐集各社群民眾、社工網路夥伴公開之類文字稿，亦有夥伴進行文件提供，本團隊歷時多月進行核對與拼湊，盡力還原開庭詰問與論告等對話語順、情境、前後文，竭力提供相對還原之還原筆記，但仍有限制，可能會有錯漏，還望大眾海涵。',
+        ],
+        panelClass: 'border-[#E8DCC7] bg-white',
+        labelClass: 'bg-[#FFF7E8] text-[#A0724E]',
+    },
+];
+
+const homepageGuideEthicsCards = [
+    {
+        title: '嚴格去識別化',
+        desc: '徹底移除隱私資訊。禁止揭露真實姓名、居住地或非公開案情細節。',
+        bg: 'bg-red-50',
+        border: 'border-red-100',
+        accent: 'text-red-500',
+        icon: ShieldAlert,
+    },
+    {
+        title: '聚焦職務非個人',
+        desc: '針對「專業判斷」與「機構制度」進行討論。嚴禁人身攻擊。',
+        bg: 'bg-emerald-50',
+        border: 'border-emerald-100',
+        accent: 'text-[#7B8C4E]',
+        icon: Scale,
+    },
+    {
+        title: '遵守法律基礎',
+        desc: '遵守法規與公共秩序。不得發表違法資訊 or 煽動仇恨言論。',
+        bg: 'bg-gray-50',
+        border: 'border-gray-200',
+        accent: 'text-gray-600',
+        icon: Shield,
+    },
+];
+
+const homepageGuideWorkflow = [
+    {
+        title: '前期 — 本團隊工作',
+        items: ['實際參與所有場次形成筆記', '蒐集觀庭多元筆記校對補缺', '蒐集案整體相關資料'],
+        border: 'border-l-blue-400',
+        accent: 'text-blue-400',
+    },
+    {
+        title: '呈現',
+        items: ['觀庭現場還原筆記', '即時論壇與評論投稿機制', '形成論述探討、交流'],
+        border: 'border-l-[#7B8C4E]',
+        accent: 'text-[#7B8C4E]',
+    },
+    {
+        title: '最後',
+        items: ['共構本事件之還原計畫和共識', '透過集體智慧建立新的準則與論述'],
+        border: 'border-l-[#C67B5C]',
+        accent: 'text-[#C67B5C]',
+    },
+];
+
+const homepageGuideWhatWeDo = [
+    { label: '整合資訊', desc: '打破壁壘，降低門檻', icon: BookOpen, color: 'bg-[#E3EED3]', accent: 'text-[#5A6F35]' },
+    { label: '觀庭還原', desc: '身歷其境，完整還原', icon: Eye, color: 'bg-[#F5E6D3]', accent: 'text-[#A0724E]' },
+    { label: '觀庭評述', desc: '就本案呈現真實狀況評述', icon: Gavel, color: 'bg-[#E0DAF0]', accent: 'text-[#6B5CA5]' },
+    { label: '建構論壇', desc: '匿名交流，平等詮釋', icon: MessageCircle, color: 'bg-[#E3EED3]', accent: 'text-[#5A6F35]' },
+    { label: '共構解方', desc: '集體智慧，復原重建', icon: HeartHandshake, color: 'bg-[#FDE8D8]', accent: 'text-[#C67B5C]' },
+];
+
+const homepageGuideProblems = [
+    {
+        title: '資訊紛亂斷裂、門檻高',
+        desc: '資訊紛亂、斷裂、專業壁壘，完整尋找門檻高',
+        icon: Layers,
+        accent: 'text-blue-500',
+    },
+    {
+        title: '單一敘事與詮釋壟斷',
+        desc: '有條件觀庭者僅少數，雙方敘述封閉於庭上、外界資訊均透過解讀詮釋，觀庭者掌握解釋權、論述各有切入點與場域影響，可獲得關注',
+        icon: Eye,
+        accent: 'text-[#7B8C4E]',
+    },
+    {
+        title: '對立衝突與無法傾聽',
+        desc: '各自論述對立、衝突、難以理解彼此，也不去聽對方的語言',
+        icon: MessageSquare,
+        accent: 'text-[#C67B5C]',
+    },
+];
+
+function renderHomepageGuideShelf(panelId: string) {
+    if (panelId === 'rules') {
+        return (
+            <div className="space-y-4">
+                <div className="grid gap-4 lg:grid-cols-[1.05fr_0.95fr]">
+                    {homepageGuideRules.map((card) => (
+                        <div key={card.title} className={`rounded-[1.5rem] border p-5 shadow-sm ${card.panelClass}`}>
+                            <div className={`inline-flex items-center rounded-full px-3 py-1.5 text-[11px] font-black tracking-[0.16em] ${card.labelClass}`}>
+                                {card.title}
+                            </div>
+                            <div className="mt-3 space-y-3 text-[14px] font-medium leading-[1.85] text-[#5D5549]">
+                                {card.paragraphs.map((paragraph) => (
+                                    <p key={paragraph}>{paragraph}</p>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+                <div className="rounded-[1.4rem] border border-[#F1DDC0] bg-gradient-to-r from-[#FFF7E8] via-[#FFFDF7] to-[#F9FBE7] px-5 py-4 shadow-sm">
+                    <p className="text-[14px] font-bold leading-[1.9] text-[#6B6358]">
+                        {homepageGuidePlayfulNote}
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
+    if (panelId === 'ethics') {
+        return (
+            <div className="grid gap-4 md:grid-cols-3">
+                {homepageGuideEthicsCards.map((card) => {
+                    const Icon = card.icon;
+                    return (
+                        <div key={card.title} className={`rounded-[1.45rem] border p-5 shadow-sm ${card.bg} ${card.border}`}>
+                            <div className={`mb-3 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-white/85 ${card.accent}`}>
+                                <Icon size={22} />
+                            </div>
+                            <h4 className="text-[22px] font-black text-[#2D2A26]" style={serif}>{card.title}</h4>
+                            <p className="mt-2.5 text-[15px] font-medium leading-[1.85] text-[#6B6358]">
+                                {card.desc}
+                            </p>
+                        </div>
+                    );
+                })}
+            </div>
+        );
+    }
+
+    if (panelId === 'workflow') {
+        return (
+            <div className="grid gap-4 md:grid-cols-3">
+                {homepageGuideWorkflow.map((step) => (
+                    <div key={step.title} className={`rounded-[1.45rem] border border-[#E8E0D4] border-l-4 bg-white p-5 shadow-sm ${step.border}`}>
+                        <h4 className="text-[24px] font-black text-[#2D2A26]" style={serif}>{step.title}</h4>
+                        <ul className="mt-3 space-y-2.5">
+                            {step.items.map((item) => (
+                                <li key={item} className="flex items-start gap-2 text-[15px] font-medium leading-[1.8] text-[#5A5347]">
+                                    <ChevronRight size={16} className={`mt-1 shrink-0 ${step.accent}`} />
+                                    {item}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                ))}
+            </div>
+        );
+    }
+
+    if (panelId === 'what-we-do') {
+        return (
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+                {homepageGuideWhatWeDo.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                        <div key={item.label} className={`${item.color} rounded-[1.35rem] border border-black/5 p-5`}>
+                            <div className={`mb-3 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-white/65 ${item.accent}`}>
+                                <Icon size={22} />
+                            </div>
+                            <p className="text-[22px] font-black text-[#2F2923]" style={serif}>{item.label}</p>
+                            <p className="mt-2 text-[14px] font-bold leading-[1.8] text-[#8A8078]">{item.desc}</p>
+                        </div>
+                    );
+                })}
+            </div>
+        );
+    }
+
+    return (
+        <div className="grid gap-4 md:grid-cols-3">
+            {homepageGuideProblems.map((problem) => {
+                const Icon = problem.icon;
+                return (
+                    <div key={problem.title} className="rounded-[1.55rem] border border-[#E8E0D4] bg-white/85 p-5 text-center shadow-sm">
+                        <div className="mx-auto mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full border border-gray-100 bg-gray-50">
+                            <Icon size={20} className={problem.accent} />
+                        </div>
+                        <h4 className="text-[20px] font-black text-[#2D2A26]" style={serif}>{problem.title}</h4>
+                        <p className="mt-2.5 text-[14px] font-bold leading-[1.85] text-[#6B6358]">
+                            {problem.desc}
+                        </p>
+                    </div>
+                );
+            })}
+        </div>
+    );
+}
 
 export default function Home() {
     const [scrolled, setScrolled] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
     const { scrollYProgress } = useScroll();
+    const [heroSessionIndex, setHeroSessionIndex] = useState(0);
+    const [homeGuidePanel, setHomeGuidePanel] = useState(homepageGuidePanels[0].id);
+    const [homeGuideDirection, setHomeGuideDirection] = useState(1);
 
-    const [cms, setCms] = useState<Record<string, string>>({});
     const [sessions, setSessions] = useState<any[]>([]);
-    const [stats, setStats] = useState<SiteStats>({ totalSessions: 0, restoredSessions: 0, approvedComments: 0 });
+    const [stats, setStats] = useState<SiteStats>({ totalSessions: 0, restoredSessions: 0, publishedArticles: 0 });
     const [hotNotes, setHotNotes] = useState<any[]>([]);
     const [hotComments, setHotComments] = useState<any[]>([]);
     const [hotArticles, setHotArticles] = useState<any[]>([]);
@@ -33,35 +304,108 @@ export default function Home() {
     }, []);
 
     useEffect(() => {
-        Promise.all([
-            fetch('/api/cms').then(r => r.json()),
-            fetch('/api/sessions').then(r => r.json()),
-            fetch('/api/stats').then(r => r.json()),
-            fetch('/api/trending?type=notes').then(r => r.json()),
-            fetch('/api/trending?type=comments').then(r => r.json()),
-            fetch('/api/trending?type=articles').then(r => r.json()),
-        ]).then(([cmsData, sessionsData, statsData, notesData, commentsData, articlesData]) => {
-            setCms(cmsData.data || cmsData);
-            setSessions(sessionsData.data || sessionsData || []);
-            setStats(statsData);
-            setHotNotes(notesData);
-            setHotComments(commentsData);
-            setHotArticles(articlesData);
+        let cancelled = false;
+
+        const fetchJson = async (url: string) => {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`Failed to fetch ${url}: ${response.status}`);
+            }
+            return response.json();
+        };
+
+        async function loadHomepageData() {
+            const [sessionsResult, statsResult, notesResult, commentsResult, articlesResult] = await Promise.allSettled([
+                fetchJson('/api/sessions'),
+                fetchJson('/api/stats'),
+                fetchJson('/api/trending?type=notes'),
+                fetchJson('/api/trending?type=comments'),
+                fetchJson('/api/trending?type=articles'),
+            ]);
+
+            if (cancelled) return;
+
+            const resolvedSessions = sessionsResult.status === 'fulfilled' ? normalizeArrayPayload<any>(sessionsResult.value) : [];
+            const resolvedStats = statsResult.status === 'fulfilled'
+                ? normalizeStatsPayload(statsResult.value, resolvedSessions)
+                : normalizeStatsPayload(null, resolvedSessions);
+            const resolvedNotes = notesResult.status === 'fulfilled' ? normalizeArrayPayload<any>(notesResult.value) : [];
+            const resolvedComments = commentsResult.status === 'fulfilled' ? normalizeArrayPayload<any>(commentsResult.value) : [];
+            const resolvedArticles = articlesResult.status === 'fulfilled' ? normalizeArrayPayload<any>(articlesResult.value) : [];
+
+            if (sessionsResult.status === 'rejected') console.error('Error fetching sessions:', sessionsResult.reason);
+            if (statsResult.status === 'rejected') console.error('Error fetching stats:', statsResult.reason);
+            if (notesResult.status === 'rejected') console.error('Error fetching trending notes:', notesResult.reason);
+            if (commentsResult.status === 'rejected') console.error('Error fetching trending comments:', commentsResult.reason);
+            if (articlesResult.status === 'rejected') console.error('Error fetching trending articles:', articlesResult.reason);
+
+            setSessions(resolvedSessions);
+            setStats(resolvedStats);
+            setHotNotes(resolvedNotes);
+            setHotComments(resolvedComments);
+            setHotArticles(resolvedArticles);
             setLoading(false);
-        }).catch(err => {
-            console.error('Error fetching data:', err);
-            setLoading(false);
-        });
+        }
+
+        loadHomepageData();
+
+        return () => {
+            cancelled = true;
+        };
     }, []);
 
-    const navItems = [
-        { name: '計畫緣起', href: '#mission', icon: <BookOpen className="w-5 h-5 text-[#8B4D35]" /> },
-        { name: '平台規範', href: '#rules', icon: <ShieldAlert className="w-5 h-5 text-[#7B8C4E]" /> },
-        { name: '先備知識', href: '#knowledge', icon: <Layers className="w-5 h-5 text-[#6B5CA5]" /> },
-        { name: '還原筆記', href: '#sessions', icon: <Gavel className="w-5 h-5 text-[#C67B5C]" /> },
-        { name: '論壇交流', href: '/forum', icon: <MessageCircle className="w-5 h-5 text-[#5A6F35]" /> },
-        { name: '聯絡我們', href: '/contact', icon: <Send className="w-5 h-5 text-[#2D2A26]" /> }
-    ];
+    useEffect(() => {
+        if (sessions.length === 0) return;
+        setHeroSessionIndex((current) => Math.min(current, sessions.length - 1));
+    }, [sessions.length]);
+
+    useEffect(() => {
+        if (sessions.length <= 1) return;
+
+        const timer = window.setInterval(() => {
+            setHeroSessionIndex((current) => (current + 1) % sessions.length);
+        }, 6500);
+
+        return () => window.clearInterval(timer);
+    }, [sessions.length]);
+
+    const navItems = PUBLIC_NAV_ITEMS.map((item) => {
+        const Icon = item.icon;
+        return { ...item, icon: <Icon className={item.homeIconClass} /> };
+    });
+    const activeHeroSession = sessions[heroSessionIndex];
+
+    function goToPreviousHeroSession() {
+        if (sessions.length <= 1) return;
+        setHeroSessionIndex((current) => (current === 0 ? sessions.length - 1 : current - 1));
+    }
+
+    function goToNextHeroSession() {
+        if (sessions.length <= 1) return;
+        setHeroSessionIndex((current) => (current + 1) % sessions.length);
+    }
+
+    function goToHomeGuidePanel(nextId: string) {
+        const currentIndex = homepageGuidePanels.findIndex((panel) => panel.id === homeGuidePanel);
+        const nextIndex = homepageGuidePanels.findIndex((panel) => panel.id === nextId);
+        setHomeGuideDirection(nextIndex > currentIndex ? 1 : -1);
+        setHomeGuidePanel(nextId);
+    }
+
+    function goToPreviousHomeGuidePanel() {
+        const currentIndex = homepageGuidePanels.findIndex((panel) => panel.id === homeGuidePanel);
+        const nextIndex = currentIndex === 0 ? homepageGuidePanels.length - 1 : currentIndex - 1;
+        setHomeGuideDirection(-1);
+        setHomeGuidePanel(homepageGuidePanels[nextIndex].id);
+    }
+
+    function goToNextHomeGuidePanel() {
+        const currentIndex = homepageGuidePanels.findIndex((panel) => panel.id === homeGuidePanel);
+        const nextIndex = (currentIndex + 1) % homepageGuidePanels.length;
+        setHomeGuideDirection(1);
+        setHomeGuidePanel(homepageGuidePanels[nextIndex].id);
+    }
+
 
     /* ── Demo data (will be replaced by Notion CMS when entries exist) ── */
     // const hotNotes = [
@@ -80,10 +424,6 @@ export default function Home() {
     //     { title: '收出養媒合制度：北中南差異有多大？', author: '匿名社工C', likes: 167, tag: '經驗分享' },
     // ];
 
-    const heroTitle = cms['Hero_Title'] || '法庭實況還原\n專業共構筆記計畫';
-    const heroDesc = cms['Hero_Desc_1'] || '這不只是一份開庭紀錄，而是一場化血淚為滋養的集體療癒與重建。';
-    const typewriterTexts = (cms['Hero_TypeWriter_Texts'] || '唯有直視真實，才能共構解方|讓同伴與後輩不再孤單|用專業視角為社工實務留下註腳|不造神・重文字・匿名化・去權威').split('|');
-
     return (
         <div className="min-h-screen overflow-x-hidden" style={{ backgroundColor: '#FBF7F0', color: '#2D2A26', fontSize: '18px' }}>
             {/* 滾動進度條 */}
@@ -93,7 +433,7 @@ export default function Home() {
             {/* Beta Banner */}
             <div className="relative z-50 bg-gradient-to-r from-[#5a6e38] via-[#7B8C4E] to-[#8a9d58] text-white text-[15px] font-bold text-center py-2 tracking-wider shadow-sm">
                 <motion.span animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 2, repeat: Infinity }} className="inline-block mr-2 text-yellow-200">●</motion.span>
-                目前為 Beta 前導測試版，系統建置與數據對接中
+                {BETA_NOTICE}
             </div>
 
             {/* Navbar */}
@@ -104,8 +444,8 @@ export default function Home() {
                         <motion.div whileHover={{ rotate: 15, scale: 1.1 }} transition={{ type: 'spring', stiffness: 300 }}
                             className="bg-gradient-to-br from-[#7B8C4E] to-[#5a6e38] p-2.5 rounded-xl text-white shadow-md"><PenTool size={22} /></motion.div>
                         <div>
-                            <h1 className="text-[20px] font-black leading-tight" style={serif}>法庭實況還原與專業共構筆記</h1>
-                            <p className="text-[11px] text-[#A09888] font-bold tracking-[0.15em]">SOCIAL WORK COURT NOTES</p>
+                            <h1 className="text-[20px] font-black leading-tight" style={serif}>{SITE_NAME}</h1>
+                            <p className="text-[11px] text-[#A09888] font-bold tracking-[0.15em]">{SITE_TAGLINE}</p>
                         </div>
                     </Link>
                     <div className="hidden lg:flex items-center gap-0">
@@ -116,12 +456,6 @@ export default function Home() {
                                 <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 h-[2px] bg-[#7B8C4E] rounded-full w-0 group-hover:w-6 transition-all duration-300" />
                             </Link>
                         ))}
-                        <Link href="/forum">
-                            <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-                                className="ml-3 bg-gradient-to-r from-[#7B8C4E] to-[#5a6e38] text-white px-6 py-2.5 rounded-xl text-[16px] font-black shadow-lg shadow-[#7B8C4E]/25 hover:shadow-[#7B8C4E]/40 transition-shadow">
-                                我要投稿 ✍️
-                            </motion.button>
-                        </Link>
                     </div>
                     <button className="lg:hidden p-2" onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X size={28} /> : <Menu size={28} />}</button>
                 </div>
@@ -141,28 +475,26 @@ export default function Home() {
             </motion.nav>
 
             {/* ═══ Hero ═══ */}
-            <section id="mission" className="relative bg-gradient-to-b from-[#F5EFE4] to-[#FBF7F0] pt-10 pb-8 px-6 border-b border-[#E8E0D4] overflow-hidden">
+            <section id="mission" className="relative overflow-hidden border-b border-[#E8E0D4] bg-gradient-to-b from-[#F5EFE4] to-[#FBF7F0] px-6 pt-10 pb-8">
                 <WarmGradientBg />
-                <div className="max-w-7xl mx-auto relative z-10 flex flex-col lg:flex-row gap-8 items-start">
-                    {/* Left Column - Main Hero Content */}
-                    <div className="flex-1 min-w-0">
+                <div className="relative z-10 mx-auto grid max-w-7xl gap-7 xl:grid-cols-[1.08fr_0.92fr] xl:items-start">
+                    <div className="min-w-0">
                         <FadeIn>
-                            <motion.div whileHover={{ scale: 1.05 }} className="inline-flex items-center gap-2 px-5 py-2 bg-white/60 backdrop-blur-sm text-[#7B8C4E] rounded-full text-[15px] font-black tracking-wider border border-[#7B8C4E]/20 shadow-sm cursor-default">
+                            <motion.div whileHover={{ scale: 1.05 }} className="inline-flex items-center gap-2 rounded-full border border-[#7B8C4E]/20 bg-white/60 px-5 py-2 text-[15px] font-black tracking-wider text-[#7B8C4E] shadow-sm cursor-default backdrop-blur-sm">
                                 <motion.span animate={{ rotate: [0, -10, 10, 0] }} transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}><Gavel size={16} /></motion.span>
-                                社會工作與法律的實務共構
+                                專業人員與大眾的事件論述共構
                             </motion.div>
                         </FadeIn>
                         <FadeIn delay={0.1}>
-                            <h2 className="mt-5 text-[48px] md:text-[64px] lg:text-[72px] font-black leading-[1.15] tracking-tight" style={serif}>
-                                法庭實況還原<br />
-                                <span className="relative inline-block text-[#7B8C4E]">專業共構筆記
+                            <h2 className="mt-5 text-[48px] font-black leading-[1.1] tracking-tight md:text-[64px] lg:text-[72px]" style={serif}>
+                                <span className="block">觀庭還原筆記</span>
+                                <span className="relative inline-block text-[#7B8C4E]">共構平台
                                     <motion.svg className="absolute -bottom-3 left-0 w-full" height="14" viewBox="0 0 200 14" preserveAspectRatio="none"
                                         initial={{ pathLength: 0, opacity: 0 }} whileInView={{ pathLength: 1, opacity: 1 }} transition={{ duration: 1.8, delay: 0.6, ease: 'easeOut' }}>
                                         <motion.path d="M4 10 Q 50 2 100 8 Q 150 14 196 6" stroke="#C5D9A8" strokeWidth="6" strokeLinecap="round" fill="transparent"
                                             initial={{ pathLength: 0 }} whileInView={{ pathLength: 1 }} transition={{ duration: 1.8, delay: 0.6 }} />
                                     </motion.svg>
                                 </span>
-                                <span className="text-[#A09888] text-[36px] md:text-[42px] font-bold ml-2">計畫</span>
                             </h2>
                         </FadeIn>
                         <FadeIn delay={0.2}>
@@ -176,16 +508,16 @@ export default function Home() {
                             </div>
                         </FadeIn>
                         <FadeIn delay={0.3}>
-                            <div className="mt-6 flex flex-wrap gap-4 items-center">
+                            <div className="mt-6 flex flex-wrap items-center gap-4">
                                 <Link href="/sessions">
                                     <motion.button whileHover={{ scale: 1.05, boxShadow: '0 16px 40px rgba(123,140,78,0.3)' }} whileTap={{ scale: 0.97 }}
-                                        className="group relative bg-gradient-to-r from-[#7B8C4E] to-[#5a6e38] text-white px-10 py-4 rounded-2xl text-[22px] font-black shadow-lg shadow-[#7B8C4E]/20 transition-all overflow-hidden">
+                                        className="group relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#7B8C4E] to-[#5a6e38] px-10 py-4 text-[22px] font-black text-white shadow-lg shadow-[#7B8C4E]/20 transition-all">
                                         <span className="relative z-10 flex items-center gap-3">點我看現場還原！ <ArrowRight size={22} className="group-hover:translate-x-2 transition-transform" /></span>
                                     </motion.button>
                                 </Link>
-                                <a href="#about">
-                                    <motion.span className="px-8 py-4 rounded-2xl text-[20px] font-bold border-2 border-[#D4CCC0] text-[#6B6358] hover:border-[#7B8C4E] hover:text-[#7B8C4E] transition-all inline-block cursor-pointer">計畫說明 ↓</motion.span>
-                                </a>
+                                <Link href="/about">
+                                    <motion.span className="inline-block cursor-pointer rounded-2xl border-2 border-[#D4CCC0] px-8 py-4 text-[20px] font-bold text-[#6B6358] transition-all hover:border-[#7B8C4E] hover:text-[#7B8C4E]">計畫緣起 →</motion.span>
+                                </Link>
                             </div>
                         </FadeIn>
                         <FadeIn delay={0.4}>
@@ -193,10 +525,18 @@ export default function Home() {
                                 {[
                                     { n: stats.totalSessions, l: '場開庭紀錄' },
                                     { n: stats.restoredSessions, l: '場已還原' },
-                                    { n: stats.approvedComments, l: '則專業留言', s: '+' }
+                                    { n: stats.publishedArticles, l: '篇觀點文章', s: '+' }
                                 ].map((s, i) => (
                                     <div key={i}>
-                                        <p className="text-[36px] font-black text-[#7B8C4E]" style={serif}><Counter target={s.n} suffix={'s' in s ? s.s as string : undefined} /></p>
+                                        <div className="flex min-h-[54px] items-center justify-center">
+                                            {loading ? (
+                                                <Skeleton className="h-10 w-20 rounded-xl bg-[#E4EBCF]" />
+                                            ) : (
+                                                <p className="text-[36px] font-black text-[#7B8C4E]" style={serif}>
+                                                    <Counter target={s.n} suffix={'s' in s ? s.s as string : undefined} />
+                                                </p>
+                                            )}
+                                        </div>
                                         <p className="text-[14px] font-bold text-[#A09888]">{s.l}</p>
                                     </div>
                                 ))}
@@ -204,623 +544,495 @@ export default function Home() {
                         </FadeIn>
                     </div>
 
-                    {/* Right Column - Latest Restoration Quick Access */}
-                    <FadeIn delay={0.3}>
-                        <div className="hidden lg:block w-[360px] shrink-0 sticky top-24">
-                            <Link href="/sessions">
-                                <motion.div
-                                    whileHover={{ y: -6, boxShadow: '0 20px 50px rgba(123,140,78,0.2)' }}
-                                    className="bg-white rounded-2xl border-2 border-[#E8E0D4] shadow-lg overflow-hidden cursor-pointer group transition-all"
-                                >
-                                    {/* Header */}
-                                    <div className="bg-gradient-to-r from-[#7B8C4E] to-[#5a6e38] px-5 py-3 flex items-center justify-between">
-                                        <div className="flex items-center gap-2">
-                                            <motion.span animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 2, repeat: Infinity }}
-                                                className="w-2 h-2 rounded-full bg-white/80" />
-                                            <span className="text-white text-[13px] font-black tracking-wider">最新場次還原</span>
-                                        </div>
-                                        <span className="text-white/70 text-[12px] font-bold flex items-center gap-1"><Clock size={12} />2026.02.26</span>
+                    <FadeIn delay={0.18}>
+                        <motion.div whileHover={{ y: -4, boxShadow: '0 18px 42px rgba(123,140,78,0.12)' }} className="relative self-start overflow-hidden rounded-[2rem] border border-[#E8E0D4] bg-white/90 shadow-md">
+                            <motion.div
+                                aria-hidden="true"
+                                animate={{ opacity: [0.18, 0.32, 0.18], scale: [1, 1.05, 1] }}
+                                transition={{ duration: 5.6, repeat: Infinity, ease: 'easeInOut' }}
+                                className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-[#DCE7AE] blur-3xl"
+                            />
+                            <div className="relative z-10 px-5 py-4">
+                                <div className="inline-flex items-center gap-2 rounded-full bg-[#FFF4E5] px-3.5 py-1.5 text-[12px] font-black tracking-[0.16em] text-[#C67B5C]">
+                                    <Flame size={14} />
+                                    完整筆記櫥窗
+                                </div>
+                                <h3 className="mt-3.5 text-[24px] font-black leading-[1.18] text-[#2D2A26]" style={serif}>
+                                    目前已發布的完整筆記
+                                    <br />
+                                    與跨場次工作檯
+                                </h3>
+                                <p className="mt-2.5 text-[14px] font-medium leading-[1.85] text-[#6B6358]">
+                                    以下是目前最新還原筆記，點入即可撰寫觀庭共構筆記喔！
+                                </p>
+
+                                <div className="mt-4 overflow-hidden rounded-[1.65rem] border border-[#E8E0D4] bg-gradient-to-br from-white via-[#FFFDF8] to-[#F7F3E8] p-4 shadow-[0_12px_32px_rgba(65,56,44,0.08)]">
+                                    <div className="mb-3 flex items-center justify-between">
+                                        <p className="text-[11px] font-black uppercase tracking-[0.24em] text-[#A4A098]">內容預覽</p>
+                                        {sessions.length > 1 && (
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    type="button"
+                                                    aria-label="查看上一筆首頁完整筆記"
+                                                    onClick={goToPreviousHeroSession}
+                                                    className="inline-flex h-8 w-8 items-center justify-center rounded-2xl border border-[#E8E0D4] bg-white text-[#7B8C4E] transition-colors hover:bg-[#F5FAEB]"
+                                                >
+                                                    <ChevronLeft size={15} />
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    aria-label="查看下一筆首頁完整筆記"
+                                                    onClick={goToNextHeroSession}
+                                                    className="inline-flex h-8 w-8 items-center justify-center rounded-2xl border border-[#E8E0D4] bg-white text-[#7B8C4E] transition-colors hover:bg-[#F5FAEB]"
+                                                >
+                                                    <ChevronRight size={15} />
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
 
-                                    {/* Content */}
-                                    <div className="p-5 space-y-3">
-                                        <h4 className="text-[18px] font-black text-[#2D2A26] leading-tight group-hover:text-[#7B8C4E] transition-colors" style={serif}>
-                                            檢察官論告與辯護律師<br />簡報與陳述還原
-                                        </h4>
-
-                                        <div className="bg-[#FBF7F0] p-3 rounded-xl border border-[#E8E0D4] space-y-1.5">
-                                            <p className="text-[13px] font-bold text-[#5A5347] flex items-start gap-1.5">
-                                                <span className="text-[#C67B5C] shrink-0 mt-0.5">⚠️</span>
-                                                114年度訴字第51號<br />過失致死等案（一審第六場次）
-                                            </p>
-                                            <p className="text-[12px] font-bold text-[#8A8078] flex items-center gap-1.5">
-                                                <motion.span animate={{ scale: [1, 1.4, 1] }} transition={{ duration: 1.5, repeat: Infinity }}
-                                                    className="w-1.5 h-1.5 rounded-full bg-[#7B8C4E] inline-block shrink-0" />
-                                                言詞辯論、檢方論告與最後陳述
-                                            </p>
+                                    {loading ? (
+                                        <div className="space-y-4">
+                                            <Skeleton className="h-7 w-28 rounded-full bg-[#F4E7D9]" />
+                                            <Skeleton className="h-8 w-full rounded-2xl bg-[#F6EEE3]" />
+                                            <Skeleton className="h-8 w-5/6 rounded-2xl bg-[#F6EEE3]" />
+                                            <Skeleton className="h-32 w-full rounded-[1.5rem] bg-[#F7F3E8]" />
                                         </div>
+                                    ) : (
+                                        <>
+                                            <AnimatePresence mode="wait" initial={false}>
+                                                <motion.div
+                                                    key={activeHeroSession?.sessionId ?? 'fallback'}
+                                                    initial={{ opacity: 0, x: 18 }}
+                                                    animate={{ opacity: 1, x: 0 }}
+                                                    exit={{ opacity: 0, x: -18 }}
+                                                    transition={{ duration: 0.24, ease: 'easeInOut' }}
+                                                    className="rounded-[1.45rem] border border-[#F1DDC0] bg-[#FFF9F2] p-4"
+                                                >
+                                                    <div className="flex flex-wrap items-center gap-2">
+                                                        <span className="rounded-full bg-[#C67B5C] px-3 py-1 text-xs font-black uppercase tracking-wider text-white shadow-sm">
+                                                            單場次
+                                                        </span>
+                                                        <span className="rounded-full bg-orange-100 px-3 py-1 text-sm font-black text-orange-700">
+                                                            {activeHeroSession?.date ?? '2026-02-26'}
+                                                        </span>
+                                                    </div>
+                                                    <h4 className="mt-3 text-[22px] font-black leading-tight text-[#2D2A26]" style={serif}>
+                                                        {activeHeroSession?.title ?? '第六場次：最終言詞辯論'}
+                                                    </h4>
+                                                    <p className="mt-2.5 text-[14px] font-medium leading-[1.85] text-[#6B6358]">
+                                                        {activeHeroSession?.summary ?? '檢察官論告與辯護律師簡報陳述還原。'}
+                                                    </p>
+                                                    <Link
+                                                        href={activeHeroSession ? `/sessions/${activeHeroSession.sessionId}` : '/sessions'}
+                                                        className="mt-4 inline-flex items-center gap-2 text-[14px] font-black text-[#6B8E23]"
+                                                    >
+                                                        點擊閱覽完整筆記
+                                                        <ArrowRight size={16} />
+                                                    </Link>
+                                                </motion.div>
+                                            </AnimatePresence>
 
-                                        {/* Session list preview */}
-                                        <div className="space-y-1.5 pt-1">
-                                            {[
-                                                { label: '第六場次', tag: '最新', active: true },
-                                                { label: '第五場次', tag: '已還原', active: false },
-                                            ].map((s, i) => (
-                                                <div key={i} className={`flex items-center justify-between px-3 py-2 rounded-lg text-[13px] font-bold ${s.active ? 'bg-[#7B8C4E]/10 text-[#5a6e38] border border-[#7B8C4E]/20' : 'bg-gray-50 text-[#8A8078]'}`}>
-                                                    <span className="flex items-center gap-1.5">
-                                                        <BookOpen size={12} />{s.label}
-                                                    </span>
-                                                    <span className={`text-[11px] px-2 py-0.5 rounded ${s.active ? 'bg-[#C67B5C] text-white' : 'bg-gray-200 text-gray-500'}`}>{s.tag}</span>
+                                            {sessions.length > 1 && (
+                                                <div className="mt-3 flex items-center justify-center gap-2">
+                                                    {sessions.map((session, index) => (
+                                                        <button
+                                                            key={session.sessionId ?? index}
+                                                            type="button"
+                                                            aria-label={`切換到首頁第 ${index + 1} 筆完整筆記`}
+                                                            onClick={() => setHeroSessionIndex(index)}
+                                                            className={`h-2.5 rounded-full transition-all ${index === heroSessionIndex ? 'w-8 bg-[#7B8C4E]' : 'w-2.5 bg-[#DAD4C8] hover:bg-[#C3CF9D]'}`}
+                                                        />
+                                                    ))}
                                                 </div>
-                                            ))}
-                                        </div>
+                                            )}
 
-                                        {/* CTA */}
-                                        <motion.div
-                                            className="bg-gradient-to-r from-[#7B8C4E] to-[#5a6e38] text-white text-center py-3 rounded-xl text-[15px] font-black group-hover:shadow-lg transition-all flex items-center justify-center gap-2"
-                                        >
-                                            立即進入還原筆記 <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-                                        </motion.div>
+                                            <div className="mt-3 overflow-hidden rounded-[1.3rem] border border-[#E8E0D4] bg-white shadow-sm">
+                                                <Link
+                                                    href="/guide"
+                                                    className="group flex items-center justify-between px-4 py-3 transition-colors hover:bg-[#F9FBE7]"
+                                                >
+                                                    <p className="min-w-0 text-[15px] font-black leading-tight text-[#2D2A26] md:text-[16px]" style={serif}>
+                                                        先進行教學再進入觀庭筆記共構（推薦）
+                                                    </p>
+                                                    <span className="ml-4 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl bg-[#F9FBE7] text-[#7B8C4E] transition-transform group-hover:translate-x-1">
+                                                        <ArrowRight size={14} />
+                                                    </span>
+                                                </Link>
+
+                                                <div className="h-px bg-[#EEE6DA]" />
+
+                                                <Link
+                                                    href="/sessions/compose"
+                                                    className="group flex items-center justify-between px-4 py-3 transition-colors hover:bg-[#FFFDF8]"
+                                                >
+                                                    <p className="min-w-0 text-[15px] font-black leading-tight text-[#2D2A26] md:text-[16px]" style={serif}>
+                                                        直接進入觀庭筆記共構（跨場次版面）
+                                                    </p>
+                                                    <span className="ml-4 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl border border-[#D8D1C5] bg-[#FFFDF8] text-[#6B6358] transition-transform group-hover:translate-x-1">
+                                                        <ArrowRight size={14} />
+                                                    </span>
+                                                </Link>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                        </motion.div>
+                    </FadeIn>
+                </div>
+            </section>
+
+            <section className="bg-[#FBF7F0] px-6 pb-10">
+                <div className="mx-auto max-w-7xl">
+                    <FadeIn>
+                        <div className="overflow-hidden rounded-[2.25rem] border border-[#F1DDC0] bg-gradient-to-r from-[#FFF6EC] via-white to-[#F9FBE7] shadow-sm">
+                            <div className="px-6 py-7 md:px-8 md:py-8">
+                                <div className="grid gap-6 xl:grid-cols-[18rem_minmax(0,1fr)] xl:items-start">
+                                    <div className="min-w-0 xl:max-w-[18rem]">
+                                        <div className="inline-flex items-center gap-2 rounded-full bg-[#F9FBE7] px-4 py-2 text-[13px] font-black tracking-[0.16em] text-[#6B8E23]">
+                                            <ShieldAlert size={14} />
+                                            本站須知
+                                        </div>
+                                        <h3 className="mt-4 text-[30px] font-black leading-tight text-[#2D2A26] md:text-[38px]" style={serif}>
+                                            平台限制與規範
+                                        </h3>
+                                        <div className="mt-6 flex flex-wrap gap-3">
+                                            <Link href="/guide" className="inline-flex items-center gap-2 rounded-2xl bg-[#7B8C4E] px-5 py-3 text-[15px] font-black text-white shadow-[0_10px_24px_rgba(123,140,78,0.22)]">
+                                                閱讀完整平台限制與規範
+                                                <ArrowRight size={16} />
+                                            </Link>
+                                        </div>
                                     </div>
-                                </motion.div>
-                            </Link>
+
+                                    <div className="grid gap-2.5 md:grid-cols-2 xl:mt-3 xl:grid-cols-5">
+                                        {homepageGuidePanels.map((panel) => {
+                                            const Icon = panel.icon;
+                                            const active = homeGuidePanel === panel.id;
+                                            return (
+                                                <button
+                                                    key={panel.id}
+                                                    type="button"
+                                                    onMouseEnter={() => goToHomeGuidePanel(panel.id)}
+                                                    onClick={() => goToHomeGuidePanel(panel.id)}
+                                                    className={`group min-h-[8.4rem] rounded-[1.15rem] border p-3 text-left transition-all ${panel.cardClass} ${active ? 'ring-2 ring-[#7B8C4E]/35 shadow-[0_10px_28px_rgba(123,140,78,0.12)]' : 'shadow-sm hover:-translate-y-0.5 hover:shadow-[0_10px_24px_rgba(65,56,44,0.08)]'}`}
+                                                >
+                                                    <div className={`mb-2 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white/80 ${panel.iconClass}`}>
+                                                        <Icon size={16} />
+                                                    </div>
+                                                    <p className="text-[15px] font-black leading-[1.2] text-[#2D2A26] xl:whitespace-nowrap" style={serif}>
+                                                        {panel.label}
+                                                    </p>
+                                                    <p className="mt-1.5 text-[10px] font-bold leading-[1.5] text-[#7A7266]">
+                                                        {panel.hint}
+                                                    </p>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+
+                                <div className="mt-7 overflow-hidden rounded-[2rem] border border-[#E8E0D4] bg-gradient-to-br from-white via-[#FFFDF8] to-[#F7F3E8] p-5 shadow-[0_12px_32px_rgba(65,56,44,0.08)]">
+                                    <div className="mb-4 flex items-center justify-end">
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                type="button"
+                                                aria-label="查看上一個首頁須知主題"
+                                                onClick={goToPreviousHomeGuidePanel}
+                                                className="inline-flex h-9 w-9 items-center justify-center rounded-2xl border border-[#E8E0D4] bg-white text-[#7B8C4E] transition-colors hover:bg-[#F5FAEB]"
+                                            >
+                                                <ChevronLeft size={17} />
+                                            </button>
+                                            <button
+                                                type="button"
+                                                aria-label="查看下一個首頁須知主題"
+                                                onClick={goToNextHomeGuidePanel}
+                                                className="inline-flex h-9 w-9 items-center justify-center rounded-2xl border border-[#E8E0D4] bg-white text-[#7B8C4E] transition-colors hover:bg-[#F5FAEB]"
+                                            >
+                                                <ChevronRight size={17} />
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="min-h-[230px] overflow-hidden">
+                                        <AnimatePresence mode="wait" initial={false}>
+                                            <motion.div
+                                                key={homeGuidePanel}
+                                                initial={{ opacity: 0, x: homeGuideDirection > 0 ? 42 : -42 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                exit={{ opacity: 0, x: homeGuideDirection > 0 ? -42 : 42 }}
+                                                transition={{ duration: 0.24, ease: 'easeInOut' }}
+                                                className="h-full"
+                                            >
+                                                {renderHomepageGuideShelf(homeGuidePanel)}
+                                            </motion.div>
+                                        </AnimatePresence>
+                                    </div>
+
+                                    <div className="mt-4 flex items-center justify-center gap-2">
+                                        {homepageGuidePanels.map((panel) => (
+                                            <button
+                                                key={panel.id}
+                                                type="button"
+                                                aria-label={`切換到${panel.label}`}
+                                                onClick={() => goToHomeGuidePanel(panel.id)}
+                                                className={`h-2.5 rounded-full transition-all ${homeGuidePanel === panel.id ? 'w-8 bg-[#7B8C4E]' : 'w-2.5 bg-[#DAD4C8] hover:bg-[#C3CF9D]'}`}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </FadeIn>
                 </div>
             </section>
 
-            {/* ═══ 計畫緣起 (Cinematic Storytelling - Art Expert Redesign) ═══ */}
-            <section id="about" className="relative w-full overflow-hidden bg-[#0A0A0A] text-white">
-                {/* 底部融合層 - 確保與上下區塊自然銜接 */}
-                <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-[#FBF7F0] to-transparent z-50 pointer-events-none" />
+            <SessionsOverviewSection embedded />
 
-                {/* 核心敘事容器 */}
-                <div className="relative">
-                    {/* 背景層 1: 莊嚴與沈重 */}
-                    <div className="sticky top-0 h-[60vh] w-full overflow-hidden z-0">
-                        <motion.div
-                            className="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-luminosity scale-110"
-                            style={{ backgroundImage: 'url("/images/about_solemn_bg.png")' }}
-                            initial={{ scale: 1.2, opacity: 0 }}
-                            whileInView={{ scale: 1, opacity: 0.4 }}
-                            transition={{ duration: 10, ease: "easeOut" }}
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-transparent to-black/80" />
-                    </div>
-
-                    {/* 文案層 1 */}
-                    <div className="relative z-10 -mt-[50vh] pb-[5vh] max-w-5xl mx-auto px-6">
-                        <motion.div
-                            initial={{ opacity: 0, y: 100 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 1.5, ease: "easeOut" }}
-                            className="text-center space-y-8"
-                        >
-                            <div className="inline-block">
-                                <span className="text-[#C67B5C] font-black tracking-[0.4em] uppercase text-sm mb-4 block">About This Project</span>
-                                <h2 className="text-6xl md:text-8xl font-black text-white tracking-tighter" style={serif}>計畫緣起</h2>
-                                <div className="h-1 w-24 bg-[#C67B5C] mx-auto mt-6" />
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-12 gap-12 items-start text-left">
-                                <div className="md:col-span-1 hidden md:block border-l border-white/20 h-full" />
-                                <div className="md:col-span-10 text-xl md:text-2xl text-gray-300 leading-[2] font-serif italic space-y-6">
-                                    <p className="first-letter:text-5xl first-letter:font-black first-letter:text-white first-letter:mr-3 first-letter:float-left">
-                                        剴剴案已成為助人專業領域集體議題，對民眾及助人領域均產生各項影響。為了因應衝擊，目前有許多令人尊敬的助人者挺身而出，也引發了各種對話。
-                                    </p>
-                                    <p>
-                                        這些對話並非對立，而是對事件與問題有不同見解的人們，商議朝不同的方向前進，倡議、發聲、行動，不論是替社工報不平、還是與民眾對話、向上抗爭等等，均是為了這個專業群體而努力。
-                                    </p>
-                                    <div className="py-6 border-y border-white/10">
-                                        <p className="text-white font-black text-2xl md:text-3xl text-center tracking-widest bg-white/5 py-4 rounded-lg">
-                                            「 未有對錯，均為夥伴。」
-                                        </p>
-                                    </div>
-                                    <p>
-                                        我從114年12月11日起開始觀庭，並且加入民眾群組、社工群組、網絡社群，開始學習、觀察、諮詢與訪問，對各種對話與疑惑進行探討、歸因，尋求屬於我自己對事件的理解和問題認定。終於在115年2月26日訂下我對問題的理解，以及我想要去推動的解方。
-                                    </p>
-                                </div>
-                            </div>
-                        </motion.div>
-                    </div>
-
-                    {/* 金句層 - 全螢幕衝擊 */}
-                    <div className="relative min-h-[40vh] py-16 flex items-center justify-center bg-black z-20">
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            whileInView={{ opacity: 1, scale: 1 }}
-                            transition={{ duration: 2 }}
-                            className="text-center px-6"
-                        >
-                            <h3 className="text-5xl md:text-8xl font-black text-white leading-tight mb-8" style={serif}>
-                                「審判已然開始，<br />
-                                <span className="text-red-900/80 blur-[1px] hover:blur-0 transition-all">審判也早已結束。」</span>
-                            </h3>
-                            <div className="max-w-2xl mx-auto h-[1px] bg-gradient-to-r from-transparent via-gray-500 to-transparent my-6" />
-                            <p className="text-xl md:text-2xl text-gray-500 font-bold tracking-widest italic">
-                                社會大眾與助人專業群體均是悲痛的、憤怒的、受傷的、挫敗的。<br />
-                                不論判決結果如何，此間已然滿目瘡痍。
-                            </p>
-                        </motion.div>
-                    </div>
-
-                    {/* 背景層 2: 轉向希望與重建 */}
-                    <div className="sticky top-0 h-[60vh] w-full overflow-hidden z-0">
-                        <motion.div
-                            className="absolute inset-0 bg-cover bg-center opacity-30 mix-blend-screen"
-                            style={{ backgroundImage: 'url("/images/about_hope_bg.png")' }}
-                            initial={{ opacity: 0 }}
-                            whileInView={{ opacity: 0.3 }}
-                            transition={{ duration: 4 }}
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#E8E0D4] via-black/90 to-black" />
-                    </div>
-
-                    {/* 文案層 2 */}
-                    <div className="relative z-10 -mt-[50vh] pb-12 max-w-4xl mx-auto px-6">
-                        <motion.div
-                            initial={{ opacity: 0, x: -50 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 1.5 }}
-                            className="space-y-8"
-                        >
-                            <div className="space-y-6 text-xl md:text-2xl text-gray-300 leading-[2] font-medium">
-                                <p>因此我的出發點，並不想放在糾結對錯與真相上，因為傷害與崩壞早已是事實。我想做的是從這個傷害中最務實、最深刻地去探究問題，探討如何修正、優化目前的工作困境，最終共構解方，避免再有人遭逢此難。</p>
-
-                                <blockquote className="relative py-8 px-10 bg-white/5 backdrop-blur-md rounded-[2rem] border border-white/10 shadow-2xl overflow-hidden">
-                                    <div className="absolute left-0 top-0 w-2 h-full bg-[#7B8C4E]" />
-                                    <span className="absolute top-4 right-8 text-9xl text-white/5 font-serif italic select-none">"</span>
-                                    <p className="text-2xl md:text-3xl text-white font-black leading-relaxed relative z-10" style={serif}>
-                                        我要做的是從斷垣殘壁中回收價值、吸取經驗，建立新的共識與準則，在哀鴻遍野中開始重建、復原，讓我們的同伴們、後輩們，不再如此。
-                                    </p>
-                                </blockquote>
-
-                                <div className="text-center py-10">
-                                    <p className="italic text-[#C67B5C] font-black text-3xl md:text-4xl tracking-tighter leading-tight">
-                                        這是用饅頭沾著已然流出的血淚，<br />
-                                        轉化為成長滋糧的殘酷歷程。
-                                    </p>
-                                    <div className="mt-8 flex justify-center gap-2">
-                                        {[1, 2, 3].map(i => <div key={i} className="w-2 h-2 rounded-full bg-[#C67B5C]/40" />)}
-                                    </div>
-                                </div>
-
-                                <div className="bg-white/80 backdrop-blur-xl p-8 md:p-12 rounded-[2rem] border border-white shadow-2xl text-center">
-                                    <p className="text-[#3D3832] font-black text-[22px] md:text-[24px] leading-relaxed">
-                                        要做到這點，那就必須要先學習先備知識，<br />
-                                        再從不經他人包裝詮釋的始末中做出判讀，<br />
-                                        <span className="text-[#7B8C4E] text-4xl block mt-6 drop-shadow-sm" style={serif}>一起走到下一步：尋求解方。</span>
-                                    </p>
-                                </div>
-                            </div>
-                        </motion.div>
-                    </div>
-                </div>
-
-                {/* 底部融合層 */}
-                <div className="h-16 bg-gradient-to-t from-[#FBF7F0] to-transparent" />
-            </section>
-
-
-
-            {/* ═══ 先備知識 ═══ */}
-            <Banner title="先備知識" subtitle="Prerequisites" bg="bg-[#C67B5C]/15" text="text-[#8B4D35]" />
-            <section id="knowledge" className="max-w-7xl mx-auto px-6 py-12 md:py-20">
-                <FadeIn>
-                    <div className="bg-white rounded-[2.5rem] border border-[#E8E0D4] p-8 md:p-16 shadow-xl relative overflow-hidden">
-                        <div className="max-w-4xl mx-auto mb-12">
-                            <h3 className="text-3xl md:text-4xl font-black text-gray-900 mb-6 text-center" style={serif}>閱讀筆記前的準備</h3>
-                            <p className="text-[20px] text-[#6B6358] font-medium leading-[1.8] text-center italic">
-                                「希望夥伴們理解法庭規則後再往下看，才能在清楚脈絡與規則下判讀，理解開庭中的動力與詰問的背後意義。」
+            {/* ═══ 🔥 熱門入口 ═══ */}
+            <Banner title="熱門入口" subtitle="Trending Entry Points" bg="bg-[#F1ECE2]" text="text-[#5D5448]" />
+            <section id="trending" className="bg-gradient-to-b from-[#F7F3EC] to-[#FBF7F0] px-6 py-8">
+                <div className="max-w-7xl mx-auto mb-6 rounded-[1.8rem] border border-[#E8E0D4] bg-white p-5 shadow-sm">
+                    <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                        <div>
+                            <p className="text-[12px] font-black uppercase tracking-[0.24em] text-[#7B8C4E]">Hot Entry Points</p>
+                            <h3 className="mt-2 text-[28px] font-black text-[#2D2A26]" style={serif}>首頁先看最熱入口，完整內容留在各自正式頁</h3>
+                            <p className="mt-2 max-w-3xl text-[16px] font-medium leading-[1.8] text-[#6B6358]">
+                                這裡只保留最受關注的還原筆記、專業留言與公開文章入口。若要完整閱覽，請進入還原筆記總覽、論壇與排行榜。
                             </p>
                         </div>
-
-                        {/* External Notion Links - MOVED TO TOP */}
-                        <div className="mb-16 pb-12 border-b border-[#E8E0D4]">
-                            <div className="flex items-center justify-center gap-3 mb-8">
-                                <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 shadow-sm">
-                                    <BookOpen size={20} />
-                                </div>
-                                <h4 className="text-2xl font-black text-gray-900" style={serif}>Notion 深度閱讀與原始資料</h4>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
-                                {[
-                                    { title: '剴剴案：建議先備知識', desc: '整理本案相關的背景脈絡、重要法律名詞釋義與相關附件下載。', url: 'https://bird-wildebeest-d6d.notion.site/3147e2fdafd880bfb51ce110811c2e34' },
-                                    { title: '開庭情境與階段說明', desc: '深入淺出解說法庭配置、發言順序與各階段的法律意義。', url: 'https://bird-wildebeest-d6d.notion.site/3147e2fdafd880e3bb81f280f68680db' },
-                                ].map((link, i) => (
-                                    <a key={i} href={link.url} target="_blank" rel="noreferrer" className="block group">
-                                        <motion.div whileHover={{ y: -5, scale: 1.01 }} className="bg-[#FAF7F2] p-8 rounded-[2rem] border border-[#E8E0D4] group-hover:border-[#7B8C4E] group-hover:bg-white transition-all shadow-sm group-hover:shadow-md h-full">
-                                            <h4 className="text-[22px] font-black group-hover:text-[#7B8C4E] transition-colors mb-3" style={serif}>{link.title}</h4>
-                                            <p className="text-[15px] text-[#8A8078] font-bold leading-relaxed mb-6">{link.desc}</p>
-                                            <span className="text-[#7B8C4E] text-[15px] font-black flex items-center gap-2">前往 Notion 閱讀完整版本 <ArrowRight size={16} /></span>
-                                        </motion.div>
-                                    </a>
-                                ))}
-                            </div>
-                            <p className="text-center mt-10 text-[15px] text-gray-400 font-bold">
-                                感謝 <a href="https://www.legis-pedia.com/" target="_blank" className="text-[#C67B5C] underline hover:text-[#7B8C4E] transition-colors">法律百科</a> 及民眾、專業工作者協助彙整
-                            </p>
-                        </div>
-
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                            {/* Left: Timeline & Case Info */}
-                            <div className="space-y-12">
-                                <section>
-                                    <div className="flex items-center gap-4 mb-8">
-                                        <div className="w-12 h-12 rounded-2xl bg-[#C67B5C]/10 flex items-center justify-center text-[#C67B5C]">
-                                            <Clock size={24} />
-                                        </div>
-                                        <h4 className="text-2xl font-black" style={serif}>事件大事記 (Timeline)</h4>
-                                    </div>
-                                    <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-1 before:bg-gradient-to-b before:from-[#F0E6D2] before:to-transparent">
-                                        {[
-                                            { date: '111/3/17', desc: '新北市中心將 A 童轉介兒盟辦理收出養。' },
-                                            { date: '112/9/1', desc: 'A 童轉送至劉姓保母（本案被告）處安置。' },
-                                            { date: '112/12/24', desc: 'A 童不幸死亡。' },
-                                            { date: '114/5/29', desc: '監察院發布對本案調查報告。' },
-                                        ].map((item, idx) => (
-                                            <div key={idx} className="relative flex items-center group pl-12">
-                                                <div className="absolute left-0 w-10 h-10 rounded-full border-4 border-white bg-[#C67B5C] text-white shadow-sm flex items-center justify-center z-10" />
-                                                <div className="bg-[#FDFBF7] p-5 rounded-2xl border border-[#F0E6D2] w-full hover:shadow-md transition-shadow">
-                                                    <span className="text-xs font-black text-white bg-[#C67B5C] px-2 py-1 rounded inline-block mb-2">{item.date}</span>
-                                                    <p className="text-[15px] font-bold text-gray-700 leading-relaxed">{item.desc}</p>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <Link href="/prerequisites" className="mt-8 inline-flex items-center gap-2 text-[#C67B5C] font-black hover:underline pl-12 pt-4">
-                                        查看完整詳細大事記 <ArrowRight size={16} />
-                                    </Link>
-                                </section>
-                            </div>
-
-                            {/* Right: Court Stages */}
-                            <div className="space-y-12">
-                                <section>
-                                    <div className="flex items-center gap-4 mb-8">
-                                        <div className="w-12 h-12 rounded-2xl bg-[#7B8C4E]/10 flex items-center justify-center text-[#7B8C4E]">
-                                            <Scale size={24} />
-                                        </div>
-                                        <h4 className="text-2xl font-black" style={serif}>法庭程序四大階段</h4>
-                                    </div>
-                                    <div className="grid grid-cols-1 gap-4">
-                                        {[
-                                            { stage: '階段一', title: '審理啟動 (程序確認)', icon: <Gavel size={20} />, color: 'text-blue-600', bg: 'bg-blue-50' },
-                                            { stage: '階段二', title: '證據整理與意見表達', icon: <FileText size={20} />, color: 'text-purple-600', bg: 'bg-purple-50' },
-                                            { stage: '階段三', title: '詰問部署 (順序與隔離)', icon: <AlertCircle size={20} />, color: 'text-orange-600', bg: 'bg-orange-50' },
-                                            { stage: '階段四', title: '交互詰問流程', icon: <MessageSquare size={20} />, color: 'text-[#5A6E2B]', bg: 'bg-[#F9FBE7]' },
-                                        ].map((s, i) => (
-                                            <div key={i} className={`${s.bg} p-6 rounded-2xl border border-black/5 flex items-center gap-4 group hover:shadow-md transition-all`}>
-                                                <div className={`w-12 h-12 rounded-xl bg-white flex items-center justify-center ${s.color} shadow-sm group-hover:scale-110 transition-transform`}>
-                                                    {s.icon}
-                                                </div>
-                                                <div>
-                                                    <span className={`text-xs font-black uppercase tracking-wider ${s.color}`}>{s.stage}</span>
-                                                    <h5 className="text-[17px] font-black text-gray-900" style={serif}>{s.title}</h5>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <Link href="/prerequisites" className="mt-8 inline-flex items-center gap-2 text-[#7B8C4E] font-black hover:underline pt-4">
-                                        查看各階段詳細內容解說 <ArrowRight size={16} />
-                                    </Link>
-                                </section>
-                            </div>
+                        <div className="flex flex-wrap gap-3">
+                            <Link href="/sessions" className="rounded-2xl border border-[#D7E5BB] bg-[#F9FBE7] px-5 py-3 text-[15px] font-black text-[#5A6F35] transition-all hover:-translate-y-0.5 hover:bg-[#EEF6DA]">
+                                還原筆記總覽
+                            </Link>
+                            <Link href="/forum" className="rounded-2xl border border-[#E8E0D4] bg-white px-5 py-3 text-[15px] font-black text-[#5A5347] transition-all hover:-translate-y-0.5 hover:bg-[#FFFDF8]">
+                                公開文章
+                            </Link>
+                            <Link href="/rankings" className="rounded-2xl border border-[#E8E0D4] bg-white px-5 py-3 text-[15px] font-black text-[#5A5347] transition-all hover:-translate-y-0.5 hover:bg-[#FFFDF8]">
+                                查看完整排行
+                            </Link>
                         </div>
                     </div>
-                </FadeIn>
-            </section>
-
-            {/* ═══ 最新還原 ═══ */}
-            <Banner title="最新還原場次" subtitle="Latest Restoration" bg="bg-[#E3EED3]" text="text-[#3D5220]" />
-            <section id="sessions" className="max-w-7xl mx-auto px-6 py-6">
-                <FadeIn>
-                    <motion.div whileHover={{ borderColor: '#7B8C4E', boxShadow: '0 12px 40px rgba(123,140,78,0.15)' }}
-                        className="bg-white rounded-2xl p-6 md:p-8 shadow-sm border-2 border-[#E8E0D4] flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 transition-all">
-                        <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-3">
-                                <motion.span animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 2, repeat: Infinity }}
-                                    className="bg-[#C67B5C] text-white text-[14px] font-black px-3 py-1 rounded-lg shadow-sm">最新還原</motion.span>
-                                <span className="text-[#7B8C4E] text-[16px] font-bold flex items-center gap-1"><Clock size={16} />2026 年 2 月 26 日</span>
-                            </div>
-                            <h3 className="text-[28px] md:text-[32px] font-black leading-tight" style={serif}>檢察官論告與辯護律師簡報與陳述還原</h3>
-                            <div className="mt-3 bg-[#FBF7F0] p-4 rounded-xl border border-[#E8E0D4]">
-                                <p className="text-[18px] font-bold text-[#5A5347]">⚠️ 114年度訴字第51號 過失致死等案（一審審理庭第六場次）</p>
-                                <p className="text-[16px] font-bold text-[#8A8078] mt-1 flex items-center gap-2">
-                                    <motion.span animate={{ scale: [1, 1.4, 1] }} transition={{ duration: 1.5, repeat: Infinity }} className="w-2 h-2 rounded-full bg-[#7B8C4E] inline-block" />
-                                    程序：言詞辯論、檢方論告與最後陳述
-                                </p>
-                            </div>
-                        </div>
-                        <Link href="/sessions">
-                            <motion.button whileHover={{ scale: 1.05, boxShadow: '0 16px 40px rgba(123,140,78,0.3)' }} whileTap={{ scale: 0.97 }}
-                                className="bg-gradient-to-br from-[#7B8C4E] to-[#5a6e38] text-white px-8 py-5 rounded-2xl text-[22px] font-black shadow-lg shrink-0 flex flex-col items-center gap-1">
-                                <span>點我看現場還原！</span>
-                                <span className="text-[13px] font-bold opacity-80 flex items-center gap-1">立即進入場次全文 <ArrowRight size={14} /></span>
-                            </motion.button>
-                        </Link>
-                    </motion.div>
-                </FadeIn>
-            </section>
-
-            {/* ═══ What We Do ═══ */}
-            <Banner title="這個平台在做什麼？" subtitle="What We Do" bg="bg-[#E8E0D4]" text="text-[#3D3832]" />
-            <section className="max-w-7xl mx-auto px-6 py-8">
-                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                    {[
-                        { icon: <BookMarked size={30} />, label: "整合資訊", desc: "打破壁壘，降低門檻", color: "bg-[#E3EED3]", accent: "text-[#5A6F35]", glow: "hover:shadow-[0_8px_30px_rgba(123,140,78,0.2)]" },
-                        { icon: <Eye size={30} />, label: "觀庭還原", desc: "身歷其境，完整還原", color: "bg-[#F5E6D3]", accent: "text-[#A0724E]", glow: "hover:shadow-[0_8px_30px_rgba(198,123,92,0.2)]" },
-                        { icon: <Gavel size={30} />, label: "觀庭評述", desc: "就本案呈現真實狀況評述", color: "bg-[#E0DAF0]", accent: "text-[#6B5CA5]", glow: "hover:shadow-[0_8px_30px_rgba(107,92,165,0.2)]" },
-                        { icon: <MessageCircle size={30} />, label: "建構論壇", desc: "匿名交流，平等詮釋", color: "bg-[#E3EED3]", accent: "text-[#5A6F35]", glow: "hover:shadow-[0_8px_30px_rgba(123,140,78,0.2)]" },
-                        { icon: <Sparkles size={30} />, label: "共構解方", desc: "集體智慧，復原重建", color: "bg-[#FDE8D8]", accent: "text-[#C67B5C]", glow: "hover:shadow-[0_8px_30px_rgba(198,123,92,0.2)]" },
-                    ].map((item, i) => (
-                        <FadeIn key={i} delay={i * 0.08}>
-                            <motion.div whileHover={{ y: -6, scale: 1.02 }} transition={{ type: 'spring', stiffness: 300, damping: 15 }}
-                                className={`${item.color} p-6 rounded-2xl border border-black/5 cursor-pointer group transition-shadow ${item.glow} h-full`}>
-                                <motion.div whileHover={{ rotate: 8, scale: 1.15 }} transition={{ type: 'spring', stiffness: 400 }}
-                                    className={`w-14 h-14 rounded-xl ${item.accent} bg-white/60 flex items-center justify-center mb-3`}>{item.icon}</motion.div>
-                                <p className="text-[22px] md:text-[24px] font-black" style={serif}>{item.label}</p>
-                                <p className="text-[15px] font-bold text-[#8A8078] mt-2 leading-relaxed h-[45px]">{item.desc}</p>
-                            </motion.div>
-                        </FadeIn>
-                    ))}
                 </div>
-            </section>
 
-            {/* ═══ 解決什麼問題 ═══ */}
-            <Banner title="我們要解決什麼問題？" subtitle="Problems We Solve" bg="bg-[#E8D5B8]" text="text-[#8B4D35]" />
-            <section className="max-w-7xl mx-auto px-6 py-8">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
-                    <div className="hidden md:block absolute top-[40%] left-[15%] right-[15%] h-[2px] bg-gradient-to-r from-[#7B8C4E] via-[#B8860B] to-[#C67B5C] opacity-30 z-0"></div>
-                    <motion.div animate={{ scaleX: [0, 1] }} transition={{ duration: 2, repeat: Infinity }} className="hidden md:block absolute top-[40%] left-[15%] right-[15%] h-[2px] bg-gradient-to-r from-[#7B8C4E] via-[#B8860B] to-[#C67B5C] z-0 origin-left"></motion.div>
-
-                    {[
-                        { title: "資訊紛亂斷裂、門檻高", desc: "資訊紛亂、斷裂、專業壁壘、完整尋找門檻高", icon: <Layers size={24} className="text-blue-500" /> },
-                        { title: "單一敘事與詮釋壟斷", desc: "有條件觀庭者僅少數、雙方敘述封閉於庭上、外界資訊均透過解讀詮釋、觀庭者掌握解釋權、論述各有切入點與立場影響、可獲得關注", icon: <Eye size={24} className="text-[#7B8C4E]" /> },
-                        { title: "對立衝突與無法傾聽", desc: "各自論述對立、衝突、難以理解彼此、也不去聽對方的語言", icon: <MessageSquare size={24} className="text-[#C67B5C]" /> },
-                    ].map((step, i) => (
-                        <FadeIn key={i} delay={i * 0.1} className="relative z-10">
-                            <motion.div whileHover={{ y: -5 }} className="bg-white/80 backdrop-blur p-6 rounded-3xl border border-[#E8E0D4] shadow-sm text-center h-full">
-                                <div className="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center mx-auto mb-4 border border-gray-100">{step.icon}</div>
-                                <h4 className="text-[20px] font-black mb-3 text-gray-800" style={serif}>{step.title}</h4>
-                                <p className="text-[15px] text-[#6B6358] font-bold leading-relaxed">{step.desc}</p>
-                            </motion.div>
-                        </FadeIn>
-                    ))}
-                </div>
-            </section>
-
-            {/* ═══ 平台規範 ═══ */}
-            <Banner title="平台規範" subtitle="Platform Rules" bg="bg-orange-50" text="text-orange-600" />
-            <section id="rules" className="max-w-7xl mx-auto px-6 py-8">
-                <FadeIn>
-                    <div className="bg-white rounded-2xl p-6 md:p-8 border border-orange-100 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
-                        <div className="max-w-2xl">
-                            <h3 className="text-[24px] font-black text-gray-900 mb-2" style={serif}>發言與共構守則</h3>
-                            <p className="text-[16px] text-gray-600 font-medium leading-relaxed">
-                                為了維持專業論述的品質並守護實務工作者的法律安全，在投稿文章或發表專業見解前，請務必了解我們的「去識別化」及「免責原則」。
-                            </p>
-                        </div>
-                        <Link href="/rules" className="shrink-0 flex items-center gap-2 bg-gradient-to-r from-orange-400 to-red-400 text-white font-black px-8 py-4 rounded-xl hover:shadow-lg transition-all hover:-translate-y-1">
-                            <ShieldAlert size={20} /> 閱讀平台規範
-                        </Link>
-                    </div>
-                </FadeIn>
-            </section>
-
-            {/* ═══ 倫理規範 ═══ */}
-            <Banner title="倫理規範與發言守則" subtitle="Ethics & Guidelines" bg="bg-[#F5E0E0]" text="text-[#8B3535]" />
-            <section className="max-w-7xl mx-auto px-6 py-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {[
-                        { icon: <ShieldAlert size={26} />, title: "嚴格去識別化", desc: "徹底移除隱私資訊。禁止揭露真實姓名、居住地或非公開案情細節。", bg: "bg-red-50", accent: "text-red-500", border: "border-red-100" },
-                        { icon: <Scale size={26} />, title: "聚焦職務非個人", desc: "針對「專業判斷」與「機構制度」進行討論。嚴禁人身攻擊。", bg: "bg-emerald-50", accent: "text-[#7B8C4E]", border: "border-emerald-100" },
-                        { icon: <Shield size={26} />, title: "遵守法律基礎", desc: "遵守法規與公共秩序。不得發表違法資訊 or 煽動仇恨言論。", bg: "bg-gray-50", accent: "text-gray-600", border: "border-gray-200" },
-                    ].map((r, i) => (
-                        <FadeIn key={i} delay={i * 0.08}>
-                            <motion.div whileHover={{ y: -4 }} className={`${r.bg} p-6 rounded-2xl border ${r.border} transition-all`}>
-                                <motion.div whileHover={{ rotate: 8 }} className={`w-12 h-12 rounded-xl ${r.accent} bg-white/80 flex items-center justify-center mb-3`}>{r.icon}</motion.div>
-                                <h4 className="text-[22px] font-black mb-2" style={serif}>{r.title}</h4>
-                                <p className="text-[17px] text-[#6B6358] font-medium leading-relaxed">{r.desc}</p>
-                            </motion.div>
-                        </FadeIn>
-                    ))}
-                </div>
-            </section>
-
-            {/* ═══ 工作流程 ═══ */}
-            <Banner title="網站完整功能與操作方式" subtitle="Workflow & Features" bg="bg-[#E0DAF0]" text="text-[#4A3D7B]" />
-            <section className="max-w-7xl mx-auto px-6 py-8">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                    {[
-                        { title: "前期 — 本團隊工作", items: ["實際參與所有場次形成筆記", "蒐集觀庭多元筆記核對補缺", "蒐集彙整本案相關資料"], borderC: "border-l-blue-400", accent: "text-blue-400" },
-                        { title: "呈現", items: ["觀庭現場還原筆記", "即時論述與評論投稿機制", "形成論述與探討、交流"], borderC: "border-l-[#7B8C4E]", accent: "text-[#7B8C4E]" },
-                        { title: "最後", items: ["共構本事件之復原計畫和共識", "透過集體智慧建立新的準則與論述"], borderC: "border-l-[#C67B5C]", accent: "text-[#C67B5C]" },
-                    ].map((step, i) => (
-                        <FadeIn key={i} delay={i * 0.1}>
-                            <motion.div whileHover={{ y: -4, boxShadow: '0 8px 25px rgba(0,0,0,0.08)' }}
-                                className={`bg-white p-6 rounded-2xl border border-[#E8E0D4] border-l-4 ${step.borderC} shadow-sm transition-all h-full`}>
-                                <h4 className="text-[24px] font-black mb-4" style={serif}>{step.title}</h4>
-                                <ul className="space-y-3">
-                                    {step.items.map((item, j) => (
-                                        <li key={j} className="text-[17px] text-[#5A5347] font-medium flex items-start gap-2">
-                                            <ChevronRight size={18} className={`${step.accent} mt-1 shrink-0`} />{item}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </motion.div>
-                        </FadeIn>
-                    ))}
-                </div>
-            </section>
-
-            {/* ═══ 🔥 熱門排行 ═══ */}
-            <Banner title="🔥 熱門排行榜" subtitle="Trending — 由社群按讚驅動" bg="bg-[#2D2A26]" text="text-white" />
-            <section id="trending" className="bg-gradient-to-b from-[#2D2A26] to-[#1a1816] px-6 py-8">
                 <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-5">
                     <FadeIn>
-                        <motion.div whileHover={{ y: -4 }} className="bg-white/[0.06] backdrop-blur rounded-2xl p-5 border border-white/10 hover:border-orange-500/30 transition-all hover:shadow-[0_8px_30px_rgba(255,165,0,0.1)]">
+                        <motion.div whileHover={{ y: -4 }} className="rounded-2xl border border-[#E8E0D4] bg-white p-5 transition-all hover:border-orange-200 hover:shadow-[0_10px_30px_rgba(255,165,0,0.08)]">
                             <div className="flex items-center gap-2 mb-4">
                                 <motion.div animate={{ scale: [1, 1.15, 1] }} transition={{ duration: 2, repeat: Infinity }}
                                     className="w-9 h-9 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center text-white shadow-md"><BookOpen size={18} /></motion.div>
-                                <h4 className="text-[20px] font-black text-white" style={serif}>最受關注的對話紀錄</h4>
+                                <h4 className="text-[20px] font-black text-[#2D2A26]" style={serif}>最受關注的對話紀錄</h4>
                             </div>
-                            {hotNotes.length === 0 ? (
-                                <p className="text-white/50 text-center py-6 text-[14px] font-bold">目前尚無熱門觀庭筆記</p>
-                            ) : hotNotes.map((n, i) => {
+                            {loading ? (
+                                <div className="space-y-3">
+                                    <Skeleton className="h-8 w-24 rounded-full bg-orange-100" />
+                                    <Skeleton className="h-6 w-full rounded-xl bg-[#F7E7D8]" />
+                                    <Skeleton className="h-6 w-5/6 rounded-xl bg-[#F7E7D8]" />
+                                    <Skeleton className="h-4 w-2/3 rounded-xl bg-[#F7E7D8]" />
+                                </div>
+                            ) : hotNotes.length === 0 ? (
+                                <p className="text-[#8A8078] text-center py-6 text-[14px] font-bold">目前尚無熱門觀庭筆記</p>
+                            ) : (() => {
+                                const n = hotNotes[0];
                                 const s = sessions.find(sess => sess.id === n.sessionPageId);
                                 const noteHref = s ? `/sessions/${s.sessionId}#line-${n.lineId || n.id}` : '/sessions';
                                 return (
-                                    <Link key={i} href={noteHref} className="block">
+                                    <Link href={noteHref} className="block">
                                         <motion.div whileHover={{ x: 4, backgroundColor: 'rgba(255,255,255,0.05)' }}
-                                            className="flex items-start gap-3 py-3 border-b border-white/5 last:border-0 cursor-pointer group rounded-lg px-2 transition-colors">
-                                            <span className={`text-[28px] font-black w-8 shrink-0 ${i === 0 ? 'text-orange-400' : i === 1 ? 'text-gray-400' : 'text-amber-700'}`} style={serif}>{i + 1}</span>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-[16px] font-bold text-white/90 truncate group-hover:text-orange-300 transition-colors">{n.content.substring(0, 30)}...</p>
-                                                <div className="flex gap-3 mt-1 text-[14px]">
-                                                    <span className="text-gray-500 font-bold">{s ? s.title : ''}</span>
-                                                    <span className="text-red-400 flex items-center gap-1"><Heart size={13} fill="currentColor" />{n.likeCount}</span>
-                                                </div>
+                                            className="cursor-pointer rounded-[1.5rem] border border-[#F1E3D2] bg-[#FFFDF9] p-4 transition-colors">
+                                            <div className="mb-3 flex items-center gap-2">
+                                                <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-orange-500/15 text-[16px] font-black text-orange-400">1</span>
+                                                <span className="rounded-full bg-orange-500/10 px-3 py-1 text-[12px] font-black text-orange-300">本週最熱筆記</span>
+                                            </div>
+                                            <p className="text-[17px] font-black leading-relaxed text-[#2D2A26]">{n.content.substring(0, 56)}...</p>
+                                            <div className="mt-3 flex items-center justify-between gap-3 text-[14px]">
+                                                <span className="truncate font-bold text-gray-500">{s ? s.title : '還原筆記'}</span>
+                                                {typeof n.likeCount === 'number' ? (
+                                                    <span className="shrink-0 text-red-400 flex items-center gap-1"><Heart size={13} fill="currentColor" />{n.likeCount}</span>
+                                                ) : null}
                                             </div>
                                         </motion.div>
                                     </Link>
                                 );
-                            })}
+                            })()}
                         </motion.div>
                     </FadeIn>
                     <FadeIn delay={0.12}>
-                        <motion.div whileHover={{ y: -4 }} className="bg-white/[0.06] backdrop-blur rounded-2xl p-5 border border-white/10 hover:border-purple-500/30 transition-all hover:shadow-[0_8px_30px_rgba(139,92,246,0.1)]">
+                        <motion.div whileHover={{ y: -4 }} className="rounded-2xl border border-[#E8E0D4] bg-white p-5 transition-all hover:border-purple-200 hover:shadow-[0_10px_30px_rgba(139,92,246,0.08)]">
                             <div className="flex items-center gap-2 mb-4">
                                 <div className="w-9 h-9 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg flex items-center justify-center text-white shadow-md"><MessageSquare size={18} /></div>
-                                <h4 className="text-[20px] font-black text-white" style={serif}>熱門專業留言</h4>
+                                <h4 className="text-[20px] font-black text-[#2D2A26]" style={serif}>熱門專業留言</h4>
                             </div>
-                            {hotComments.length === 0 ? (
-                                <p className="text-white/50 text-center py-6 text-[14px] font-bold">目前尚無專業留言</p>
-                            ) : hotComments.map((c, i) => {
+                            {loading ? (
+                                <div className="space-y-3">
+                                    <div className="flex items-center gap-3">
+                                        <Skeleton className="h-8 w-8 rounded-lg bg-violet-100" />
+                                        <Skeleton className="h-5 w-32 rounded-lg bg-[#EAE4F8]" />
+                                    </div>
+                                    <Skeleton className="h-5 w-full rounded-xl bg-[#EAE4F8]" />
+                                    <Skeleton className="h-5 w-5/6 rounded-xl bg-[#EAE4F8]" />
+                                    <Skeleton className="h-4 w-2/3 rounded-xl bg-[#EAE4F8]" />
+                                </div>
+                            ) : hotComments.length === 0 ? (
+                                <p className="text-[#8A8078] text-center py-6 text-[14px] font-bold">目前尚無專業留言</p>
+                            ) : (() => {
+                                const c = hotComments[0];
                                 const s = sessions.find(sess => sess.id === c.targetSessionId);
                                 const commentHref = s ? `/sessions/${s.sessionId}${c.targetLineId ? `#line-${c.targetLineId}` : ''}` : '/sessions';
                                 return (
-                                    <Link key={i} href={commentHref} className="block mb-3 last:mb-0">
+                                    <Link href={commentHref} className="block">
                                         <motion.div whileHover={{ scale: 1.02 }}
-                                            className="p-3 rounded-xl bg-white/[0.04] border border-white/5 hover:border-purple-500/20 transition-all cursor-pointer">
-                                            <div className="flex flex-wrap items-center gap-2 mb-2">
-                                                <div className="w-7 h-7 bg-gradient-to-br from-violet-400 to-purple-500 rounded-lg flex items-center justify-center text-white text-[12px] font-black">{c.author.slice(-1)}</div>
-                                                <span className="text-[14px] font-bold text-white/70">{c.author}</span>
+                                            className="rounded-[1.5rem] border border-[#ECE7F8] bg-[#FDFBFF] p-4 transition-all cursor-pointer">
+                                            <div className="mb-3 flex flex-wrap items-center gap-2">
+                                                <div className="w-8 h-8 bg-gradient-to-br from-violet-400 to-purple-500 rounded-lg flex items-center justify-center text-white text-[12px] font-black">{c.author.slice(-1)}</div>
+                                                <span className="text-[14px] font-bold text-[#5A5347]">{c.author}</span>
                                                 <span className="text-[12px] font-bold text-purple-300 bg-purple-500/15 px-2 py-0.5 rounded">{c.role}</span>
-                                                {s && (
-                                                    <span className="text-[12px] text-blue-300 bg-blue-500/15 px-2 py-0.5 rounded flex flex-wrap items-center gap-1">
-                                                        <BookOpen size={10} /> {s.sessionId}
-                                                    </span>
-                                                )}
                                             </div>
-                                            <p className="text-[14px] text-gray-400 leading-relaxed line-clamp-2">{c.content}</p>
-                                            <p className="text-red-400 text-[14px] font-bold flex items-center gap-1 mt-2"><Heart size={13} fill="currentColor" />{c.likes}</p>
+                                            <p className="text-[15px] text-[#6B6358] leading-relaxed line-clamp-3">{c.content}</p>
+                                            <div className="mt-3 flex items-center justify-between gap-3 text-[14px]">
+                                                <span className="truncate font-bold text-gray-500">{s ? s.title : '還原筆記留言'}</span>
+                                                <span className="shrink-0 text-red-400 flex items-center gap-1"><Heart size={13} fill="currentColor" />{c.likes}</span>
+                                            </div>
                                         </motion.div>
                                     </Link>
                                 )
-                            })}
+                            })()}
                         </motion.div>
                     </FadeIn>
                     <FadeIn delay={0.24}>
-                        <motion.div whileHover={{ y: -4 }} className="bg-white/[0.06] backdrop-blur rounded-2xl p-5 border border-white/10 hover:border-emerald-500/30 transition-all hover:shadow-[0_8px_30px_rgba(16,185,129,0.1)]">
+                        <motion.div whileHover={{ y: -4 }} className="rounded-2xl border border-[#E8E0D4] bg-white p-5 transition-all hover:border-emerald-200 hover:shadow-[0_10px_30px_rgba(16,185,129,0.08)]">
                             <div className="flex items-center gap-2 mb-4">
                                 <div className="w-9 h-9 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center text-white shadow-md"><FileText size={18} /></div>
-                                <h4 className="text-[20px] font-black text-white" style={serif}>熱門投稿文章</h4>
+                                <h4 className="text-[20px] font-black text-[#2D2A26]" style={serif}>熱門投稿文章</h4>
                             </div>
-                            {hotArticles.length === 0 ? (
-                                <p className="text-white/50 text-center py-6 text-[14px] font-bold">目前尚無投稿文章</p>
-                            ) : hotArticles.map((a, i) => {
+                            {loading ? (
+                                <div className="space-y-3">
+                                    <Skeleton className="h-8 w-24 rounded-full bg-emerald-100" />
+                                    <Skeleton className="h-6 w-full rounded-xl bg-[#DDEFE7]" />
+                                    <Skeleton className="h-6 w-4/5 rounded-xl bg-[#DDEFE7]" />
+                                    <Skeleton className="h-4 w-1/2 rounded-xl bg-[#DDEFE7]" />
+                                </div>
+                            ) : hotArticles.length === 0 ? (
+                                <p className="text-[#8A8078] text-center py-6 text-[14px] font-bold">目前尚無投稿文章</p>
+                            ) : (() => {
+                                const a = hotArticles[0];
                                 const s = sessions.find(sess => sess.id === a.targetSessionId);
                                 return (
-                                    <Link key={i} href={`/forum/${a.id}`} className="block mb-3 last:mb-0">
+                                    <Link href={`/forum/${a.id}`} className="block">
                                         <motion.div whileHover={{ scale: 1.02 }}
-                                            className="p-3 rounded-xl bg-white/[0.04] border border-white/5 hover:border-emerald-500/20 transition-all cursor-pointer">
-                                            <div className="flex flex-wrap items-center gap-2 mb-2">
+                                            className="rounded-[1.5rem] border border-[#D9EEE5] bg-[#FBFFFD] p-4 transition-all cursor-pointer">
+                                            <div className="mb-3 flex flex-wrap items-center gap-2">
                                                 <span className="text-[12px] font-black text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">{a.category}</span>
-                                                {a.targetTopic && (
-                                                    <span className="text-[12px] font-black text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded">#{a.targetTopic}</span>
-                                                )}
                                                 {s && (
                                                     <span className="text-[12px] text-blue-300 bg-blue-500/15 px-2 py-0.5 rounded flex items-center gap-1">
                                                         <BookOpen size={10} /> {s.sessionId}
                                                     </span>
                                                 )}
                                             </div>
-                                            <p className="text-[16px] font-bold text-white/90 mt-2 hover:text-emerald-300 transition-colors">{a.title}</p>
-                                            <div className="flex justify-between mt-2 text-[14px]">
-                                                <span className="text-gray-500 font-bold">{a.author}</span>
-                                                <span className="text-red-400 flex items-center gap-1"><Heart size={13} fill="currentColor" />{a.likes}</span>
+                                            <p className="text-[17px] font-bold text-[#2D2A26] leading-relaxed hover:text-emerald-600 transition-colors">{a.title}</p>
+                                            <div className="mt-3 flex items-center justify-between gap-3 text-[14px]">
+                                                <span className="truncate font-bold text-gray-500">{a.author}</span>
+                                                <span className="shrink-0 text-red-400 flex items-center gap-1"><Heart size={13} fill="currentColor" />{a.likes}</span>
                                             </div>
                                         </motion.div>
                                     </Link>
                                 )
-                            })}
+                            })()}
                         </motion.div>
                     </FadeIn>
                 </div>
             </section>
 
-            {/* ═══ 論壇精神 ═══ */}
-            <Banner title="專業論壇與經驗交流" subtitle="Forum & Discussion" bg="bg-[#E3EED3]" text="text-[#3D5220]" />
-            <section className="max-w-7xl mx-auto px-6 py-8">
-                <FadeIn>
-                    <div className="bg-white rounded-2xl p-8 border border-[#E8E0D4] shadow-sm">
-                        <h3 className="text-[32px] font-black leading-tight mb-4" style={serif}>不造神・重文字<br />匿名化・去權威</h3>
-                        <p className="text-[20px] text-[#6B6358] font-medium leading-[1.8] max-w-3xl mb-6">在這個演算法獎勵情緒、意見領袖壟斷話語權的時代，我們反其道而行。在這裡，不看職級、不分地域，只論專業論述與發言。</p>
-                        <div className="flex flex-wrap gap-2">
-                            {['經驗分享', '專業討論', '資料補充', '提問', '糾錯回報'].map(tag => (
-                                <Link key={tag} href="/forum">
-                                    <motion.span whileHover={{ scale: 1.08, y: -3 }} transition={{ type: 'spring', stiffness: 400 }}
-                                        className="bg-[#E3EED3] text-[#3D5220] px-5 py-2.5 rounded-xl text-[16px] font-black border border-[#C5D9A8] hover:bg-[#7B8C4E] hover:text-white hover:border-[#7B8C4E] transition-colors cursor-pointer shadow-sm hover:shadow-md inline-block">{tag}</motion.span>
-                                </Link>
-                            ))}
-                        </div>
-                    </div>
-                </FadeIn>
-            </section>
-
-            {/* ═══ 匿名聯絡 ═══ */}
-            <Banner title="匿名聯絡與資料提供" subtitle="Anonymous Contact" bg="bg-[#FDE8D8]" text="text-[#8B4D35]" />
-            <section id="contact" className="max-w-7xl mx-auto px-6 py-6">
-                <FadeIn>
-                    <div className="bg-white rounded-2xl p-6 md:p-8 border border-[#E8E0D4] shadow-sm flex flex-col md:flex-row items-center gap-6">
-                        <motion.div animate={{ y: [0, -4, 0] }} transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-                            className="w-16 h-16 shrink-0 bg-[#FDE8D8] text-[#C67B5C] rounded-2xl flex items-center justify-center shadow-sm"><Send size={32} /></motion.div>
-                        <div>
-                            <h4 className="text-[26px] font-black" style={serif}>安全匿名的向我們傳遞訊息</h4>
-                            <p className="text-[18px] text-[#6B6358] font-medium leading-relaxed mt-2">無論是逐字稿投稿、資料補充、意見回饋或糾錯回報，您都可以匿名透過此管道向團隊傳達。</p>
-                        </div>
-                        <Link href="/contact">
-                            <motion.button whileHover={{ scale: 1.05, boxShadow: '0 12px 30px rgba(198,123,92,0.25)' }} whileTap={{ scale: 0.97 }}
-                                className="bg-gradient-to-r from-[#C67B5C] to-[#a8634a] text-white px-8 py-4 rounded-2xl text-[20px] font-black shrink-0 shadow-lg transition-all">開始傳送 →</motion.button>
-                        </Link>
-                    </div>
-                </FadeIn>
-            </section>
-
-            {/* ═══ 團隊鳴謝 ═══ */}
-            <Banner title="團隊介紹與特別鳴謝" subtitle="Acknowledgments" bg="bg-[#F5E6D3]" text="text-[#7A5C3D]" />
+            {/* ═══ 聯絡與支持 ═══ */}
+            <Banner title="聯絡與支持" subtitle="Contact & Acknowledgments" bg="bg-[#F4ECDE]" text="text-[#7A5C3D]" />
             <section className="max-w-7xl mx-auto px-6 py-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="mb-5 rounded-[1.8rem] border border-[#E8DCC7] bg-white px-6 py-5 shadow-sm">
+                    <p className="text-[12px] font-black uppercase tracking-[0.24em] text-[#B8860B]">Support & Contact</p>
+                    <h3 className="mt-2 text-[28px] font-black text-[#2D2A26]" style={serif}>需要補充資料、匿名回饋，或想理解這個計畫由誰維護？</h3>
+                    <p className="mt-2 max-w-4xl text-[16px] font-medium leading-[1.85] text-[#5A5347]">
+                        首頁先保留最常用的聯絡與支持入口。更完整的匿名傳送、私密回報與後續互動，請進入聯絡頁。
+                    </p>
+                </div>
+
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
                     <FadeIn>
-                        <motion.div whileHover={{ y: -3 }} className="bg-white p-6 rounded-2xl border border-[#E8E0D4] hover:shadow-md transition-all">
-                            <div className="w-12 h-12 bg-[#F5E6D3] text-[#B8860B] rounded-xl flex items-center justify-center mb-3"><Users size={24} /></div>
-                            <h4 className="text-[24px] font-black mb-3" style={serif}>團隊介紹與聲明</h4>
-                            <p className="text-[18px] text-[#5A5347] font-medium leading-[1.8]">本團隊成員皆為現職社工、心理、輔導等實務工作者，利用公餘時間維護平台。若更新與除錯進度較緩，尚請海涵見諒。</p>
+                        <motion.div whileHover={{ y: -3 }} className="h-full rounded-[2rem] border border-[#E8DCC7] bg-white p-6 shadow-sm transition-all hover:shadow-md">
+                            <div className="flex flex-col md:flex-row md:items-start gap-5">
+                                <motion.div
+                                    animate={{ y: [0, -4, 0] }}
+                                    transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                                    className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#FDE8D8] text-[#C67B5C] shadow-sm"
+                                >
+                                    <Send size={26} />
+                                </motion.div>
+                                <div className="flex-1">
+                                    <p className="text-[12px] font-black uppercase tracking-[0.24em] text-[#C67B5C]">Anonymous Contact</p>
+                                    <h4 className="mt-2 text-[26px] font-black text-[#2D2A26]" style={serif}>匿名聯絡與資料提供</h4>
+                                    <p className="mt-3 text-[17px] font-medium leading-[1.8] text-[#5A5347]">
+                                        無論是逐字稿投稿、資料補充、意見回饋或糾錯回報，您都可以匿名透過此管道向團隊傳達。
+                                    </p>
+                                    <div className="mt-5 flex flex-wrap gap-3">
+                                        {['逐字稿投稿', '資料補充', '意見回饋', '糾錯回報'].map((item) => (
+                                            <span key={item} className="rounded-xl border border-[#EFD7C4] bg-[#FFF8F2] px-4 py-2 text-[15px] font-black text-[#A86545]">
+                                                {item}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="mt-6 flex items-center justify-between gap-4 border-t border-[#F0E5D8] pt-5">
+                                <p className="text-[14px] font-bold leading-relaxed text-[#8A8078]">
+                                    需要私密回報、補充資料、或直接聯絡團隊時，請從這裡進入。
+                                </p>
+                                <Link href="/contact">
+                                    <motion.div
+                                        whileHover={{ scale: 1.02, boxShadow: '0 12px 30px rgba(198,123,92,0.20)' }}
+                                        whileTap={{ scale: 0.98 }}
+                                        className="inline-flex shrink-0 items-center gap-3 rounded-2xl bg-gradient-to-r from-[#C67B5C] to-[#a8634a] px-6 py-3 text-[17px] font-black text-white shadow-lg"
+                                    >
+                                        開始匿名傳送
+                                        <ArrowRight size={18} />
+                                    </motion.div>
+                                </Link>
+                            </div>
                         </motion.div>
                     </FadeIn>
+
                     <FadeIn delay={0.1}>
-                        <motion.div whileHover={{ y: -3 }} className="bg-white p-6 rounded-2xl border border-[#E8E0D4] hover:shadow-md transition-all">
-                            <div className="w-12 h-12 bg-[#F5E6D3] text-[#B8860B] rounded-xl flex items-center justify-center mb-3"><HeartHandshake size={24} /></div>
-                            <h4 className="text-[24px] font-black mb-3" style={serif}>感謝民眾線上社群支持</h4>
-                            <div className="flex flex-wrap gap-2 mb-3">
-                                {['孩想陪你長大聯盟', '兒虐零容忍', '孩想陪你長大', '鵝保社工團隊'].map((t, i) => (
-                                    <motion.span key={t} initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-                                        transition={{ delay: 0.3 + i * 0.1 }}
-                                        className="bg-[#F5E6D3] text-[#7A5C3D] px-4 py-2 rounded-xl text-[15px] font-black border border-[#E8D5B8] shadow-sm">✨ {t}</motion.span>
-                                ))}
+                        <motion.div whileHover={{ y: -3 }} className="h-full rounded-[2rem] border border-[#E8DCC7] bg-white p-6 shadow-sm transition-all hover:shadow-md">
+                            <div className="flex items-start gap-4">
+                                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#F5E6D3] text-[#B8860B] shadow-sm">
+                                    <HeartHandshake size={24} />
+                                </div>
+                                <div>
+                                    <p className="text-[12px] font-black uppercase tracking-[0.24em] text-[#B8860B]">Acknowledgments</p>
+                                    <h4 className="mt-2 text-[26px] font-black text-[#2D2A26]" style={serif}>團隊介紹與特別鳴謝</h4>
+                                    <p className="mt-3 text-[17px] font-medium leading-[1.8] text-[#5A5347]">
+                                        本團隊成員皆為現職社工、心理、輔導等實務工作者，利用公餘時間維護平台。若更新與除錯進度較緩，尚請海涵見諒。
+                                    </p>
+                                </div>
                             </div>
-                            <p className="text-[18px] text-[#5A5347] font-medium leading-[1.8]">感謝以上等社群之熱心民眾、專業人員提供各項資料及建議，協力共構本筆記。</p>
+
+                            <div className="mt-6 rounded-[1.6rem] border border-[#E8D5B8] bg-[#FFF8EF] p-5">
+                                <p className="text-[17px] font-black text-[#7A5C3D]" style={serif}>感謝民眾線上社群支持</p>
+                                <div className="mt-4 flex flex-wrap gap-2">
+                                    {['孩想陪你長大聯盟', '兒虐零容忍', '孩想陪你長大', '鵝保社工團隊'].map((t, i) => (
+                                        <motion.span
+                                            key={t}
+                                            initial={{ opacity: 0, y: 10 }}
+                                            whileInView={{ opacity: 1, y: 0 }}
+                                            viewport={{ once: true }}
+                                            transition={{ delay: 0.2 + i * 0.08 }}
+                                            className="rounded-xl border border-[#E8D5B8] bg-[#F5E6D3] px-4 py-2 text-[14px] font-black text-[#7A5C3D] shadow-sm"
+                                        >
+                                            ✨ {t}
+                                        </motion.span>
+                                    ))}
+                                </div>
+                                <p className="mt-4 text-[16px] font-medium leading-[1.8] text-[#5A5347]">
+                                    感謝以上等社群之熱心民眾、專業人員提供各項資料及建議，協力共構本筆記。
+                                </p>
+                            </div>
                         </motion.div>
                     </FadeIn>
                 </div>
@@ -830,21 +1042,21 @@ export default function Home() {
             <footer className="bg-[#2D2A26] mt-4 pt-10 pb-6 px-6 text-white">
                 <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between gap-8">
                     <div>
-                        <p className="text-[22px] font-black" style={serif}>法庭實況還原與專業共構筆記</p>
-                        <p className="text-[12px] text-[#8A8078] mt-1 font-bold tracking-widest">SOCIAL WORK COURT NOTES</p>
-                        <p className="text-[16px] text-[#8A8078] mt-3 max-w-md">本團隊由助人專業與民眾共同組成，利用公餘時間維護平台。</p>
+                        <p className="text-[22px] font-black" style={serif}>{SITE_NAME}</p>
+                        <p className="text-[12px] text-[#8A8078] mt-1 font-bold tracking-widest">{SITE_TAGLINE}</p>
+                        <p className="text-[16px] text-[#8A8078] mt-3 max-w-md">{TEAM_BLURB}</p>
                     </div>
                     <div className="grid grid-cols-2 gap-8 text-[16px]">
                         <div>
                             <h5 className="text-[12px] font-black text-[#8A8078] uppercase tracking-widest mb-3">導覽</h5>
                             <ul className="space-y-2 font-bold text-[#A09888]">
-                                {[
-                                    { name: '計畫緣起', href: '#mission' },
-                                    { name: '先備知識', href: '#knowledge' },
-                                    { name: '還原筆記', href: '/sessions' },
-                                    { name: '熱門排行', href: '#trending' },
-                                    { name: '論壇', href: '/forum' },
-                                ].map(x => <li key={x.name}><Link href={x.href} className="hover:text-[#B8D468] transition-colors">{x.name}</Link></li>)}
+                                {FOOTER_NAV_ITEMS.map((item) => (
+                                    <li key={item.name}>
+                                        <Link href={item.href} className="hover:text-[#B8D468] transition-colors">
+                                            {item.name}
+                                        </Link>
+                                    </li>
+                                ))}
                             </ul>
                         </div>
                         <div>
@@ -859,7 +1071,7 @@ export default function Home() {
                     </div>
                 </div>
                 <div className="max-w-7xl mx-auto mt-8 pt-4 border-t border-white/10 text-center">
-                    <p className="text-[13px] text-[#6B6358] font-bold">© 2026 社工實務觀庭共構小組 ｜ 系統籌備建置中</p>
+                    <p className="text-[13px] text-[#6B6358] font-bold">{COPYRIGHT_NOTICE}</p>
                 </div>
             </footer>
         </div >

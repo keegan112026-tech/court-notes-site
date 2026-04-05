@@ -1,377 +1,654 @@
-/* ── Raw Notion API (avoids SDK TypeScript issues) ── */
-const NOTION_TOKEN = process.env.NOTION_TOKEN!;
-const NOTION_VER = '2022-06-28';
-const hdrs = {
-    'Authorization': `Bearer ${NOTION_TOKEN}`,
-    'Content-Type': 'application/json',
-    'Notion-Version': NOTION_VER,
-};
+const NOTION_TOKEN = process.env.NOTION_TOKEN || '';
+const NOTION_VERSION = '2022-06-28';
 const API = 'https://api.notion.com/v1';
 
 const DB = {
-    global: process.env.NOTION_DB_GLOBAL!,
-    sessions: process.env.NOTION_DB_SESSIONS!,
-    transcripts: process.env.NOTION_DB_TRANSCRIPTS!,
-    interactions: process.env.NOTION_DB_INTERACTIONS!,
-    forum: process.env.NOTION_DB_FORUM!,
-    contact: process.env.NOTION_DB_CONTACT!,
+    articles: process.env.NOTION_DB_ARTICLES || '',
+    comments: process.env.NOTION_DB_COMMENTS || '',
+    inbox: process.env.NOTION_DB_INBOX || '',
+    moderationLog: process.env.NOTION_DB_MODERATION_LOG || '',
 };
 
-async function qry(dbId: string, body: any = {}): Promise<any> {
-    const r = await fetch(`${API}/databases/${dbId}/query`, { method: 'POST', headers: hdrs, body: JSON.stringify(body), next: { revalidate: 0 } });
-    if (!r.ok) throw new Error(`Notion query ${r.status}`);
-    return r.json();
-}
-async function mkPage(body: any): Promise<any> {
-    const r = await fetch(`${API}/pages`, { method: 'POST', headers: hdrs, body: JSON.stringify(body) });
-    if (!r.ok) {
-        const err = await r.json().catch(() => ({}));
-        throw new Error(`Notion create ${r.status}: ${JSON.stringify(err)}`);
+type NotionPage = Record<string, any>;
+type ReviewAction = 'approve' | 'reject' | 'delete';
+type ReviewTargetType = 'article' | 'comment' | 'inbox';
+
+function ensureNotionToken() {
+    if (!NOTION_TOKEN) {
+        throw new Error('Notion 環境變數尚未完成：NOTION_TOKEN');
     }
-    return r.json();
-}
-async function getPage(id: string): Promise<any> {
-    const r = await fetch(`${API}/pages/${id}`, { headers: hdrs });
-    if (!r.ok) throw new Error(`Notion get ${r.status}`);
-    return r.json();
-}
-async function patchPage(id: string, props: any): Promise<any> {
-    const r = await fetch(`${API}/pages/${id}`, { method: 'PATCH', headers: hdrs, body: JSON.stringify({ properties: props }) });
-    if (!r.ok) throw new Error(`Notion update ${r.status}`);
-    return r.json();
 }
 
-/* ── helpers ── */
-function txt(page: any, prop: string): string {
-    const p = page.properties[prop];
-    if (!p) return '';
-    if (p.type === 'title') return p.title?.map((t: any) => t.plain_text).join('') ?? '';
-    if (p.type === 'rich_text') return p.rich_text?.map((t: any) => t.plain_text).join('') ?? '';
+function ensureDatabase(
+    key: keyof typeof DB,
+    envName: 'NOTION_DB_ARTICLES' | 'NOTION_DB_COMMENTS' | 'NOTION_DB_INBOX' | 'NOTION_DB_MODERATION_LOG'
+) {
+    const databaseId = DB[key];
+    if (!databaseId) {
+        throw new Error(`Notion 環境變數尚未完成：${envName}`);
+    }
+    return databaseId;
+}
+
+const headers = {
+    Authorization: `Bearer ${NOTION_TOKEN}`,
+    'Content-Type': 'application/json',
+    'Notion-Version': NOTION_VERSION,
+};
+
+async function notionFetch(path: string, init?: RequestInit) {
+    ensureNotionToken();
+
+    const res = await fetch(`${API}${path}`, {
+        ...init,
+        headers: {
+            ...headers,
+            ...(init?.headers || {}),
+        },
+        cache: 'no-store',
+    });
+
+    if (!res.ok) {
+        const body = await res.text().catch(() => '');
+        throw new Error(`Notion API ${res.status}: ${body}`);
+    }
+
+    return res.json();
+}
+
+async function queryDatabase(databaseId: string, body: Record<string, any> = {}) {
+    return notionFetch(`/databases/${databaseId}/query`, {
+        method: 'POST',
+        body: JSON.stringify(body),
+    });
+}
+
+async function createPage(databaseId: string, properties: Record<string, any>) {
+    return notionFetch('/pages', {
+        method: 'POST',
+        body: JSON.stringify({
+            parent: { database_id: databaseId },
+            properties,
+        }),
+    });
+}
+
+async function updatePageProperties(pageId: string, properties: Record<string, any>) {
+    return notionFetch(`/pages/${pageId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ properties }),
+    });
+}
+
+async function archivePage(pageId: string) {
+    return notionFetch(`/pages/${pageId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ archived: true }),
+    });
+}
+
+async function retrievePage(pageId: string) {
+    return notionFetch(`/pages/${pageId}`);
+}
+
+function extractTitle(page: NotionPage, name: string) {
+    const prop = page.properties?.[name];
+    if (!prop || prop.type !== 'title') return '';
+    return prop.title?.map((item: any) => item.plain_text).join('') || '';
+}
+
+function extractRichText(page: NotionPage, name: string) {
+    const prop = page.properties?.[name];
+    if (!prop || prop.type !== 'rich_text') return '';
+    return prop.rich_text?.map((item: any) => item.plain_text).join('') || '';
+}
+
+function extractSelect(page: NotionPage, name: string) {
+    const prop = page.properties?.[name];
+    if (!prop) return '';
+    if (prop.type === 'select') return prop.select?.name || '';
+    if (prop.type === 'status') return prop.status?.name || '';
     return '';
 }
-function num(page: any, prop: string): number { return page.properties[prop]?.number ?? 0; }
-function sel(page: any, prop: string): string { return page.properties[prop]?.select?.name ?? ''; }
-function dte(page: any, prop: string): string { return page.properties[prop]?.date?.start ?? ''; }
-function chk(page: any, prop: string): boolean { return page.properties[prop]?.checkbox ?? false; }
 
-/* ════ CMS ════ */
-export async function fetchAllCMS(): Promise<Record<string, string>> {
-    const map: Record<string, string> = {};
-    let cursor: string | undefined;
-    do {
-        const res = await qry(DB.global, { start_cursor: cursor, page_size: 100 });
-        for (const p of res.results) { const k = txt(p, 'Key'); if (k) map[k] = txt(p, 'Content'); }
-        cursor = res.has_more ? res.next_cursor : undefined;
-    } while (cursor);
-    return map;
+function extractNumber(page: NotionPage, name: string) {
+    return page.properties?.[name]?.number ?? 0;
 }
 
-export async function fetchCMS(key: string): Promise<string> {
-    const res = await qry(DB.global, { filter: { property: 'Key', title: { equals: key } }, page_size: 1 });
-    return res.results.length ? txt(res.results[0], 'Content') : '';
+function extractDate(page: NotionPage, name: string) {
+    return page.properties?.[name]?.date?.start || '';
 }
 
-/* ════ Sessions ════ */
-export interface Session { id: string; sessionId: string; title: string; date: string; category: string; status: string; summary: string; hotTopic: boolean; participantsCount: number; }
-export async function fetchSessions(): Promise<Session[]> {
-    const res = await qry(DB.sessions, { filter: { property: 'Status', select: { equals: '已發布' } }, sorts: [{ property: 'Date', direction: 'descending' }] });
-    return res.results.map((p: any) => ({ id: p.id, sessionId: txt(p, 'Session_ID'), title: txt(p, 'Title'), date: dte(p, 'Date'), category: sel(p, 'Category'), status: sel(p, 'Status'), summary: txt(p, 'Summary'), hotTopic: chk(p, 'Hot_Topic'), participantsCount: num(p, 'Participants_Count') }));
-}
-export async function fetchSessionById(sid: string): Promise<Session | null> {
-    const res = await qry(DB.sessions, { filter: { property: 'Session_ID', title: { equals: sid } }, page_size: 1 });
-    if (!res.results.length) return null;
-    const p = res.results[0];
-    return { id: p.id, sessionId: txt(p, 'Session_ID'), title: txt(p, 'Title'), date: dte(p, 'Date'), category: sel(p, 'Category'), status: sel(p, 'Status'), summary: txt(p, 'Summary'), hotTopic: chk(p, 'Hot_Topic'), participantsCount: num(p, 'Participants_Count') };
+function extractEmail(page: NotionPage, name: string) {
+    return page.properties?.[name]?.email || '';
 }
 
-/* ════ Transcripts ════ */
-export interface TranscriptLine { id: string; lineId: string; role: string; action: string; content: string; order: number; mergeGroupId: string; likeCount: number; }
-export async function fetchTranscripts(sessionSid: string): Promise<TranscriptLine[]> {
-    const all: TranscriptLine[] = [];
-    let cursor: string | undefined;
-    do {
-        const res = await qry(DB.transcripts, {
-            filter: {
-                or: [
-                    { property: 'Session_ID', select: { equals: sessionSid } },
-                    { property: 'Session_ID', select: { equals: 'S-206' } }
-                ]
-            },
-            sorts: [{ property: 'Order', direction: 'ascending' }],
-            start_cursor: cursor,
-            page_size: 100
-        });
-        for (const p of res.results) {
-            const logicalId = txt(p, 'Line_ID') || p.id;
-            all.push({
-                id: logicalId,
-                lineId: txt(p, 'Line_ID'),
-                role: txt(p, 'Role') || sel(p, 'Role'),
-                action: txt(p, 'Action'),
-                content: txt(p, 'Content'),
-                order: num(p, 'Order'),
-                mergeGroupId: txt(p, 'Merge_Group_ID'),
-                likeCount: num(p, 'Like_Count')
-            });
-        }
-        cursor = res.has_more ? res.next_cursor : undefined;
-    } while (cursor);
-    return all;
+function extractUrl(page: NotionPage, name: string) {
+    return page.properties?.[name]?.url || '';
 }
 
-/* ════ Comments ════ */
-export interface Comment { id: string; targetLineId: string; author: string; content: string; likes: number; status: string; createdAt: string; type: string; targetTopic?: string; }
-export async function fetchComments(targetLineId: string): Promise<Comment[]> {
-    const res = await qry(DB.interactions, {
-        filter: {
-            and: [
-                { property: 'Target_Line_ID', rich_text: { equals: targetLineId } },
-                { property: 'Status', select: { equals: '核准' } }
-            ]
-        },
-        sorts: [{ property: 'Likes', direction: 'descending' }]
-    });
-    return res.results.map((p: any) => ({
-        id: p.id,
-        targetLineId: txt(p, 'Target_Line_ID'),
-        author: txt(p, 'Author'),
-        content: txt(p, 'Content'),
-        likes: num(p, 'Likes'),
-        status: sel(p, 'Status'),
-        type: sel(p, 'Type'),
-        targetTopic: sel(p, 'Target_Topic'),
-        createdAt: p.created_time
+function extractCheckbox(page: NotionPage, name: string) {
+    return page.properties?.[name]?.checkbox ?? false;
+}
+
+function splitRichText(value: string) {
+    const normalized = String(value || '');
+    if (!normalized) return [];
+
+    const chunks = normalized.match(/[\s\S]{1,1800}/g) || [];
+    return chunks.map((chunk) => ({
+        type: 'text',
+        text: { content: chunk },
     }));
 }
-export async function createComment(targetLineId: string, author: string, content: string, sessionId: string, topic?: string, type: string = '段落留言') {
-    const props: any = {
-        Comment_ID: { title: [{ text: { content: `c-${Date.now()}` } }] },
-        Target_Line_ID: { rich_text: [{ text: { content: targetLineId } }] },
-        Author: { rich_text: [{ text: { content: author || '匿名夥伴' } }] },
-        Content: { rich_text: [{ text: { content } }] },
-        Likes: { number: 0 },
-        Status: { select: { name: '待審核' } },
-        Type: { select: { name: type } }
+
+function titleProp(value: string) {
+    return { title: splitRichText(value).length ? splitRichText(value) : [{ type: 'text', text: { content: '未命名' } }] };
+}
+
+function richTextProp(value: string) {
+    return { rich_text: splitRichText(value) };
+}
+
+function emailProp(value?: string) {
+    return { email: value || null };
+}
+
+function dateProp(value?: string) {
+    return { date: value ? { start: value } : null };
+}
+
+function statusProp(name: string) {
+    return { status: { name } };
+}
+
+function selectProp(name?: string) {
+    return { select: name ? { name } : null };
+}
+
+function numberProp(value: number) {
+    return { number: value };
+}
+
+function checkboxProp(value: boolean) {
+    return { checkbox: value };
+}
+
+function urlProp(value?: string) {
+    return { url: value || null };
+}
+
+function multiSelectProp(values: string[]) {
+    return { multi_select: values.map((value) => ({ name: value })) };
+}
+
+function nowDate() {
+    return new Date().toISOString();
+}
+
+function summarizeTitle(prefix: string, content: string) {
+    const trimmed = content.replace(/\s+/g, ' ').trim();
+    return `${prefix}｜${trimmed.slice(0, 30) || '未命名'}`;
+}
+
+function mapArticle(page: NotionPage) {
+    return {
+        id: page.id,
+        postId: extractRichText(page, 'public_slug') || page.id,
+        author: extractRichText(page, 'author_name') || '匿名作者',
+        contactEmail: extractEmail(page, 'contact_email') || undefined,
+        title: extractTitle(page, '標題'),
+        content: extractRichText(page, 'content_html'),
+        category: extractSelect(page, 'article_type') || '觀庭共構文章',
+        targetTopic: '',
+        targetSessionId: extractRichText(page, 'primary_session_id'),
+        sourceSessionIds: page.properties?.source_session_ids?.multi_select?.map((item: any) => item.name) || [],
+        likes: extractNumber(page, 'likes_count'),
+        status: extractSelect(page, 'status'),
+        createdAt: extractDate(page, 'created_at') || page.created_time || nowDate(),
+        reviewedAt: extractDate(page, 'reviewed_at') || undefined,
+        reviewedBy: extractRichText(page, 'reviewed_by') || undefined,
+        reviewNote: extractRichText(page, 'review_note') || undefined,
     };
-    if (topic) props.Target_Topic = { select: { name: topic } };
-    if (sessionId) {
-        const session = await fetchSessionById(sessionId);
-        if (session && session.id) {
-            props.Target_Session = { relation: [{ id: session.id }] };
-        }
-    }
-    return mkPage({ parent: { database_id: DB.interactions }, properties: props });
 }
 
-/* ════ Forum ════ */
-export interface ForumPost { id: string; postId: string; author: string; title: string; content: string; category: string; targetTopic: string; targetSessionId: string; likes: number; status: string; createdAt: string; }
-export async function fetchForumPosts(): Promise<ForumPost[]> {
-    const res = await qry(DB.interactions, {
-        filter: {
-            and: [
-                { property: 'Type', select: { equals: '論壇文章' } },
-                { property: 'Status', select: { equals: '核准' } }
-            ]
-        },
-        sorts: [{ timestamp: 'created_time', direction: 'descending' }]
-    });
-    return res.results.map((p: any) => ({
-        id: p.id,
-        postId: txt(p, 'Comment_ID'),
-        author: txt(p, 'Author'),
-        title: txt(p, 'Title'),
-        content: txt(p, 'Content'),
-        category: sel(p, 'Category'),
-        targetTopic: sel(p, 'Target_Topic'),
-        // we can return relation id or we don't need it right now
-        targetSessionId: p.properties.Target_Session?.relation?.[0]?.id ?? '',
-        likes: num(p, 'Likes'),
-        status: sel(p, 'Status'),
-        createdAt: p.created_time
-    }));
+function mapComment(page: NotionPage) {
+    return {
+        id: page.id,
+        targetLineId: extractRichText(page, 'article_id'),
+        author: extractRichText(page, 'author_name') || '匿名留言',
+        content: extractRichText(page, 'content'),
+        likes: extractNumber(page, 'likes_count'),
+        status: extractSelect(page, 'status'),
+        createdAt: extractDate(page, 'created_at') || page.created_time || nowDate(),
+        type: extractSelect(page, 'comment_type') || '一般留言',
+        targetTopic: '',
+        targetSessionId: extractRichText(page, 'target_session_id') || undefined,
+        reviewedAt: extractDate(page, 'reviewed_at') || undefined,
+        reviewedBy: extractRichText(page, 'reviewed_by') || undefined,
+        reviewNote: extractRichText(page, 'review_note') || undefined,
+    };
 }
-export async function fetchForumPostById(postId: string): Promise<ForumPost | null> {
+
+function mapInbox(page: NotionPage) {
+    return {
+        id: page.id,
+        title: extractTitle(page, '主旨'),
+        messageType: extractSelect(page, 'message_type'),
+        senderName: extractRichText(page, 'sender_name'),
+        senderEmail: extractEmail(page, 'sender_email'),
+        content: extractRichText(page, 'content'),
+        attachmentUrl: extractUrl(page, 'attachment_url'),
+        isSensitive: extractCheckbox(page, 'is_sensitive'),
+        status: extractSelect(page, 'status'),
+        internalNote: extractRichText(page, 'internal_note'),
+        createdAt: extractDate(page, 'created_at') || page.created_time || nowDate(),
+        handledBy: extractRichText(page, 'handled_by'),
+        handledAt: extractDate(page, 'handled_at'),
+        relatedArticleId: extractRichText(page, 'related_article_id'),
+        relatedSessionId: extractRichText(page, 'related_session_id'),
+    };
+}
+
+const ARTICLE_STATUS = {
+    pending: '待審核',
+    reviewing: '審閱中',
+    revision: '退回修改',
+    approved: '已核准',
+    published: '已發布',
+    archived: '已封存',
+};
+
+const COMMENT_STATUS = {
+    pending: '待審核',
+    approved: '已核准',
+    rejected: '退回',
+    deleted: '已刪除',
+};
+
+const INBOX_STATUS = {
+    fresh: '新進',
+};
+
+function actionLabel(action: ReviewAction) {
+    if (action === 'approve') return 'Approve｜核准';
+    if (action === 'reject') return 'Reject｜拒絕';
+    return 'Delete｜刪除';
+}
+
+function targetTypeLabel(type: ReviewTargetType) {
+    if (type === 'article') return 'article（文章）';
+    if (type === 'comment') return 'comment（留言）';
+    return 'inbox（訊息）';
+}
+
+async function createModerationLog(input: {
+    targetType: ReviewTargetType;
+    targetId: string;
+    action: ReviewAction;
+    actorName: string;
+    note?: string;
+    before?: string;
+    after?: string;
+    label?: string;
+}) {
+    const title = `${input.label || '審查紀錄'}：${input.targetId}`;
+    const moderationDbId = ensureDatabase('moderationLog', 'NOTION_DB_MODERATION_LOG');
+
+    await createPage(moderationDbId, {
+        title: titleProp(title),
+        target_type: selectProp(targetTypeLabel(input.targetType)),
+        target_id: richTextProp(input.targetId),
+        action: selectProp(actionLabel(input.action)),
+        actor_name: richTextProp(input.actorName),
+        acted_at: dateProp(nowDate()),
+        target_status_before: richTextProp(input.before || ''),
+        target_status_after: richTextProp(input.after || ''),
+        note: richTextProp(input.note || ''),
+    });
+}
+
+export async function fetchForumPosts() {
+    const articlesDbId = ensureDatabase('articles', 'NOTION_DB_ARTICLES');
+    const res = await queryDatabase(articlesDbId, {
+        filter: {
+            property: 'status',
+            status: { equals: ARTICLE_STATUS.published },
+        },
+        sorts: [{ property: 'published_at', direction: 'descending' }],
+        page_size: 100,
+    });
+
+    return res.results.map(mapArticle);
+}
+
+export async function fetchAllForumPosts() {
+    const articlesDbId = ensureDatabase('articles', 'NOTION_DB_ARTICLES');
+    const res = await queryDatabase(articlesDbId, {
+        sorts: [{ property: 'created_at', direction: 'descending' }],
+        page_size: 100,
+    });
+
+    return res.results.map(mapArticle);
+}
+
+export async function fetchForumPostById(postId: string) {
     try {
-        const p = await getPage(postId);
-        if (sel(p, 'Status') !== '核准' || sel(p, 'Type') !== '論壇文章') return null;
-        return {
-            id: p.id,
-            postId: txt(p, 'Comment_ID'),
-            author: txt(p, 'Author'),
-            title: txt(p, 'Title'),
-            content: txt(p, 'Content'),
-            category: sel(p, 'Category'),
-            targetTopic: sel(p, 'Target_Topic'),
-            targetSessionId: p.properties.Target_Session?.relation?.[0]?.id ?? '',
-            likes: num(p, 'Likes'),
-            status: sel(p, 'Status'),
-            createdAt: p.created_time
-        };
+        const page = await retrievePage(postId);
+        const mapped = mapArticle(page);
+        return mapped.status === ARTICLE_STATUS.published ? mapped : null;
     } catch {
-        return null;
-    }
-}
-export async function fetchForumComments(postId: string): Promise<Comment[]> {
-    const res = await qry(DB.interactions, {
-        filter: {
-            and: [
-                { property: 'Target_Line_ID', rich_text: { equals: postId } },
-                { property: 'Status', select: { equals: '核准' } },
-                { property: 'Type', select: { equals: '文章留言' } }
-            ]
-        },
-        sorts: [{ timestamp: 'created_time', direction: 'ascending' }]
-    });
-    return res.results.map((p: any) => ({
-        id: p.id,
-        targetLineId: txt(p, 'Target_Line_ID'),
-        author: txt(p, 'Author'),
-        content: txt(p, 'Content'),
-        likes: num(p, 'Likes'),
-        status: sel(p, 'Status'),
-        type: sel(p, 'Type'),
-        createdAt: p.created_time
-    }));
-}
-export async function createForumPost(author: string, title: string, content: string, category: string, topic?: string, targetSessionSid?: string) {
-    const props: any = {
-        Comment_ID: { title: [{ text: { content: `f-${Date.now()}` } }] },
-        Type: { select: { name: '論壇文章' } },
-        Author: { rich_text: [{ text: { content: author || '匿名夥伴' } }] },
-        Title: { rich_text: [{ text: { content: title } }] },
-        Content: { rich_text: [{ text: { content } }] },
-        Category: { select: { name: category } },
-        Likes: { number: 0 },
-        Status: { select: { name: '待審核' } },
-    };
-    if (topic) props.Target_Topic = { select: { name: topic } };
-    if (targetSessionSid) {
-        const session = await fetchSessionById(targetSessionSid);
-        if (session && session.id) {
-            props.Target_Session = { relation: [{ id: session.id }] };
-        }
-    }
-
-    return mkPage({ parent: { database_id: DB.interactions }, properties: props });
-}
-
-/* ════ Contact ════ */
-export async function createContact(name: string, category: string, content: string, attachmentUrl?: string) {
-    const props: any = {
-        Message_ID: { title: [{ text: { content: `m-${Date.now()}` } }] },
-        Sender_Name: { rich_text: [{ text: { content: name || '匿名' } }] },
-        Category: { select: { name: category } },
-        Content: { rich_text: [{ text: { content } }] },
-        Status: { select: { name: '未讀' } },
-    };
-    if (attachmentUrl) props.Attachment_URL = { url: attachmentUrl };
-    return mkPage({ parent: { database_id: DB.contact }, properties: props });
-}
-
-/* ════ Like ════ */
-export async function incrementLike(pageId: string, targetDb: 'transcripts' | 'interactions' | 'forum') {
-    const field = targetDb === 'transcripts' ? 'Like_Count' : 'Likes';
-    const page = await getPage(pageId);
-    const cur = page.properties[field]?.number ?? 0;
-    await patchPage(pageId, { [field]: { number: cur + 1 } });
-    return cur + 1;
-}
-
-/* ════ Trending & Stats ════ */
-export async function fetchTrendingNotes(limit = 5) {
-    const res = await qry(DB.transcripts, { sorts: [{ property: 'Like_Count', direction: 'descending' }], page_size: limit });
-    return res.results.map((p: any) => {
-        const sessionPageId = p.properties.Session_ID?.relation?.[0]?.id || '';
-        return { id: p.id, lineId: txt(p, 'Line_ID'), content: txt(p, 'Content'), role: sel(p, 'Role'), likeCount: num(p, 'Like_Count'), sessionPageId };
-    });
-}
-export async function fetchTrendingComments(limit = 3) {
-    const res = await qry(DB.interactions, {
-        filter: {
-            and: [
-                { property: 'Status', select: { equals: '核准' } },
-                { property: 'Type', select: { equals: '段落留言' } }
-            ]
-        },
-        sorts: [{ property: 'Likes', direction: 'descending' }],
-        page_size: limit
-    });
-    return res.results.map((p: any) => ({
-        id: p.id,
-        author: txt(p, 'Author'),
-        content: txt(p, 'Content'),
-        likes: num(p, 'Likes'),
-        role: '段落留言',
-        targetLineId: txt(p, 'Target_Line_ID'),
-        targetSessionId: p.properties.Target_Session?.relation?.[0]?.id ?? ''
-    }));
-}
-export async function fetchTrendingArticles(limit = 3) {
-    const res = await qry(DB.interactions, {
-        filter: {
-            and: [
-                { property: 'Status', select: { equals: '核准' } },
-                { property: 'Type', select: { equals: '論壇文章' } }
-            ]
-        },
-        sorts: [{ property: 'Likes', direction: 'descending' }],
-        page_size: limit
-    });
-    return res.results.map((p: any) => ({
-        id: p.id,
-        title: txt(p, 'Title'),
-        author: txt(p, 'Author'),
-        category: sel(p, 'Category'),
-        likes: num(p, 'Likes'),
-        targetTopic: sel(p, 'Target_Topic'),
-        targetSessionId: p.properties.Target_Session?.relation?.[0]?.id ?? ''
-    }));
-}
-export async function fetchSiteStats() {
-    try {
-        const [sessionsRes, commentsRes, restoredSes] = await Promise.all([
-            qry(DB.sessions, { page_size: 100 }),
-            qry(DB.interactions, { filter: { property: 'Status', select: { equals: '核准' } }, page_size: 100 }),
-            qry(DB.sessions, { filter: { property: 'Status', select: { equals: '已發布' } }, page_size: 100 })
-        ]);
-
-        return {
-            totalSessions: sessionsRes.results?.length || 0,
-            restoredSessions: restoredSes.results?.length || 0,
-            approvedComments: commentsRes.results?.length || 0
-        };
-    } catch (e) {
-        return { totalSessions: 0, restoredSessions: 0, approvedComments: 0 };
-    }
-}
-
-export async function fetchAllApprovedParagraphComments(): Promise<Comment[]> {
-    const all: Comment[] = [];
-    let cursor: string | undefined;
-    do {
-        const res = await qry(DB.interactions, {
+        const articlesDbId = ensureDatabase('articles', 'NOTION_DB_ARTICLES');
+        const res = await queryDatabase(articlesDbId, {
             filter: {
-                and: [
-                    { property: 'Status', select: { equals: '核准' } },
-                    { property: 'Type', select: { equals: '段落留言' } }
-                ]
+                property: 'public_slug',
+                rich_text: { equals: postId },
             },
-            start_cursor: cursor, page_size: 100
+            page_size: 1,
         });
-        for (const p of res.results) {
-            all.push({
-                id: p.id,
-                targetLineId: txt(p, 'Target_Line_ID'),
-                author: txt(p, 'Author'),
-                content: txt(p, 'Content'),
-                likes: num(p, 'Likes'),
-                status: sel(p, 'Status'),
-                type: sel(p, 'Type'),
-                targetTopic: sel(p, 'Target_Topic'),
-                createdAt: p.created_time
-            });
-        }
-        cursor = res.has_more ? res.next_cursor : undefined;
-    } while (cursor);
-    return all;
+
+        const page = res.results?.[0];
+        if (!page) return null;
+        const mapped = mapArticle(page);
+        return mapped.status === ARTICLE_STATUS.published ? mapped : null;
+    }
+}
+
+export async function fetchPendingForumPosts() {
+    const articlesDbId = ensureDatabase('articles', 'NOTION_DB_ARTICLES');
+    const res = await queryDatabase(articlesDbId, {
+        filter: {
+            property: 'status',
+            status: { equals: ARTICLE_STATUS.pending },
+        },
+        sorts: [{ property: 'created_at', direction: 'descending' }],
+        page_size: 100,
+    });
+
+    return res.results.map(mapArticle);
+}
+
+export async function createForumPost(
+    author: string,
+    contactEmail: string,
+    title: string,
+    content: string,
+    _category: string,
+    _topic?: string,
+    targetSessionSid?: string,
+    sourceSessionSids: string[] = []
+) {
+    const articlesDbId = ensureDatabase('articles', 'NOTION_DB_ARTICLES');
+    const sessionIds = sourceSessionSids.length > 0
+        ? sourceSessionSids
+        : (targetSessionSid ? [targetSessionSid] : []);
+
+    const articleType = sessionIds.length > 1 ? '跨場次' : '單場次';
+    const publicSlug = `art-${Date.now()}`;
+
+    await createPage(articlesDbId, {
+        title: titleProp(title),
+        author_name: richTextProp(author || '匿名作者'),
+        contact_email: emailProp(contactEmail),
+        content_html: richTextProp(content),
+        summary: richTextProp(''),
+        article_type: selectProp(articleType),
+        primary_session_id: richTextProp(targetSessionSid || sessionIds[0] || ''),
+        source_session_ids: multiSelectProp(sessionIds),
+        status: statusProp(ARTICLE_STATUS.pending),
+        reviewed_by: richTextProp(''),
+        reviewed_at: dateProp(),
+        review_note: richTextProp(''),
+        published_at: dateProp(),
+        likes_count: numberProp(0),
+        comments_count: numberProp(0),
+        last_activity_at: dateProp(nowDate()),
+        created_at: dateProp(nowDate()),
+        public_slug: richTextProp(publicSlug),
+        is_featured: checkboxProp(false),
+    });
+}
+
+export async function reviewForumPost(input: {
+    targetId: string;
+    reviewerName: string;
+    note?: string;
+    action: ReviewAction;
+}) {
+    const page = await retrievePage(input.targetId);
+    const before = extractSelect(page, 'status');
+
+    if (input.action === 'delete') {
+        await archivePage(input.targetId);
+        await createModerationLog({
+            targetType: 'article',
+            targetId: input.targetId,
+            action: input.action,
+            actorName: input.reviewerName,
+            note: input.note,
+            before,
+            after: ARTICLE_STATUS.archived,
+            label: `封存文章：${extractTitle(page, '標題') || input.targetId}`,
+        });
+        return;
+    }
+
+    const nextStatus = input.action === 'approve'
+        ? ARTICLE_STATUS.published
+        : ARTICLE_STATUS.revision;
+
+    await updatePageProperties(input.targetId, {
+        status: statusProp(nextStatus),
+        reviewed_by: richTextProp(input.reviewerName),
+        reviewed_at: dateProp(nowDate()),
+        review_note: richTextProp(input.note || ''),
+        last_activity_at: dateProp(nowDate()),
+        ...(input.action === 'approve' ? { published_at: dateProp(nowDate()) } : {}),
+    });
+
+    await createModerationLog({
+        targetType: 'article',
+        targetId: input.targetId,
+        action: input.action,
+        actorName: input.reviewerName,
+        note: input.note,
+        before,
+        after: nextStatus,
+        label: `${input.action === 'approve' ? '核准文章' : '退回文章'}：${extractTitle(page, '標題') || input.targetId}`,
+    });
+}
+
+export async function fetchComments(targetLineId: string) {
+    const commentsDbId = ensureDatabase('comments', 'NOTION_DB_COMMENTS');
+    const res = await queryDatabase(commentsDbId, {
+        filter: {
+            and: [
+                { property: 'article_id', rich_text: { equals: targetLineId } },
+                { property: 'status', select: { equals: COMMENT_STATUS.approved } },
+            ],
+        },
+        sorts: [{ property: 'likes_count', direction: 'descending' }],
+        page_size: 100,
+    });
+
+    return res.results.map(mapComment);
+}
+
+export async function fetchForumComments(postId: string) {
+    const commentsDbId = ensureDatabase('comments', 'NOTION_DB_COMMENTS');
+    const res = await queryDatabase(commentsDbId, {
+        filter: {
+            and: [
+                { property: 'article_id', rich_text: { equals: postId } },
+                { property: 'status', select: { equals: COMMENT_STATUS.approved } },
+            ],
+        },
+        sorts: [{ property: 'created_at', direction: 'ascending' }],
+        page_size: 100,
+    });
+
+    return res.results.map(mapComment);
+}
+
+export async function fetchPendingComments() {
+    const commentsDbId = ensureDatabase('comments', 'NOTION_DB_COMMENTS');
+    const res = await queryDatabase(commentsDbId, {
+        filter: {
+            property: 'status',
+            select: { equals: COMMENT_STATUS.pending },
+        },
+        sorts: [{ property: 'created_at', direction: 'descending' }],
+        page_size: 100,
+    });
+
+    return res.results.map(mapComment);
+}
+
+export async function createComment(
+    targetLineId: string,
+    author: string,
+    content: string,
+    sessionId: string,
+    _topic?: string,
+    type: string = '一般留言'
+) {
+    const commentsDbId = ensureDatabase('comments', 'NOTION_DB_COMMENTS');
+    await createPage(commentsDbId, {
+        title: titleProp(summarizeTitle('留言', content)),
+        content: richTextProp(content),
+        author_name: richTextProp(author || '匿名留言'),
+        article_id: richTextProp(targetLineId),
+        comment_type: selectProp(type === 'article-comment' ? '一般留言' : type),
+        status: selectProp(COMMENT_STATUS.pending),
+        likes_count: numberProp(0),
+        reviewed_by: richTextProp(''),
+        reviewed_at: dateProp(),
+        review_note: richTextProp(''),
+        created_at: dateProp(nowDate()),
+        target_session_id: richTextProp(sessionId || ''),
+        is_sensitive: checkboxProp(false),
+    });
+}
+
+export async function reviewComment(input: {
+    targetId: string;
+    reviewerName: string;
+    note?: string;
+    action: ReviewAction;
+}) {
+    const page = await retrievePage(input.targetId);
+    const before = extractSelect(page, 'status');
+
+    if (input.action === 'delete') {
+        await archivePage(input.targetId);
+        await createModerationLog({
+            targetType: 'comment',
+            targetId: input.targetId,
+            action: input.action,
+            actorName: input.reviewerName,
+            note: input.note,
+            before,
+            after: COMMENT_STATUS.deleted,
+            label: `刪除留言：${extractTitle(page, '留言內容') || input.targetId}`,
+        });
+        return;
+    }
+
+    const nextStatus = input.action === 'approve'
+        ? COMMENT_STATUS.approved
+        : COMMENT_STATUS.rejected;
+
+    await updatePageProperties(input.targetId, {
+        status: selectProp(nextStatus),
+        reviewed_by: richTextProp(input.reviewerName),
+        reviewed_at: dateProp(nowDate()),
+        review_note: richTextProp(input.note || ''),
+    });
+
+    await createModerationLog({
+        targetType: 'comment',
+        targetId: input.targetId,
+        action: input.action,
+        actorName: input.reviewerName,
+        note: input.note,
+        before,
+        after: nextStatus,
+        label: `${input.action === 'approve' ? '核准留言' : '退回留言'}：${extractTitle(page, '留言內容') || input.targetId}`,
+    });
+}
+
+export async function createContact(name: string, category: string, content: string, attachmentUrl?: string, email?: string) {
+    const inboxDbId = ensureDatabase('inbox', 'NOTION_DB_INBOX');
+    await createPage(inboxDbId, {
+        title: titleProp(summarizeTitle(category || '訊息', content)),
+        message_type: selectProp(category),
+        sender_name: richTextProp(name || ''),
+        sender_email: emailProp(email),
+        content: richTextProp(content),
+        attachment_url: urlProp(attachmentUrl),
+        is_sensitive: checkboxProp(category === '私密傳訊'),
+        status: selectProp(INBOX_STATUS.fresh),
+        internal_note: richTextProp(''),
+        created_at: dateProp(nowDate()),
+        handled_by: richTextProp(''),
+        handled_at: dateProp(),
+        related_article_id: richTextProp(''),
+        related_session_id: richTextProp(''),
+    });
+}
+
+async function incrementNumberProperty(pageId: string, propertyName: string) {
+    const page = await retrievePage(pageId);
+    const nextValue = extractNumber(page, propertyName) + 1;
+    await updatePageProperties(pageId, {
+        [propertyName]: numberProp(nextValue),
+        last_activity_at: propertyName === 'likes_count' ? dateProp(nowDate()) : undefined,
+    });
+    return nextValue;
+}
+
+export async function incrementLike(pageId: string, targetType: 'transcripts' | 'interactions' | 'forum') {
+    if (targetType === 'transcripts') {
+        throw new Error('逐字稿按讚目前仍使用前端本地資料，不透過 Notion 寫入。');
+    }
+
+    return incrementNumberProperty(pageId, 'likes_count');
+}
+
+export async function fetchTrendingArticles(limit = 3) {
+    const articlesDbId = ensureDatabase('articles', 'NOTION_DB_ARTICLES');
+    const res = await queryDatabase(articlesDbId, {
+        filter: {
+            property: 'status',
+            status: { equals: ARTICLE_STATUS.published },
+        },
+        sorts: [{ property: 'likes_count', direction: 'descending' }],
+        page_size: limit,
+    });
+
+    return res.results.map(mapArticle);
+}
+
+export async function fetchTrendingArticleComments(limit = 3) {
+    const commentsDbId = ensureDatabase('comments', 'NOTION_DB_COMMENTS');
+    const res = await queryDatabase(commentsDbId, {
+        filter: {
+            property: 'status',
+            select: { equals: COMMENT_STATUS.approved },
+        },
+        sorts: [{ property: 'likes_count', direction: 'descending' }],
+        page_size: limit,
+    });
+
+    return res.results.map(mapComment);
+}
+
+export async function fetchInboxMessages() {
+    const inboxDbId = ensureDatabase('inbox', 'NOTION_DB_INBOX');
+    const res = await queryDatabase(inboxDbId, {
+        sorts: [{ property: 'created_at', direction: 'descending' }],
+        page_size: 100,
+    });
+
+    return res.results.map(mapInbox);
 }

@@ -1,41 +1,59 @@
 /**
- * Simple in-memory rate limiter for API routes.
+ * In-memory rate limiting and simple abuse controls for API routes.
+ * Good enough for local/dev and lightweight deployment, but not a distributed limiter.
  */
 
+type RateLimitOptions = {
+    bucket: string;
+    windowMs: number;
+    max: number;
+};
+
 const store = new Map<string, number>();
-const WINDOW_MS = 60 * 1000;
-const MAX_PER_WINDOW = 5;
+const likeStore = new Set<string>();
 
-export function checkRateLimit(ip: string): { allowed: boolean; retryAfter?: number } {
+function cleanup(now: number) {
+    for (const [key, timestamp] of Array.from(store.entries())) {
+        if (now - timestamp > 1000 * 60 * 60 * 24) {
+            store.delete(key);
+        }
+    }
+}
+
+export function checkRateLimit(identifier: string, options?: Partial<RateLimitOptions>) {
     const now = Date.now();
-    const prefix = `rate:${ip}:`;
+    cleanup(now);
 
-    // Count requests in window
+    const bucket = options?.bucket || 'default';
+    const windowMs = options?.windowMs ?? 60 * 1000;
+    const max = options?.max ?? 5;
+    const prefix = `rate:${bucket}:${identifier}:`;
+
     let count = 0;
     let oldest = now;
-    const keys = Array.from(store.keys());
-    for (const k of keys) {
-        const ts = store.get(k)!;
-        // Cleanup old entries
-        if (now - ts > WINDOW_MS * 2) { store.delete(k); continue; }
-        if (k.startsWith(prefix) && now - ts < WINDOW_MS) {
+
+    for (const [key, timestamp] of Array.from(store.entries())) {
+        if (!key.startsWith(prefix)) continue;
+        if (now - timestamp < windowMs) {
             count++;
-            if (ts < oldest) oldest = ts;
+            if (timestamp < oldest) oldest = timestamp;
         }
     }
 
-    if (count >= MAX_PER_WINDOW) {
-        return { allowed: false, retryAfter: Math.ceil((oldest + WINDOW_MS - now) / 1000) };
+    if (count >= max) {
+        return {
+            allowed: false,
+            retryAfter: Math.max(1, Math.ceil((oldest + windowMs - now) / 1000)),
+        };
     }
 
     store.set(`${prefix}${now}`, now);
-    return { allowed: true };
+    return { allowed: true as const };
 }
 
-export function checkDuplicateLike(ip: string, targetId: string): boolean {
-    const key = `like:${ip}:${targetId}`;
-    const last = store.get(key);
-    if (last && Date.now() - last < 60 * 60 * 1000) return true;
-    store.set(key, Date.now());
+export function checkDuplicateLike(identifier: string, targetId: string, targetType?: string) {
+    const key = `like:${identifier}:${targetType || 'unknown'}:${targetId}`;
+    if (likeStore.has(key)) return true;
+    likeStore.add(key);
     return false;
 }
