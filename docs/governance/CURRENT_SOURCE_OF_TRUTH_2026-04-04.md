@@ -1,70 +1,63 @@
 # CURRENT SOURCE OF TRUTH - 2026-04-04
 
-This file defines the priority order for deciding what is true when versions
-conflict.
+這份文件定義版本衝突時，應該先相信什麼。
 
-## 1. Display truth
+## 1. Production truth
 
-Production URL:
+正式站：
 
 - `https://court-notes-site.vercel.app/`
 
-Latest recorded production deployment:
+production 用來回答：
 
-- `dpl_4uK72XekvYpoz6ELUBnAnJBePMcg` on `2026-04-05`
+- 使用者現在真的看到什麼
+- 某個 bug 是否仍在 live site 上可見
+- 某條正式路由是否可開
 
-Use production to answer:
+目前 repo 內最新記錄的 deployment 是：
 
-- What users currently see
-- Whether a bug is currently visible in the live site
-- Whether a route is reachable in production
+- `dpl_EUKSjuYdMg1wat3konSH8H4taCAf`
 
-Production is the truth of what is deployed, not the full truth of local code.
+但如果下一位 AI 看到更晚的 deployment，應以最新 alias 實測為準。
 
 ## 2. Code truth
 
-The formal code truth is:
+程式碼真相順序：
 
 1. `main`
-2. `origin/main`
-3. the current working branch only after it has been compared against `main`
+2. `origin/main` 在明確同步檢查後
+3. 當前工作樹，但前提是已先釐清 dirty 範圍
 
-Do not assume a local branch is truth unless the gate confirms its baseline.
+不要把 dirty worktree 直接當成單一可信版本。
 
 ## 3. Governance truth
 
-These files define the active operating rules:
+治理文件負責說明流程與風險，但不能覆蓋 production truth 或 code truth。
 
-- `00_唯一基準入口_先讀我_2026-04-04.md`
-- `CURRENT_SOURCE_OF_TRUTH_2026-04-04.md`
-- `CURRENT_BASELINE_2026-04-04.md`
-- `WORK_PROTOCOL.md`
-- `CURRENT_TASK_GATE.md`
-- `GIT_MAINLINE_POLICY.md`
-- `DEPLOYMENT_AND_RELEASE_POLICY.md`
-- `DEPLOYMENT_LEDGER.md`
+優先看的治理檔：
 
-Governance docs summarize process and risk. They do not replace code truth.
+- `docs/governance/00_唯一基準入口_先讀我_2026-04-04.md`
+- `docs/governance/CURRENT_SOURCE_OF_TRUTH_2026-04-04.md`
+- `docs/governance/CURRENT_BASELINE_2026-04-04.md`
+- `docs/governance/DEPLOYMENT_LEDGER.md`
+- `docs/governance/AI_HANDOFF_2026-04-05_CURRENT_STATE.md`
 
-Deployment truth must also be checked against `DEPLOYMENT_LEDGER.md`.
+## 4. Snapshot truth
 
-If a deployment was triggered from a dirty worktree, the deployment ledger note
-overrides any assumption that commit truth and deployed truth are identical.
+如果某段頁面曾被使用者明確接受，而且後續可能被大改，應同時參考 `version_snapshots/`。
 
-If a homepage or major page surface is explicitly approved before further
-iteration, also preserve its local snapshot under `version_snapshots/` and
-record the snapshot folder in `CURRENT_BASELINE_2026-04-04.md`.
-
-This already applies to:
+目前有效的 snapshot 包括：
 
 - `version_snapshots/2026-04-05_homepage_guide_shelf_snapshot/`
 - `version_snapshots/2026-04-05_sessions_status_snapshot/`
 - `version_snapshots/2026-04-05_notion_submit_safety_snapshot/`
 - `version_snapshots/2026-04-05_aggregation_handoff_snapshot/`
+- `version_snapshots/2026-04-05_admin_console_and_forum_sync_snapshot/`
+- `version_snapshots/2026-04-05_submission_feedback_and_triage_snapshot/`
 
-## 4. Formal product surface
+## 5. Formal product surface
 
-Formal routes currently include:
+目前正式 IA 包括：
 
 - `/`
 - `/about`
@@ -78,15 +71,17 @@ Formal routes currently include:
 - `/contact`
 - `/rankings`
 
-Core shared formal components include:
+目前 admin surface 包括：
 
-- `components/SubpageHeader.tsx`
-- `components/SessionsOverviewSection.tsx`
-- `components/Navbar.tsx`
+- `/admin/login`
+- `/admin/review`
+- `/admin/articles`
+- `/admin/comments`
+- `/admin/inbox`
 
-## 5. Non-formal surface
+## 6. Non-formal surface
 
-The following are not part of formal IA:
+以下不算正式 IA：
 
 - preview
 - prototype
@@ -94,18 +89,14 @@ The following are not part of formal IA:
 - archive
 - history
 
-They are intentionally isolated under:
+即使它們仍可開，也只能當輔助參考。
 
-- `app/(preview)/...`
-- `app/(prototype)/...`
-- `app/(demo)/...`
-- `app/(archive)/...`
+## 7. 最後規則
 
-## 6. Final rule
-
-When versions conflict, decide in this order:
+當版本衝突時，判斷順序是：
 
 1. production truth
 2. code truth
 3. governance truth
-4. non-formal references only as supporting material
+4. snapshot truth
+5. non-formal references
