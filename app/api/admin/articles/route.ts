@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
     try {
         const admin = getCurrentAdmin(req);
         if (!admin) {
-            return NextResponse.json({ ok: false, error: '尚未登入管理後台。' }, { status: 401 });
+            return NextResponse.json({ ok: false, error: '請先登入管理後台。' }, { status: 401 });
         }
 
         const provider = getBackendProvider();
@@ -31,7 +31,47 @@ export async function GET(req: NextRequest) {
         });
     } catch (error: any) {
         return NextResponse.json(
-            { ok: false, error: error?.message || '讀取文章總覽失敗。' },
+            { ok: false, error: error?.message || '讀取文章管理資料時發生錯誤。' },
+            { status: 500 }
+        );
+    }
+}
+
+export async function POST(req: NextRequest) {
+    try {
+        const admin = getCurrentAdmin(req);
+        if (!admin) {
+            return NextResponse.json({ ok: false, error: '請先登入管理後台。' }, { status: 401 });
+        }
+
+        const { targetId, action, note } = await req.json();
+        if (!targetId || !action) {
+            return NextResponse.json({ ok: false, error: '缺少必要審核資訊。' }, { status: 400 });
+        }
+
+        if (action === 'delete' && admin.role !== 'owner') {
+            return NextResponse.json({ ok: false, error: '只有 owner 可以封存刪除文章。' }, { status: 403 });
+        }
+
+        await getBackendProvider().reviewForumPost({
+            targetId,
+            action,
+            reviewerName: admin.name,
+            note,
+        });
+
+        return NextResponse.json({
+            ok: true,
+            data: {
+                reviewer: {
+                    name: admin.name,
+                    role: admin.role,
+                },
+            },
+        });
+    } catch (error: any) {
+        return NextResponse.json(
+            { ok: false, error: error?.message || '更新文章狀態時發生錯誤。' },
             { status: 500 }
         );
     }

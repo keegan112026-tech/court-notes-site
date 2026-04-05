@@ -7,8 +7,14 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
     try {
-        const publishedIndex = readPublishedArticlesIndex();
+        const provider = getBackendProvider();
+        const backendPosts = await provider.fetchForumPosts();
 
+        if (backendPosts.length > 0) {
+            return NextResponse.json({ ok: true, data: backendPosts, source: 'backend-published' });
+        }
+
+        const publishedIndex = readPublishedArticlesIndex();
         if (publishedIndex.items.length > 0) {
             const posts = publishedIndex.items.map((item) => ({
                 id: item.slug,
@@ -26,10 +32,9 @@ export async function GET() {
             return NextResponse.json({ ok: true, data: posts, source: 'published-snapshot' });
         }
 
-        const posts = await getBackendProvider().fetchForumPosts();
-        return NextResponse.json({ ok: true, data: posts });
+        return NextResponse.json({ ok: true, data: [] });
     } catch (error: any) {
-        return NextResponse.json({ ok: false, error: error.message || '讀取公開文章時發生錯誤。' }, { status: 500 });
+        return NextResponse.json({ ok: false, error: error.message || '讀取匯集區文章時發生錯誤。' }, { status: 500 });
     }
 }
 
@@ -37,7 +42,7 @@ export async function POST(_req: NextRequest) {
     return NextResponse.json(
         {
             ok: false,
-            error: '自由發文入口已停用，請改由觀庭共構投稿流程送出。',
+            error: '匯集區文章投稿入口已改由工作檯送出，請前往單場筆記頁或跨場工作檯投稿。',
             nextAction: '/api/submit-article',
         },
         { status: 410 }

@@ -83,25 +83,34 @@ export interface ReviewActionInput {
     targetId: string;
     reviewerName: string;
     note?: string;
-    action: 'approve' | 'reject' | 'delete';
+    action: 'approve' | 'reject' | 'delete' | 'mark-read';
+}
+
+export interface InboxActionInput {
+    targetId: string;
+    reviewerName: string;
+    note?: string;
+    action: 'mark-read' | 'mark-resolved';
 }
 
 export interface BackendProvider {
     kind: 'firebase' | 'notion';
-    fetchComments(targetLineId: string): Promise<BackendComment[]>;
-    createComment(input: CreateCommentInput): Promise<void>;
+    fetchComments(_targetLineId: string): Promise<BackendComment[]>;
+    createComment(_input: CreateCommentInput): Promise<void>;
+    fetchAllComments(): Promise<BackendComment[]>;
     fetchAllForumPosts(): Promise<BackendArticle[]>;
     fetchForumPosts(): Promise<BackendArticle[]>;
-    fetchForumPostById(postId: string): Promise<BackendArticle | null>;
-    fetchForumComments(postId: string): Promise<BackendComment[]>;
-    createForumPost(input: CreateArticleInput): Promise<void>;
+    fetchForumPostById(_postId: string): Promise<BackendArticle | null>;
+    fetchForumComments(_postId: string): Promise<BackendComment[]>;
+    createForumPost(_input: CreateArticleInput): Promise<void>;
     fetchPendingForumPosts(): Promise<BackendArticle[]>;
     fetchPendingComments(): Promise<BackendComment[]>;
-    reviewForumPost(input: ReviewActionInput): Promise<void>;
-    reviewComment(input: ReviewActionInput): Promise<void>;
-    fetchTrendingArticleComments(limit?: number): Promise<BackendComment[]>;
-    fetchTrendingArticles(limit?: number): Promise<BackendArticle[]>;
+    reviewForumPost(_input: ReviewActionInput): Promise<void>;
+    reviewComment(_input: ReviewActionInput): Promise<void>;
+    fetchTrendingArticleComments(_limit?: number): Promise<BackendComment[]>;
+    fetchTrendingArticles(_limit?: number): Promise<BackendArticle[]>;
     fetchInboxMessages(): Promise<BackendInboxMessage[]>;
-    createContact(input: CreateContactInput): Promise<void>;
-    incrementLike(targetId: string, targetType: 'transcripts' | 'interactions' | 'forum'): Promise<number>;
+    updateInboxMessage(_input: InboxActionInput): Promise<void>;
+    createContact(_input: CreateContactInput): Promise<void>;
+    incrementLike(_targetId: string, _targetType: 'transcripts' | 'interactions' | 'forum'): Promise<number>;
 }

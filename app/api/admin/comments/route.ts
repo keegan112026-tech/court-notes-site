@@ -13,12 +13,10 @@ export async function GET(req: NextRequest) {
     try {
         const admin = getCurrentAdmin(req);
         if (!admin) {
-            return NextResponse.json({ ok: false, error: '尚未登入管理後台。' }, { status: 401 });
+            return NextResponse.json({ ok: false, error: '請先登入管理後台。' }, { status: 401 });
         }
 
-        const provider = getBackendProvider();
-        const messages = await provider.fetchInboxMessages();
-
+        const comments = await getBackendProvider().fetchAllComments();
         return NextResponse.json({
             ok: true,
             data: {
@@ -26,12 +24,12 @@ export async function GET(req: NextRequest) {
                     name: admin.name,
                     role: admin.role,
                 },
-                messages,
+                comments,
             },
         });
     } catch (error: any) {
         return NextResponse.json(
-            { ok: false, error: error?.message || '讀取 Inbox 訊息失敗。' },
+            { ok: false, error: error?.message || '讀取留言管理資料時發生錯誤。' },
             { status: 500 }
         );
     }
@@ -41,19 +39,23 @@ export async function POST(req: NextRequest) {
     try {
         const admin = getCurrentAdmin(req);
         if (!admin) {
-            return NextResponse.json({ ok: false, error: '尚未登入管理後台。' }, { status: 401 });
+            return NextResponse.json({ ok: false, error: '請先登入管理後台。' }, { status: 401 });
         }
 
         const { targetId, action, note } = await req.json();
         if (!targetId || !action) {
-            return NextResponse.json({ ok: false, error: '請提供要處理的訊息與操作類型。' }, { status: 400 });
+            return NextResponse.json({ ok: false, error: '缺少必要審核資訊。' }, { status: 400 });
         }
 
-        if (!['mark-read', 'mark-resolved'].includes(action)) {
-            return NextResponse.json({ ok: false, error: '不支援的收件匣操作。' }, { status: 400 });
+        if (action === 'delete' && admin.role !== 'owner') {
+            return NextResponse.json({ ok: false, error: '只有 owner 可以刪除留言。' }, { status: 403 });
         }
 
-        await getBackendProvider().updateInboxMessage({
+        if (!['approve', 'reject', 'delete', 'mark-read'].includes(action)) {
+            return NextResponse.json({ ok: false, error: '不支援的留言操作。' }, { status: 400 });
+        }
+
+        await getBackendProvider().reviewComment({
             targetId,
             action,
             reviewerName: admin.name,
@@ -71,7 +73,7 @@ export async function POST(req: NextRequest) {
         });
     } catch (error: any) {
         return NextResponse.json(
-            { ok: false, error: error?.message || '更新收件匣狀態失敗。' },
+            { ok: false, error: error?.message || '更新留言狀態時發生錯誤。' },
             { status: 500 }
         );
     }

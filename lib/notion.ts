@@ -10,7 +10,7 @@ const DB = {
 };
 
 type NotionPage = Record<string, any>;
-type ReviewAction = 'approve' | 'reject' | 'delete';
+type ReviewAction = 'approve' | 'reject' | 'delete' | 'mark-read';
 type ReviewTargetType = 'article' | 'comment' | 'inbox';
 
 function ensureNotionToken() {
@@ -268,11 +268,14 @@ const COMMENT_STATUS = {
 
 const INBOX_STATUS = {
     fresh: '新進',
+    reading: '處理中',
+    resolved: '已結案',
 };
 
 function actionLabel(action: ReviewAction) {
     if (action === 'approve') return 'Approve｜核准';
     if (action === 'reject') return 'Reject｜拒絕';
+    if (action === 'mark-read') return 'Reject｜拒絕';
     return 'Delete｜刪除';
 }
 
@@ -504,6 +507,16 @@ export async function fetchPendingComments() {
     return res.results.map(mapComment);
 }
 
+export async function fetchAllComments() {
+    const commentsDbId = ensureDatabase('comments', 'NOTION_DB_COMMENTS');
+    const res = await queryDatabase(commentsDbId, {
+        sorts: [{ property: 'created_at', direction: 'descending' }],
+        page_size: 100,
+    });
+
+    return res.results.map(mapComment);
+}
+
 export async function createComment(
     targetLineId: string,
     author: string,
@@ -554,6 +567,15 @@ export async function reviewComment(input: {
         return;
     }
 
+    if (input.action === 'mark-read') {
+        await updatePageProperties(input.targetId, {
+            reviewed_by: richTextProp(input.reviewerName),
+            reviewed_at: dateProp(nowDate()),
+            review_note: richTextProp(input.note || '已閱，待後續處理。'),
+        });
+        return;
+    }
+
     const nextStatus = input.action === 'approve'
         ? COMMENT_STATUS.approved
         : COMMENT_STATUS.rejected;
@@ -594,6 +616,35 @@ export async function createContact(name: string, category: string, content: str
         handled_at: dateProp(),
         related_article_id: richTextProp(''),
         related_session_id: richTextProp(''),
+    });
+}
+
+export async function updateInboxMessage(input: {
+    targetId: string;
+    reviewerName: string;
+    note?: string;
+    action: 'mark-read' | 'mark-resolved';
+}) {
+    const page = await retrievePage(input.targetId);
+    const before = extractSelect(page, 'status');
+    const nextStatus = input.action === 'mark-resolved' ? INBOX_STATUS.resolved : INBOX_STATUS.reading;
+
+    await updatePageProperties(input.targetId, {
+        status: selectProp(nextStatus),
+        internal_note: richTextProp(input.note || ''),
+        handled_by: richTextProp(input.reviewerName),
+        handled_at: dateProp(nowDate()),
+    });
+
+    await createModerationLog({
+        targetType: 'inbox',
+        targetId: input.targetId,
+        action: input.action === 'mark-resolved' ? 'approve' : 'reject',
+        actorName: input.reviewerName,
+        note: input.note,
+        before,
+        after: nextStatus,
+        label: `${input.action === 'mark-resolved' ? '收件匣已處理' : '收件匣已閱'}｜${extractTitle(page, '主旨') || input.targetId}`,
     });
 }
 

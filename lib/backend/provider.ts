@@ -1,6 +1,7 @@
 import {
     createComment as notionCreateComment,
     createContact as notionCreateContact,
+    fetchAllComments as notionFetchAllComments,
     createForumPost as notionCreateForumPost,
     fetchAllForumPosts as notionFetchAllForumPosts,
     fetchComments as notionFetchComments,
@@ -8,6 +9,7 @@ import {
     fetchForumPostById as notionFetchForumPostById,
     fetchForumPosts as notionFetchForumPosts,
     fetchInboxMessages as notionFetchInboxMessages,
+    updateInboxMessage as notionUpdateInboxMessage,
     fetchPendingComments as notionFetchPendingComments,
     fetchPendingForumPosts as notionFetchPendingForumPosts,
     fetchTrendingArticleComments as notionFetchTrendingArticleComments,
@@ -183,7 +185,7 @@ function isArticleCommentType(type: string) {
     return type === DEFAULT_COMMENT_TYPE || type === LEGACY_ARTICLE_COMMENT_TYPE;
 }
 
-async function writeReviewLog(targetType: 'article' | 'comment', input: { targetId: string; action: 'approve' | 'reject' | 'delete'; reviewerName: string; note?: string; }) {
+async function writeReviewLog(targetType: 'article' | 'comment', input: { targetId: string; action: 'approve' | 'reject' | 'delete' | 'mark-read'; reviewerName: string; note?: string; }) {
     const db = await loadFirebaseDb();
     await db.collection('reviewLogs').add({
         targetType,
@@ -198,6 +200,7 @@ async function writeReviewLog(targetType: 'article' | 'comment', input: { target
 const notionProvider: BackendProvider = {
     kind: 'notion',
     fetchComments: notionFetchComments,
+    fetchAllComments: notionFetchAllComments,
     async createComment(input) {
         await notionCreateComment(
             input.targetLineId,
@@ -231,6 +234,7 @@ const notionProvider: BackendProvider = {
     fetchTrendingArticleComments: notionFetchTrendingArticleComments,
     fetchTrendingArticles: notionFetchTrendingArticles,
     fetchInboxMessages: notionFetchInboxMessages,
+    updateInboxMessage: notionUpdateInboxMessage,
     async createContact(input) {
         await notionCreateContact(
             input.name,
@@ -255,6 +259,9 @@ const firebaseProvider: BackendProvider = {
                 ))
             );
         }, []);
+    },
+    async fetchAllComments() {
+        return withFirebaseFallback(async () => sortByCreatedAtDesc(await fetchFirebaseComments()), []);
     },
     async createComment(input) {
         try {
@@ -371,6 +378,12 @@ const firebaseProvider: BackendProvider = {
 
             if (input.action === 'delete') {
                 await ref.delete();
+            } else if (input.action === 'mark-read') {
+                await ref.update({
+                    reviewedBy: input.reviewerName,
+                    reviewedAt: new Date().toISOString(),
+                    reviewNote: input.note || '已閱，待後續處理。',
+                });
             } else {
                 await ref.update({
                     status: input.action === 'approve' ? APPROVED_STATUS : REJECTED_STATUS,
@@ -406,6 +419,9 @@ const firebaseProvider: BackendProvider = {
     },
     async fetchInboxMessages() {
         return withFirebaseFallback(async () => sortByCreatedAtDesc(await fetchFirebaseInbox()), []);
+    },
+    async updateInboxMessage() {
+        throw new Error('Firebase 收件匣狀態更新尚未接上，請改用 Notion 後端。');
     },
     async createContact(input) {
         try {

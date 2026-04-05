@@ -43,6 +43,20 @@ export function getLocalSessionsIndex(): LocalSessionIndexItem[] {
     return sessionsIndex;
 }
 
+export function getSessionDisplayTitle(id: string): string {
+    const detailTitle = localSessionDetailsMap[id as keyof typeof localSessionDetailsMap]?.metadata?.title;
+    if (typeof detailTitle === 'string' && detailTitle.trim()) {
+        return detailTitle.trim();
+    }
+
+    const indexTitle = sessionsIndex.find((item) => item.id === id)?.title;
+    if (typeof indexTitle === 'string' && indexTitle.trim()) {
+        return indexTitle.trim();
+    }
+
+    return id;
+}
+
 export function getLocalSessionDetail(id: string): LocalSessionDetail | null {
     const raw = localSessionDetailsMap[id as keyof typeof localSessionDetailsMap];
     if (!raw) return null;

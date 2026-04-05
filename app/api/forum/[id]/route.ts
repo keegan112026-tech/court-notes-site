@@ -12,9 +12,15 @@ export async function GET(_request: Request, { params }: { params: { id: string 
             return NextResponse.json({ ok: false, error: '缺少文章 ID。' }, { status: 400 });
         }
 
+        const provider = getBackendProvider();
+        const backendPost = await provider.fetchForumPostById(postId);
+        if (backendPost) {
+            const comments = await provider.fetchForumComments(backendPost.id);
+            return NextResponse.json({ ok: true, data: { post: backendPost, comments }, source: 'backend-published' });
+        }
+
         const snapshot = findPublishedArticleSnapshotByIdOrSlug(postId);
         if (snapshot) {
-            const provider = getBackendProvider();
             const comments = await provider.fetchForumComments(snapshot.id);
 
             return NextResponse.json({
@@ -38,16 +44,9 @@ export async function GET(_request: Request, { params }: { params: { id: string 
             });
         }
 
-        const provider = getBackendProvider();
-        const post = await provider.fetchForumPostById(postId);
-        if (!post) {
-            return NextResponse.json({ ok: false, error: '找不到這篇文章。' }, { status: 404 });
-        }
-
-        const comments = await provider.fetchForumComments(postId);
-        return NextResponse.json({ ok: true, data: { post, comments } });
+        return NextResponse.json({ ok: false, error: '找不到這篇文章。' }, { status: 404 });
     } catch (error) {
         console.error('API Error fetching forum post:', error);
-        return NextResponse.json({ ok: false, error: '讀取文章失敗。' }, { status: 500 });
+        return NextResponse.json({ ok: false, error: '讀取文章內容時發生錯誤。' }, { status: 500 });
     }
 }
