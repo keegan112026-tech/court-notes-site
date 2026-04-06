@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { AnimatePresence, motion } from 'framer-motion';
-import { AlertCircle, BookOpen, ChevronLeft, ChevronRight, Flame, Gavel, Layers, PenTool, Scale, Shield, ShieldAlert } from 'lucide-react';
+import { AlertCircle, BookOpen, ChevronLeft, ChevronRight, Flame, Gavel, GraduationCap, Layers, PenTool, Scale, Shield, ShieldAlert } from 'lucide-react';
 import { FadeIn } from '@/components/ui-shared';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -487,6 +487,22 @@ export default function SessionsOverviewSection({ embedded = false }: { embedded
                   </p>
                 </div>
 
+                {/* 觀庭前教程長條入口 */}
+                <Link href="/prerequisites" className="group mb-4 flex items-center justify-between gap-4 rounded-[1.4rem] border border-[#D7E5BB] bg-gradient-to-r from-[#F9FBE7] to-[#F0F7DC] px-5 py-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-[#7B8C4E] hover:shadow-md">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#7B8C4E] text-white shadow-sm">
+                      <GraduationCap size={18} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[11px] font-black uppercase tracking-[0.22em] text-[#7B8C4E]">推薦先閱讀</p>
+                      <p className="text-[15px] font-black leading-tight text-[#2D2A26] truncate" style={serif}>觀庭前新手教程：刑事法庭實務與程序理解</p>
+                    </div>
+                  </div>
+                  <span className="shrink-0 inline-flex h-9 w-9 items-center justify-center rounded-2xl border border-[#D7E5BB] bg-white text-[#7B8C4E] shadow-sm transition-transform group-hover:translate-x-1">
+                    <ChevronRight size={16} />
+                  </span>
+                </Link>
+
                 <div className="grid items-stretch gap-4 lg:grid-cols-2">
                 {loading ? (
                   <>
@@ -594,7 +610,14 @@ export default function SessionsOverviewSection({ embedded = false }: { embedded
                         <div className="mt-5 rounded-2xl border border-[#E9EDDA] bg-white/85 p-4 text-sm font-bold leading-relaxed text-[#5D6A3C]">
                           可在同一篇論述中整合不同場次筆記、比對內容脈絡，形成跨場次的完整觀庭共構筆記。
                         </div>
-                        <Link href="/sessions/compose" className="mt-auto inline-flex w-full items-center justify-center rounded-2xl bg-gradient-to-r from-[#7B8C4E] to-[#5A6F35] px-5 py-4 text-[15px] font-black text-white shadow-[0_10px_24px_rgba(123,140,78,0.22)] transition-transform hover:scale-[1.01]">
+                        <Link href="/prerequisites" className="mt-auto mb-3 group flex items-center justify-between rounded-2xl border border-[#D7E5BB] bg-[#F9FBE7] px-4 py-3 text-[14px] font-black text-[#5A6F35] transition-all hover:bg-[#EEF6DA] hover:border-[#7B8C4E]">
+                          <div className="flex items-center gap-2">
+                            <GraduationCap size={16} />
+                            <span style={serif}>先看觀庭前教程（推薦）</span>
+                          </div>
+                          <ChevronRight size={14} className="transition-transform group-hover:translate-x-1" />
+                        </Link>
+                        <Link href="/sessions/compose" className="inline-flex w-full items-center justify-center rounded-2xl bg-gradient-to-r from-[#7B8C4E] to-[#5A6F35] px-5 py-4 text-[15px] font-black text-white shadow-[0_10px_24px_rgba(123,140,78,0.22)] transition-transform hover:scale-[1.01]">
                           開啟跨場次工作檯
                         </Link>
                       </div>

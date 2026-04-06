@@ -40,6 +40,7 @@
     "version_snapshots/**",
     "next-cache/**",
     "next-dev-cache/**",
-    "next-build-cache/**"
+    "next-build-cache/**",
+    "新頁面/**"
   ]
 }

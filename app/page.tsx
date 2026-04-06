@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { FadeIn, Counter, TypeWriter, Banner, WarmGradientBg } from '@/components/ui-shared';
 import SessionsOverviewSection from '@/components/SessionsOverviewSection';
+import SourceAcknowledgementShelf from '@/components/SourceAcknowledgementShelf';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BETA_NOTICE, COPYRIGHT_NOTICE, FOOTER_NAV_ITEMS, PUBLIC_NAV_ITEMS, SITE_NAME, SITE_TAGLINE, TEAM_BLURB } from '@/lib/public-site';
 
@@ -649,7 +650,7 @@ export default function Home() {
 
                                             <div className="mt-3 overflow-hidden rounded-[1.3rem] border border-[#E8E0D4] bg-white shadow-sm">
                                                 <Link
-                                                    href="/guide"
+                                                    href="/prerequisites"
                                                     className="group flex items-center justify-between px-4 py-3 transition-colors hover:bg-[#F9FBE7]"
                                                 >
                                                     <p className="min-w-0 text-[15px] font-black leading-tight text-[#2D2A26] md:text-[16px]" style={serif}>
@@ -1036,6 +1037,10 @@ export default function Home() {
                         </motion.div>
                     </FadeIn>
                 </div>
+            </section>
+
+            <section id="sources-acknowledgements" className="max-w-7xl mx-auto scroll-mt-36 px-6 py-6">
+                <SourceAcknowledgementShelf />
             </section>
 
             {/* ═══ Footer ═══ */}

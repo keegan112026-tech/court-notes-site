@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import { BookOpen, Gavel, Layers, MessageCircle, Send, ShieldAlert, Trophy } from 'lucide-react';
+import { BookOpen, FileText, Gavel, GraduationCap, MessageCircle, Send, ShieldAlert } from 'lucide-react';
 
 export const SITE_NAME = '觀庭還原筆記共構平台';
 export const SITE_TAGLINE = 'SOCIAL WORK COURT NOTES';
@@ -21,9 +21,9 @@ export type PublicNavItem = {
 export const PUBLIC_NAV_ITEMS: PublicNavItem[] = [
   { name: '計畫緣起', href: '/about', icon: BookOpen, homeIconClass: 'w-5 h-5 text-[#8B4D35]' },
   { name: GUIDE_PAGE_NAME, href: '/guide', icon: ShieldAlert, homeIconClass: 'w-5 h-5 text-[#7B8C4E]' },
-  { name: '先備知識', href: '/knowledge', icon: Layers, homeIconClass: 'w-5 h-5 text-[#6B5CA5]' },
+  { name: '觀庭前教程', href: '/prerequisites', icon: GraduationCap, homeIconClass: 'w-5 h-5 text-[#6B5CA5]' },
   { name: '還原筆記', href: '/sessions', icon: Gavel, homeIconClass: 'w-5 h-5 text-[#C67B5C]' },
-  { name: '熱門排行', href: '/rankings', icon: Trophy, homeIconClass: 'w-5 h-5 text-[#C67B5C]' },
+  { name: '鳴謝與資料來源', href: '/#sources-acknowledgements', icon: FileText, homeIconClass: 'w-5 h-5 text-[#B8860B]' },
   { name: '觀庭筆記匯集區', href: '/forum', icon: MessageCircle, homeIconClass: 'w-5 h-5 text-[#5A6F35]' },
   { name: '聯絡我們', href: '/contact', icon: Send, homeIconClass: 'w-5 h-5 text-[#2D2A26]' },
 ];
