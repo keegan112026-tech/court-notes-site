@@ -21,10 +21,10 @@ import {
 } from 'lucide-react';
 import type { SlideContent } from '@/data/presentations/social-work-burnout';
 
-type SceneVariant = 'audience' | 'focused';
+type SceneVariant = 'audience' | 'focused' | 'projection';
 
 function reveal(variant: SceneVariant, delay = 0) {
-  if (variant === 'focused') {
+  if (variant !== 'audience') {
     return {
       initial: { opacity: 0, y: 24 },
       animate: { opacity: 1, y: 0 },
@@ -59,7 +59,11 @@ function SceneFrame({
     <div
       className={[
         'relative overflow-hidden rounded-[30px] border border-[#c8d3dd] bg-[linear-gradient(160deg,rgba(248,247,242,0.98),rgba(235,242,246,0.92))] shadow-[0_30px_90px_rgba(75,102,124,0.14)]',
-        variant === 'focused' ? 'min-h-[440px] p-6 md:min-h-[520px] md:p-8' : 'min-h-[340px] p-5 md:min-h-[420px] md:p-7',
+        variant === 'projection'
+          ? 'h-full min-h-0 rounded-[34px] p-6 md:p-8 xl:p-10'
+          : variant === 'focused'
+            ? 'min-h-[440px] p-6 md:min-h-[520px] md:p-8'
+            : 'min-h-[340px] p-5 md:min-h-[420px] md:p-7',
       ].join(' ')}
     >
       <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-[radial-gradient(circle_at_top_left,rgba(226,135,106,0.16),transparent_55%)]" />

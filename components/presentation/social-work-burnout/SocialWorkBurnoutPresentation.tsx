@@ -133,6 +133,7 @@ export function SocialWorkBurnoutPresentation() {
   const rootRef = useRef<HTMLDivElement | null>(null);
 
   const activeSlide = slides[activeSlideIndex];
+  const isProjectionFullscreen = mode === 'projection' && isFullscreen;
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -440,15 +441,88 @@ export function SocialWorkBurnoutPresentation() {
     </div>
   );
 
+  const renderProjectionFullscreen = () => (
+    <div className="relative flex h-screen flex-col overflow-hidden bg-[radial-gradient(circle_at_top,rgba(73,96,111,0.28),transparent_36%),linear-gradient(180deg,#172330_0%,#22313f_100%)] text-white">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-48 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.18),transparent_60%)]" />
+      <div className="pointer-events-none absolute bottom-[-12rem] left-[-8rem] h-96 w-96 rounded-full bg-[radial-gradient(circle,rgba(226,135,106,0.18),transparent_70%)] blur-2xl" />
+
+      <div className="relative z-10 flex flex-wrap items-center justify-between gap-4 px-5 py-4 md:px-7">
+        <div className="min-w-0">
+          <div className="text-[11px] font-black uppercase tracking-[0.28em] text-white/60">
+            Projection Mode · Slide {activeSlideIndex + 1} / {slides.length}
+          </div>
+          <div className="mt-1 truncate text-xl font-black md:text-2xl">{activeSlide.title}</div>
+          <div className="mt-1 text-sm text-white/65">
+            Chapter {activeSlide.chapter} · {activeSlide.kicker}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => goToSlide(activeSlideIndex - 1)}
+            disabled={activeSlideIndex === 0}
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-white/8 text-white transition-colors hover:bg-white/14 disabled:cursor-not-allowed disabled:opacity-40"
+            aria-label="上一頁"
+          >
+            <ChevronLeft size={18} />
+          </button>
+          <button
+            type="button"
+            onClick={() => goToSlide(activeSlideIndex + 1)}
+            disabled={activeSlideIndex === slides.length - 1}
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-white/8 text-white transition-colors hover:bg-white/14 disabled:cursor-not-allowed disabled:opacity-40"
+            aria-label="下一頁"
+          >
+            <ChevronRight size={18} />
+          </button>
+          <button
+            type="button"
+            onClick={toggleFullscreen}
+            className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/8 px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-white/14"
+          >
+            <Minimize size={16} />
+            離開全螢幕
+          </button>
+        </div>
+      </div>
+
+      <div className="relative z-10 flex flex-1 items-center justify-center px-4 pb-4 pt-1 md:px-7 md:pb-6">
+        <div className="flex h-full w-full items-center justify-center">
+          <div
+            className="aspect-[16/9] w-full max-w-[min(1680px,calc((100vh-9.75rem)*1.7778))] max-h-[calc(100vh-9.75rem)]"
+          >
+            <motion.div
+              key={`projection-fullscreen-${activeSlide.id}`}
+              initial={{ opacity: 0, scale: 0.985 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.24, ease: 'easeOut' }}
+              className="h-full w-full"
+            >
+              <BurnoutSlideScene slide={activeSlide} variant="projection" />
+            </motion.div>
+          </div>
+        </div>
+      </div>
+
+      <div className="relative z-10 flex items-center justify-between gap-4 px-5 pb-4 text-sm text-white/68 md:px-7">
+        <div>左右方向鍵或 PageUp / PageDown 可切頁</div>
+        <div className="rounded-full border border-white/15 bg-white/8 px-4 py-2">
+          {activeSlide.headline}
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div
       ref={rootRef}
       className={cn(
         'min-h-screen bg-[radial-gradient(circle_at_top,#f5efe5,transparent_38%),linear-gradient(180deg,#eef4f7_0%,#fbf8f2_100%)] px-4 py-6 text-[#2d2a26] md:px-6',
-        mode === 'projection' && isFullscreen ? 'px-0 py-0 text-white' : '',
+        isProjectionFullscreen ? 'h-screen overflow-hidden px-0 py-0 text-white' : '',
       )}
     >
-      <div className={cn('mx-auto max-w-[1440px]', mode === 'projection' && isFullscreen ? 'max-w-none' : '')}>
+      <div className={cn('mx-auto max-w-[1440px]', isProjectionFullscreen ? 'max-w-none' : '')}>
         {!isFullscreen ? (
           <header className="mb-6 rounded-[2.3rem] border border-[#d7e0e6] bg-white/80 p-5 shadow-[0_26px_48px_rgba(72,95,112,0.08)] md:p-7">
             <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
@@ -491,7 +565,11 @@ export function SocialWorkBurnoutPresentation() {
           </header>
         ) : null}
 
-        {mode === 'audience' ? renderAudienceMode() : renderFocusedMode()}
+        {mode === 'audience'
+          ? renderAudienceMode()
+          : isProjectionFullscreen
+            ? renderProjectionFullscreen()
+            : renderFocusedMode()}
       </div>
     </div>
   );
