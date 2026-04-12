@@ -4,10 +4,10 @@ import Link from 'next/link';
 import { motion, useScroll, AnimatePresence } from 'framer-motion';
 import {
     PenTool, BookOpen, Heart, Eye, MessageSquare, Flame,
-    Gavel, ArrowRight, Layers, Menu, X, ChevronLeft, ChevronRight,
-    HeartHandshake, Send, FileText, MessageCircle, ShieldAlert, Shield, Scale, AlertCircle
+    Gavel, ArrowRight, Menu, X, ChevronLeft, ChevronRight,
+    HeartHandshake, Send, MessageCircle, FileText
 } from 'lucide-react';
-import { FadeIn, Counter, TypeWriter, Banner, WarmGradientBg } from '@/components/ui-shared';
+import { FadeIn, Counter, Banner, WarmGradientBg } from '@/components/ui-shared';
 import SessionsOverviewSection from '@/components/SessionsOverviewSection';
 import SourceAcknowledgementShelf from '@/components/SourceAcknowledgementShelf';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -34,98 +34,7 @@ function normalizeStatsPayload(payload: unknown, sessionsFallback: any[]): SiteS
     return { totalSessions, restoredSessions, publishedArticles };
 }
 
-const homepageGuidePanels = [
-    {
-        id: 'rules',
-        label: '平台限制與規範',
-        hint: '重要與計畫限制',
-        icon: ShieldAlert,
-        cardClass: 'bg-[#E3EED3] border-[#D6E3B2] hover:border-[#BCCC80]',
-        iconClass: 'text-[#6B8E23]',
-    },
-    {
-        id: 'ethics',
-        label: '倫理規範與發言守則',
-        hint: '去識別化、聚焦職務、遵守法律',
-        icon: Shield,
-        cardClass: 'bg-[#F7E8E8] border-[#EFCACA] hover:border-[#DFB0B0]',
-        iconClass: 'text-[#B75A5A]',
-    },
-    {
-        id: 'workflow',
-        label: '平台運作模式',
-        hint: '前期、呈現、最後',
-        icon: Scale,
-        cardClass: 'bg-[#E4DDF4] border-[#D4C9F0] hover:border-[#BEB0E3]',
-        iconClass: 'text-[#6B5CA5]',
-    },
-    {
-        id: 'what-we-do',
-        label: '這個平台在做什麼？',
-        hint: '整合資訊、觀庭還原、共構解方',
-        icon: Layers,
-        cardClass: 'bg-[#EEF4DB] border-[#DCE7BA] hover:border-[#C7D995]',
-        iconClass: 'text-[#6B8E23]',
-    },
-    {
-        id: 'problems',
-        label: '我們要解決什麼問題？',
-        hint: '資訊門檻、詮釋壟斷、對立衝突',
-        icon: AlertCircle,
-        cardClass: 'bg-[#FDEBDD] border-[#F2D7C1] hover:border-[#E6C09C]',
-        iconClass: 'text-[#C67B5C]',
-    },
-];
 
-const homepageGuidePlayfulNote = '因為都是大家下班育兒時間騰出時間維護和審閱網站，還請大家幫忙避免批評謾罵、洩漏個資或吵架到脆、靠北社工、滴卡、IG之類的平台，我們這裡就心平氣和地講，也讓我們這些中年社畜好過一些哈 (´･ω･`) 🙏';
-
-const homepageGuideRules = [
-    {
-        title: '重要',
-        paragraphs: [
-            '重要本計畫旨在提供相對還原˙現場之還原筆記，並佐以相關法庭知能、案情資訊彙整，降低取得資料與學習先備知識之門檻，使大眾均能從具備法庭現場詰問交互脈絡、可核對證人間陳述之異同、亦希望幫助檢閱陳述之一致性。',
-            '避免由個人認知偏誤所導致之斷章取義或避重就輕、立場詮釋。',
-        ],
-        panelClass: 'border-orange-100 bg-white',
-        labelClass: 'bg-orange-50 text-orange-600',
-    },
-    {
-        title: '計畫限制',
-        paragraphs: [
-            '本團隊會善盡網站管理責任，並恪守原則，但仍有以下限制：',
-            '本網站還原筆記由本團隊觀庭手記並蒐集各社群民眾、社工網路夥伴公開之類文字稿，亦有夥伴進行文件提供，本團隊歷時多月進行核對與拼湊，盡力還原開庭詰問與論告等對話語順、情境、前後文，竭力提供相對還原之還原筆記，但仍有限制，可能會有錯漏，還望大眾海涵。',
-        ],
-        panelClass: 'border-[#E8DCC7] bg-white',
-        labelClass: 'bg-[#FFF7E8] text-[#A0724E]',
-    },
-];
-
-const homepageGuideEthicsCards = [
-    {
-        title: '嚴格去識別化',
-        desc: '徹底移除隱私資訊。禁止揭露真實姓名、居住地或非公開案情細節。',
-        bg: 'bg-red-50',
-        border: 'border-red-100',
-        accent: 'text-red-500',
-        icon: ShieldAlert,
-    },
-    {
-        title: '聚焦職務非個人',
-        desc: '針對「專業判斷」與「機構制度」進行討論。嚴禁人身攻擊。',
-        bg: 'bg-emerald-50',
-        border: 'border-emerald-100',
-        accent: 'text-[#7B8C4E]',
-        icon: Scale,
-    },
-    {
-        title: '遵守法律基礎',
-        desc: '遵守法規與公共秩序。不得發表違法資訊 or 煽動仇恨言論。',
-        bg: 'bg-gray-50',
-        border: 'border-gray-200',
-        accent: 'text-gray-600',
-        icon: Shield,
-    },
-];
 
 const homepageGuideWorkflow = [
     {
@@ -148,149 +57,12 @@ const homepageGuideWorkflow = [
     },
 ];
 
-const homepageGuideWhatWeDo = [
-    { label: '整合資訊', desc: '打破壁壘，降低門檻', icon: BookOpen, color: 'bg-[#E3EED3]', accent: 'text-[#5A6F35]' },
-    { label: '觀庭還原', desc: '身歷其境，完整還原', icon: Eye, color: 'bg-[#F5E6D3]', accent: 'text-[#A0724E]' },
-    { label: '觀庭評述', desc: '就本案呈現真實狀況評述', icon: Gavel, color: 'bg-[#E0DAF0]', accent: 'text-[#6B5CA5]' },
-    { label: '建構論壇', desc: '匿名交流，平等詮釋', icon: MessageCircle, color: 'bg-[#E3EED3]', accent: 'text-[#5A6F35]' },
-    { label: '共構解方', desc: '集體智慧，復原重建', icon: HeartHandshake, color: 'bg-[#FDE8D8]', accent: 'text-[#C67B5C]' },
-];
-
-const homepageGuideProblems = [
-    {
-        title: '資訊紛亂斷裂、門檻高',
-        desc: '資訊紛亂、斷裂、專業壁壘，完整尋找門檻高',
-        icon: Layers,
-        accent: 'text-blue-500',
-    },
-    {
-        title: '單一敘事與詮釋壟斷',
-        desc: '有條件觀庭者僅少數，雙方敘述封閉於庭上、外界資訊均透過解讀詮釋，觀庭者掌握解釋權、論述各有切入點與場域影響，可獲得關注',
-        icon: Eye,
-        accent: 'text-[#7B8C4E]',
-    },
-    {
-        title: '對立衝突與無法傾聽',
-        desc: '各自論述對立、衝突、難以理解彼此，也不去聽對方的語言',
-        icon: MessageSquare,
-        accent: 'text-[#C67B5C]',
-    },
-];
-
-function renderHomepageGuideShelf(panelId: string) {
-    if (panelId === 'rules') {
-        return (
-            <div className="space-y-4">
-                <div className="grid gap-4 lg:grid-cols-[1.05fr_0.95fr]">
-                    {homepageGuideRules.map((card) => (
-                        <div key={card.title} className={`rounded-[1.5rem] border p-5 shadow-sm ${card.panelClass}`}>
-                            <div className={`inline-flex items-center rounded-full px-3 py-1.5 text-[11px] font-black tracking-[0.16em] ${card.labelClass}`}>
-                                {card.title}
-                            </div>
-                            <div className="mt-3 space-y-3 text-[14px] font-medium leading-[1.85] text-[#5D5549]">
-                                {card.paragraphs.map((paragraph) => (
-                                    <p key={paragraph}>{paragraph}</p>
-                                ))}
-                            </div>
-                        </div>
-                    ))}
-                </div>
-                <div className="rounded-[1.4rem] border border-[#F1DDC0] bg-gradient-to-r from-[#FFF7E8] via-[#FFFDF7] to-[#F9FBE7] px-5 py-4 shadow-sm">
-                    <p className="text-[14px] font-bold leading-[1.9] text-[#6B6358]">
-                        {homepageGuidePlayfulNote}
-                    </p>
-                </div>
-            </div>
-        );
-    }
-
-    if (panelId === 'ethics') {
-        return (
-            <div className="grid gap-4 md:grid-cols-3">
-                {homepageGuideEthicsCards.map((card) => {
-                    const Icon = card.icon;
-                    return (
-                        <div key={card.title} className={`rounded-[1.45rem] border p-5 shadow-sm ${card.bg} ${card.border}`}>
-                            <div className={`mb-3 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-white/85 ${card.accent}`}>
-                                <Icon size={22} />
-                            </div>
-                            <h4 className="text-[22px] font-black text-[#2D2A26]" style={serif}>{card.title}</h4>
-                            <p className="mt-2.5 text-[15px] font-medium leading-[1.85] text-[#6B6358]">
-                                {card.desc}
-                            </p>
-                        </div>
-                    );
-                })}
-            </div>
-        );
-    }
-
-    if (panelId === 'workflow') {
-        return (
-            <div className="grid gap-4 md:grid-cols-3">
-                {homepageGuideWorkflow.map((step) => (
-                    <div key={step.title} className={`rounded-[1.45rem] border border-[#E8E0D4] border-l-4 bg-white p-5 shadow-sm ${step.border}`}>
-                        <h4 className="text-[24px] font-black text-[#2D2A26]" style={serif}>{step.title}</h4>
-                        <ul className="mt-3 space-y-2.5">
-                            {step.items.map((item) => (
-                                <li key={item} className="flex items-start gap-2 text-[15px] font-medium leading-[1.8] text-[#5A5347]">
-                                    <ChevronRight size={16} className={`mt-1 shrink-0 ${step.accent}`} />
-                                    {item}
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                ))}
-            </div>
-        );
-    }
-
-    if (panelId === 'what-we-do') {
-        return (
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-                {homepageGuideWhatWeDo.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                        <div key={item.label} className={`${item.color} rounded-[1.35rem] border border-black/5 p-5`}>
-                            <div className={`mb-3 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-white/65 ${item.accent}`}>
-                                <Icon size={22} />
-                            </div>
-                            <p className="text-[22px] font-black text-[#2F2923]" style={serif}>{item.label}</p>
-                            <p className="mt-2 text-[14px] font-bold leading-[1.8] text-[#8A8078]">{item.desc}</p>
-                        </div>
-                    );
-                })}
-            </div>
-        );
-    }
-
-    return (
-        <div className="grid gap-4 md:grid-cols-3">
-            {homepageGuideProblems.map((problem) => {
-                const Icon = problem.icon;
-                return (
-                    <div key={problem.title} className="rounded-[1.55rem] border border-[#E8E0D4] bg-white/85 p-5 text-center shadow-sm">
-                        <div className="mx-auto mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full border border-gray-100 bg-gray-50">
-                            <Icon size={20} className={problem.accent} />
-                        </div>
-                        <h4 className="text-[20px] font-black text-[#2D2A26]" style={serif}>{problem.title}</h4>
-                        <p className="mt-2.5 text-[14px] font-bold leading-[1.85] text-[#6B6358]">
-                            {problem.desc}
-                        </p>
-                    </div>
-                );
-            })}
-        </div>
-    );
-}
 
 export default function Home() {
     const [scrolled, setScrolled] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
     const { scrollYProgress } = useScroll();
     const [heroSessionIndex, setHeroSessionIndex] = useState(0);
-    const [homeGuidePanel, setHomeGuidePanel] = useState(homepageGuidePanels[0].id);
-    const [homeGuideDirection, setHomeGuideDirection] = useState(1);
 
     const [sessions, setSessions] = useState<any[]>([]);
     const [stats, setStats] = useState<SiteStats>({ totalSessions: 0, restoredSessions: 0, publishedArticles: 0 });
@@ -386,28 +158,6 @@ export default function Home() {
         setHeroSessionIndex((current) => (current + 1) % sessions.length);
     }
 
-    function goToHomeGuidePanel(nextId: string) {
-        const currentIndex = homepageGuidePanels.findIndex((panel) => panel.id === homeGuidePanel);
-        const nextIndex = homepageGuidePanels.findIndex((panel) => panel.id === nextId);
-        setHomeGuideDirection(nextIndex > currentIndex ? 1 : -1);
-        setHomeGuidePanel(nextId);
-    }
-
-    function goToPreviousHomeGuidePanel() {
-        const currentIndex = homepageGuidePanels.findIndex((panel) => panel.id === homeGuidePanel);
-        const nextIndex = currentIndex === 0 ? homepageGuidePanels.length - 1 : currentIndex - 1;
-        setHomeGuideDirection(-1);
-        setHomeGuidePanel(homepageGuidePanels[nextIndex].id);
-    }
-
-    function goToNextHomeGuidePanel() {
-        const currentIndex = homepageGuidePanels.findIndex((panel) => panel.id === homeGuidePanel);
-        const nextIndex = (currentIndex + 1) % homepageGuidePanels.length;
-        setHomeGuideDirection(1);
-        setHomeGuidePanel(homepageGuidePanels[nextIndex].id);
-    }
-
-
     /* ── Demo data (will be replaced by Notion CMS when entries exist) ── */
     // const hotNotes = [
     //     { rank: 1, title: '檢察官論告——為何聚焦「未依規定訪視」？', likes: 387, views: 2841, session: '第六場次' },
@@ -500,12 +250,7 @@ export default function Home() {
                         </FadeIn>
                         <FadeIn delay={0.2}>
                             <div className="mt-5 max-w-3xl text-[20px] md:text-[22px] text-[#6B6358] font-medium leading-[1.9]">
-                                <p>這不只是一份開庭紀錄，而是一場<strong className="text-[#2D2A26]">化血淚為滋養</strong>的集體療癒與重建。</p>
-                                <p className="mt-2">
-                                    <span className="text-[#7B8C4E] font-bold">
-                                        <TypeWriter texts={['唯有直視真實，才能共構未來', '讓我們去除籓籬', '用專業視角為這個事件留下註腳', '不造神・重文字・匿名化・去權威', '讓人們不再遭逢此難']} speed={120} />
-                                    </span>
-                                </p>
+                                <p>讓事情變得具體。讓資訊透明。<br className="hidden md:block" />讓每個人有機會自己去閱讀、辨認、探索——找到屬於你的答案。</p>
                             </div>
                         </FadeIn>
                         <FadeIn delay={0.3}>
@@ -513,11 +258,11 @@ export default function Home() {
                                 <Link href="/sessions">
                                     <motion.button whileHover={{ scale: 1.05, boxShadow: '0 16px 40px rgba(123,140,78,0.3)' }} whileTap={{ scale: 0.97 }}
                                         className="group relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#7B8C4E] to-[#5a6e38] px-10 py-4 text-[22px] font-black text-white shadow-lg shadow-[#7B8C4E]/20 transition-all">
-                                        <span className="relative z-10 flex items-center gap-3">點我看現場還原！ <ArrowRight size={22} className="group-hover:translate-x-2 transition-transform" /></span>
+                                        <span className="relative z-10 flex items-center gap-3">進入還原筆記 <ArrowRight size={22} className="group-hover:translate-x-2 transition-transform" /></span>
                                     </motion.button>
                                 </Link>
                                 <Link href="/about">
-                                    <motion.span className="inline-block cursor-pointer rounded-2xl border-2 border-[#D4CCC0] px-8 py-4 text-[20px] font-bold text-[#6B6358] transition-all hover:border-[#7B8C4E] hover:text-[#7B8C4E]">計畫緣起 →</motion.span>
+                                    <motion.span className="inline-block cursor-pointer rounded-2xl border-2 border-[#D4CCC0] px-8 py-4 text-[20px] font-bold text-[#6B6358] transition-all hover:border-[#7B8C4E] hover:text-[#7B8C4E]">了解這個計畫 →</motion.span>
                                 </Link>
                             </div>
                         </FadeIn>
@@ -684,104 +429,75 @@ export default function Home() {
                 </div>
             </section>
 
-            <section className="bg-[#FBF7F0] px-6 pb-10">
+            {/* ═══ 這個計畫在做什麼 ═══ */}
+            <section className="bg-[#FBF7F0] px-6 pb-10 pt-2">
                 <div className="mx-auto max-w-7xl">
                     <FadeIn>
-                        <div className="overflow-hidden rounded-[2.25rem] border border-[#F1DDC0] bg-gradient-to-r from-[#FFF6EC] via-white to-[#F9FBE7] shadow-sm">
-                            <div className="px-6 py-7 md:px-8 md:py-8">
-                                <div className="grid gap-6 xl:grid-cols-[18rem_minmax(0,1fr)] xl:items-start">
-                                    <div className="min-w-0 xl:max-w-[18rem]">
-                                        <div className="inline-flex items-center gap-2 rounded-full bg-[#F9FBE7] px-4 py-2 text-[13px] font-black tracking-[0.16em] text-[#6B8E23]">
-                                            <ShieldAlert size={14} />
-                                            本站須知
-                                        </div>
-                                        <h3 className="mt-4 text-[30px] font-black leading-tight text-[#2D2A26] md:text-[38px]" style={serif}>
-                                            平台限制與規範
-                                        </h3>
-                                        <div className="mt-6 flex flex-wrap gap-3">
-                                            <Link href="/guide" className="inline-flex items-center gap-2 rounded-2xl bg-[#7B8C4E] px-5 py-3 text-[15px] font-black text-white shadow-[0_10px_24px_rgba(123,140,78,0.22)]">
-                                                閱讀完整平台限制與規範
-                                                <ArrowRight size={16} />
-                                            </Link>
-                                        </div>
-                                    </div>
+                        <div className="mb-8 text-center">
+                            <p className="text-[12px] font-black uppercase tracking-[0.24em] text-[#7B8C4E]">About This Initiative</p>
+                            <h2 className="mt-3 text-[34px] font-black text-[#2D2A26] md:text-[42px]" style={serif}>這個計畫在做什麼</h2>
+                            <p className="mx-auto mt-3 max-w-2xl text-[17px] font-medium leading-[1.9] text-[#6B6358]">
+                                我們面對的，是資訊破碎、理解困難、對立難解的現實；我們嘗試的，是讓資訊更具體、讓每個人都能自己去看、去想、去感受。
+                            </p>
+                        </div>
+                    </FadeIn>
 
-                                    <div className="grid gap-2.5 md:grid-cols-2 xl:mt-3 xl:grid-cols-5">
-                                        {homepageGuidePanels.map((panel) => {
-                                            const Icon = panel.icon;
-                                            const active = homeGuidePanel === panel.id;
-                                            return (
-                                                <button
-                                                    key={panel.id}
-                                                    type="button"
-                                                    onMouseEnter={() => goToHomeGuidePanel(panel.id)}
-                                                    onClick={() => goToHomeGuidePanel(panel.id)}
-                                                    className={`group min-h-[8.4rem] rounded-[1.15rem] border p-3 text-left transition-all ${panel.cardClass} ${active ? 'ring-2 ring-[#7B8C4E]/35 shadow-[0_10px_28px_rgba(123,140,78,0.12)]' : 'shadow-sm hover:-translate-y-0.5 hover:shadow-[0_10px_24px_rgba(65,56,44,0.08)]'}`}
-                                                >
-                                                    <div className={`mb-2 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white/80 ${panel.iconClass}`}>
-                                                        <Icon size={16} />
-                                                    </div>
-                                                    <p className="text-[15px] font-black leading-[1.2] text-[#2D2A26] xl:whitespace-nowrap" style={serif}>
-                                                        {panel.label}
-                                                    </p>
-                                                    <p className="mt-1.5 text-[10px] font-bold leading-[1.5] text-[#7A7266]">
-                                                        {panel.hint}
-                                                    </p>
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
+                    {/* 問題 ↔ 回應 */}
+                    <div className="grid gap-4 md:grid-cols-3">
+                        <FadeIn delay={0.05}>
+                            <div className="rounded-[1.8rem] border border-[#E8E0D4] bg-white p-5 shadow-sm">
+                                <div className="mb-3 text-[11px] font-black uppercase tracking-[0.18em] text-[#A09888]">我們面對的</div>
+                                <h4 className="text-[19px] font-black text-[#2D2A26]" style={serif}>資訊紛亂斷裂、門檻高</h4>
+                                <p className="mt-2 text-[14px] font-medium leading-[1.85] text-[#6B6358]">資訊紛亂、斷裂、專業壁壘，完整尋找門檻高</p>
+                                <div className="mt-4 flex items-center gap-2 rounded-[1.2rem] border border-[#E3EED3] bg-[#F4FAEB] px-4 py-3">
+                                    <BookOpen size={14} className="shrink-0 text-[#5A6F35]" />
+                                    <span className="text-[13px] font-black text-[#5A6F35]">整合資訊，降低門檻</span>
                                 </div>
-
-                                <div className="mt-7 overflow-hidden rounded-[2rem] border border-[#E8E0D4] bg-gradient-to-br from-white via-[#FFFDF8] to-[#F7F3E8] p-5 shadow-[0_12px_32px_rgba(65,56,44,0.08)]">
-                                    <div className="mb-4 flex items-center justify-end">
-                                        <div className="flex items-center gap-2">
-                                            <button
-                                                type="button"
-                                                aria-label="查看上一個首頁須知主題"
-                                                onClick={goToPreviousHomeGuidePanel}
-                                                className="inline-flex h-9 w-9 items-center justify-center rounded-2xl border border-[#E8E0D4] bg-white text-[#7B8C4E] transition-colors hover:bg-[#F5FAEB]"
-                                            >
-                                                <ChevronLeft size={17} />
-                                            </button>
-                                            <button
-                                                type="button"
-                                                aria-label="查看下一個首頁須知主題"
-                                                onClick={goToNextHomeGuidePanel}
-                                                className="inline-flex h-9 w-9 items-center justify-center rounded-2xl border border-[#E8E0D4] bg-white text-[#7B8C4E] transition-colors hover:bg-[#F5FAEB]"
-                                            >
-                                                <ChevronRight size={17} />
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <div className="min-h-[230px] overflow-hidden">
-                                        <AnimatePresence mode="wait" initial={false}>
-                                            <motion.div
-                                                key={homeGuidePanel}
-                                                initial={{ opacity: 0, x: homeGuideDirection > 0 ? 42 : -42 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                exit={{ opacity: 0, x: homeGuideDirection > 0 ? -42 : 42 }}
-                                                transition={{ duration: 0.24, ease: 'easeInOut' }}
-                                                className="h-full"
-                                            >
-                                                {renderHomepageGuideShelf(homeGuidePanel)}
-                                            </motion.div>
-                                        </AnimatePresence>
-                                    </div>
-
-                                    <div className="mt-4 flex items-center justify-center gap-2">
-                                        {homepageGuidePanels.map((panel) => (
-                                            <button
-                                                key={panel.id}
-                                                type="button"
-                                                aria-label={`切換到${panel.label}`}
-                                                onClick={() => goToHomeGuidePanel(panel.id)}
-                                                className={`h-2.5 rounded-full transition-all ${homeGuidePanel === panel.id ? 'w-8 bg-[#7B8C4E]' : 'w-2.5 bg-[#DAD4C8] hover:bg-[#C3CF9D]'}`}
-                                            />
-                                        ))}
-                                    </div>
+                            </div>
+                        </FadeIn>
+                        <FadeIn delay={0.1}>
+                            <div className="rounded-[1.8rem] border border-[#E8E0D4] bg-white p-5 shadow-sm">
+                                <div className="mb-3 text-[11px] font-black uppercase tracking-[0.18em] text-[#A09888]">我們面對的</div>
+                                <h4 className="text-[19px] font-black text-[#2D2A26]" style={serif}>單一敘事、詮釋壟斷</h4>
+                                <p className="mt-2 text-[14px] font-medium leading-[1.85] text-[#6B6358]">有條件觀庭者僅少數，外界資訊均透過解讀詮釋，掌握解釋權</p>
+                                <div className="mt-4 flex items-center gap-2 rounded-[1.2rem] border border-[#F5E6D3] bg-[#FFF4ED] px-4 py-3">
+                                    <Eye size={14} className="shrink-0 text-[#A0724E]" />
+                                    <span className="text-[13px] font-black text-[#A0724E]">觀庭還原，提供脈絡</span>
                                 </div>
+                            </div>
+                        </FadeIn>
+                        <FadeIn delay={0.15}>
+                            <div className="rounded-[1.8rem] border border-[#E8E0D4] bg-white p-5 shadow-sm">
+                                <div className="mb-3 text-[11px] font-black uppercase tracking-[0.18em] text-[#A09888]">我們面對的</div>
+                                <h4 className="text-[19px] font-black text-[#2D2A26]" style={serif}>對立衝突、無法傾聽</h4>
+                                <p className="mt-2 text-[14px] font-medium leading-[1.85] text-[#6B6358]">各自論述對立衝突，難以理解彼此，也不去聽對方的語言</p>
+                                <div className="mt-4 flex items-center gap-2 rounded-[1.2rem] border border-[#FDE8D8] bg-[#FFF6F3] px-4 py-3">
+                                    <HeartHandshake size={14} className="shrink-0 text-[#C67B5C]" />
+                                    <span className="text-[13px] font-black text-[#C67B5C]">共構論述，建立交集</span>
+                                </div>
+                            </div>
+                        </FadeIn>
+                    </div>
+
+                    {/* 資料怎麼來的 */}
+                    <FadeIn delay={0.2}>
+                        <div className="mt-6 overflow-hidden rounded-[2rem] border border-[#E8DCC7] bg-gradient-to-r from-[#FFF7E8] via-white to-[#F4F9E8] p-6 shadow-sm">
+                            <p className="text-[12px] font-black uppercase tracking-[0.24em] text-[#B8860B]">How We Work</p>
+                            <h3 className="mt-2 text-[24px] font-black text-[#2D2A26]" style={serif}>這份還原筆記是怎麼來的？</h3>
+                            <div className="mt-5 grid gap-4 md:grid-cols-3">
+                                {homepageGuideWorkflow.map((step) => (
+                                    <div key={step.title} className={`rounded-[1.45rem] border border-[#E8E0D4] border-l-4 bg-white p-5 shadow-sm ${step.border}`}>
+                                        <h4 className="text-[18px] font-black text-[#2D2A26]" style={serif}>{step.title}</h4>
+                                        <ul className="mt-3 space-y-2">
+                                            {step.items.map((item) => (
+                                                <li key={item} className="flex items-start gap-2 text-[14px] font-medium leading-[1.8] text-[#5A5347]">
+                                                    <ChevronRight size={14} className={`mt-1 shrink-0 ${step.accent}`} />
+                                                    {item}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     </FadeIn>
@@ -940,6 +656,51 @@ export default function Home() {
                                 )
                             })()}
                         </motion.div>
+                    </FadeIn>
+                </div>
+            </section>
+
+            {/* ═══ 想一起書寫？ ═══ */}
+            <Banner title="想一起書寫？" subtitle="Join the Community" bg="bg-[#EEF6DA]" text="text-[#4A5E28]" />
+            <section className="bg-[#F4FAE8] px-6 py-10">
+                <div className="mx-auto max-w-4xl text-center">
+                    <FadeIn>
+                        <p className="text-[12px] font-black uppercase tracking-[0.24em] text-[#7B8C4E]">Start Contributing</p>
+                        <h2 className="mt-3 text-[34px] font-black text-[#2D2A26] md:text-[42px]" style={serif}>想一起書寫？</h2>
+                        <p className="mt-3 text-[18px] font-medium leading-[1.9] text-[#6B6358]">
+                            所有人都可以去探究、去感受、去書寫。
+                        </p>
+                    </FadeIn>
+                    <FadeIn delay={0.1}>
+                        <div className="mt-8 grid gap-4 text-left md:grid-cols-3">
+                            {([
+                                { step: '01', label: '閱讀還原筆記', desc: '進入任一場次，閱讀完整的開庭還原內容', icon: BookOpen },
+                                { step: '02', label: '書寫你的觀點', desc: '針對逐字稿書寫自己的理解、感受與論述', icon: PenTool },
+                                { step: '03', label: '送審後公開發表', desc: '通過審閱後，你的筆記將和還原記錄一起呈現', icon: Send },
+                            ] as const).map((s) => {
+                                const Icon = s.icon;
+                                return (
+                                    <div key={s.step} className="rounded-[1.6rem] border border-[#D7E5BB] bg-white p-5 shadow-sm">
+                                        <div className="mb-3 text-[34px] font-black text-[#D7E5BB]" style={serif}>{s.step}</div>
+                                        <div className="mb-2 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[#F4FAEB] text-[#5A6F35]">
+                                            <Icon size={18} />
+                                        </div>
+                                        <h4 className="text-[17px] font-black text-[#2D2A26]" style={serif}>{s.label}</h4>
+                                        <p className="mt-1.5 text-[14px] font-medium leading-[1.8] text-[#6B6358]">{s.desc}</p>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </FadeIn>
+                    <FadeIn delay={0.2}>
+                        <div className="mt-8">
+                            <Link href="/guide">
+                                <motion.button whileHover={{ scale: 1.04, boxShadow: '0 16px 40px rgba(123,140,78,0.25)' }} whileTap={{ scale: 0.97 }}
+                                    className="group rounded-2xl bg-gradient-to-r from-[#7B8C4E] to-[#5a6e38] px-10 py-4 text-[19px] font-black text-white shadow-lg shadow-[#7B8C4E]/20">
+                                    <span className="flex items-center gap-3">了解如何投稿 <ArrowRight size={20} className="group-hover:translate-x-2 transition-transform" /></span>
+                                </motion.button>
+                            </Link>
+                        </div>
                     </FadeIn>
                 </div>
             </section>

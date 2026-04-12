@@ -17,6 +17,7 @@
     "gate:check": ".\\scripts\\pwsh.cmd -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/run-current-task-gate.ps1",
     "smoke:public": "node ./scripts/smoke-public-routes.mjs",
     "smoke:public:prod": "node ./scripts/smoke-public-routes.mjs --base=https://court-notes-site.vercel.app",
+    "env:check:prod": "node ./scripts/check-env-prod.mjs",
     "build": "next build",
         "start": "next start",
         "lint": "next lint",

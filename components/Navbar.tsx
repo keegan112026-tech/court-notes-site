@@ -23,12 +23,19 @@ export default function Navbar() {
             <div className="hidden items-center gap-6 lg:flex">
                 {PUBLIC_NAV_ITEMS.filter((link) => link.href !== '/contact').map((link) => {
                     const active = pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href));
+                    const isPrimary = link.href === '/sessions';
                     return (
                         <Link
                             key={link.href}
                             href={link.href}
                             className={`text-sm font-bold transition-colors hover:text-[#6B8E23] ${
-                                active ? 'text-[#6B8E23]' : 'text-gray-500'
+                                isPrimary
+                                    ? active
+                                        ? 'text-[#6B8E23] underline underline-offset-4'
+                                        : 'text-[#5a781d] underline underline-offset-4'
+                                    : active
+                                        ? 'text-[#6B8E23]'
+                                        : 'text-gray-500'
                             }`}
                         >
                             {link.name}

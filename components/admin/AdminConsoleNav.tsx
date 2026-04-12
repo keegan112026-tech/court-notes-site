@@ -1,7 +1,7 @@
 import Link from 'next/link';
-import { FileText, Inbox, ListChecks, MessageSquare } from 'lucide-react';
+import { FileText, Flag, Inbox, ListChecks, MessageSquare } from 'lucide-react';
 
-type AdminConsoleSection = 'review' | 'articles' | 'comments' | 'inbox';
+type AdminConsoleSection = 'review' | 'articles' | 'comments' | 'inbox' | 'corrections';
 
 const items: Array<{
   key: AdminConsoleSection;
@@ -37,6 +37,13 @@ const items: Array<{
     title: '收件匣',
     description: '私密傳訊與聯絡表單',
     icon: Inbox,
+  },
+  {
+    key: 'corrections',
+    href: '/admin/corrections',
+    title: '內容更正',
+    description: '逐字稿回報與段落修訂',
+    icon: Flag,
   },
 ];
 
