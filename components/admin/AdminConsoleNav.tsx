@@ -1,7 +1,7 @@
 import Link from 'next/link';
-import { FileText, Flag, Inbox, ListChecks, MessageSquare } from 'lucide-react';
+import { FileText, Flag, Inbox, Layers3, ListChecks, MessageSquare } from 'lucide-react';
 
-type AdminConsoleSection = 'review' | 'articles' | 'comments' | 'inbox' | 'corrections';
+type AdminConsoleSection = 'dashboard' | 'review' | 'articles' | 'comments' | 'inbox' | 'corrections';
 
 const items: Array<{
   key: AdminConsoleSection;
@@ -10,6 +10,13 @@ const items: Array<{
   description: string;
   icon: typeof ListChecks;
 }> = [
+  {
+    key: 'dashboard',
+    href: '/admin',
+    title: '營運控台',
+    description: '後台總覽與工作分流',
+    icon: Layers3,
+  },
   {
     key: 'review',
     href: '/admin/review',
