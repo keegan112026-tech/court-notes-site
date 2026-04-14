@@ -11,8 +11,8 @@ interface Props {
     isMobileLayout: boolean;
     activeLineId: string;
     transcriptContainerRef: RefObject<HTMLDivElement>;
-    onInjectCitation: (lineId: string) => void;
-    onReport: (lineId: string, speaker: string, content: string) => void;
+    onInjectCitation: (_lineId: string) => void;
+    onReport: (_lineId: string, _speaker: string, _content: string) => void;
 }
 
 export default function TranscriptPanel({

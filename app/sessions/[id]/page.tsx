@@ -13,7 +13,7 @@ import ReportSheet, { ReportSegment } from '@/components/workbench/ReportSheet';
 import ContributionSheet from '@/components/workbench/ContributionSheet';
 import { CitationChip } from '@/components/workbench/CitationChip';
 import { BookOpen, PenTool, Quote, Send, Share2, X, PanelRight } from 'lucide-react';
-import { EditorContent, useEditor } from '@tiptap/react';
+import { useEditor } from '@tiptap/react';
 import Placeholder from '@tiptap/extension-placeholder';
 import StarterKit from '@tiptap/starter-kit';
 import { toast } from 'sonner';

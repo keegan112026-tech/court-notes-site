@@ -8,7 +8,7 @@ const serif = { fontFamily: "'Noto Serif TC', serif" };
 
 interface Props {
     open: boolean;
-    onOpenChange: (open: boolean) => void;
+    onOpenChange: (_open: boolean) => void;
     isMobileLayout: boolean;
     onStartWriting: () => void;
 }

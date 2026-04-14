@@ -5,7 +5,7 @@ import { motion, useScroll, AnimatePresence } from 'framer-motion';
 import {
     PenTool, BookOpen, Heart, Eye, MessageSquare, Flame,
     Gavel, ArrowRight, Menu, X, ChevronLeft, ChevronRight,
-    HeartHandshake, Send, MessageCircle, FileText
+    HeartHandshake, Send, FileText
 } from 'lucide-react';
 import { FadeIn, Counter, Banner, WarmGradientBg } from '@/components/ui-shared';
 import SessionsOverviewSection from '@/components/SessionsOverviewSection';

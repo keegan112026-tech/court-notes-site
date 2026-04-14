@@ -14,10 +14,10 @@ export interface ReportSegment {
 
 interface Props {
     open: boolean;
-    onOpenChange: (open: boolean) => void;
+    onOpenChange: (_open: boolean) => void;
     segment: ReportSegment | null;
     text: string;
-    onTextChange: (text: string) => void;
+    onTextChange: (_text: string) => void;
     submitting: boolean;
     submitted: boolean;
     onSubmit: () => void;

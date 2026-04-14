@@ -10,9 +10,9 @@ interface Props {
     transcript: LocalTranscriptLine[];
     inlineNotes: Record<string, string>;
     expandedLineId: string | null;
-    onExpandToggle: (lineId: string) => void;
-    onNoteChange: (lineId: string, value: string) => void;
-    onReport: (lineId: string, speaker: string, content: string) => void;
+    onExpandToggle: (_lineId: string) => void;
+    onNoteChange: (_lineId: string, _value: string) => void;
+    onReport: (_lineId: string, _speaker: string, _content: string) => void;
 }
 
 export default function InlinePanel({

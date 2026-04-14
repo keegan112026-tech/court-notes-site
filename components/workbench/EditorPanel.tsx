@@ -12,9 +12,9 @@ interface Props {
     contactEmail: string;
     submitState: string;
     editorLength: number;
-    onTitleChange: (v: string) => void;
-    onAuthorChange: (v: string) => void;
-    onEmailChange: (v: string) => void;
+    onTitleChange: (_v: string) => void;
+    onAuthorChange: (_v: string) => void;
+    onEmailChange: (_v: string) => void;
 }
 
 export default function EditorPanel({
