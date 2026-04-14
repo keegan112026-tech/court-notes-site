@@ -6,98 +6,77 @@
 
 正式站網址：
 
-- `https://court-notes-site.vercel.app/`
+- `https://court-notes-site.vercel.app`
 
-目前 repo 內最新記錄的 production deployment：
+### 2026-04-14 live recheck
 
-- 日期：`2026-04-05`
-- deployment id：`dpl_EUKSjuYdMg1wat3konSH8H4taCAf`
-- source branch：`main`
-- source commit：`028a19c894af72eed675c5b45112d260c96510db`
+已直接驗證：
 
-2026-04-05 再次重查時，以下正式主路由都正常回 `200`：
+- `/` -> `200`
+- `/about` -> `200`
+- `/guide` -> `200`
+- `/knowledge` -> `200`
+- `/sessions` -> `200`
+- `/forum` -> `200`
+- `/contact` -> `200`
+- `/rankings` -> `200`
 
-- `/`
-- `/guide`
-- `/sessions`
-- `/forum`
-- `/contact`
-- `/rankings`
+### 2026-04-14 live content recheck
 
-## 已核定的頁面快照
+- 首頁已有 `鳴謝與資料來源` 導覽：是
+- 首頁已有 `#sources-acknowledgements` anchor：是
+- 匯集區 production 已顯示新版 `本計畫資料來源與鳴謝` 櫥窗
+- `s-114-51-1211` production 已顯示修正版文字 `懸壅垂`
+- `s-114-51-1218` production 已上線，標題為 `114年度訴字第51號過失致死等案（審理程序第三次開庭）`
+- `s-114-51-1218` production API 已確認有 `476` 筆 transcript
+- `/sessions` 與 `/sessions/history/v1~v3` 的 `一審宣判預告` 文案已統一去除 `下午`
+- 最新 production deployment：`dpl_CbwG7e36VspLhVFSYKruvMGqWSoU`
 
-首頁相關：
+## Admin baseline
 
-- `version_snapshots/2026-04-05_homepage_guide_shelf_snapshot/`
-- `version_snapshots/2026-04-05_homepage_modular_snapshot/`
-
-筆記總覽頁相關：
-
-- `version_snapshots/2026-04-05_sessions_status_snapshot/`
-
-Notion / 投稿鏈安全節點：
-
-- `version_snapshots/2026-04-05_notion_submit_safety_snapshot/`
-
-匯集區 / admin / 發佈鏈節點：
-
-- `version_snapshots/2026-04-05_aggregation_handoff_snapshot/`
-- `version_snapshots/2026-04-05_admin_console_and_forum_sync_snapshot/`
-- `version_snapshots/2026-04-05_submission_feedback_and_triage_snapshot/`
-
-## 目前已在 production 上可用的能力
-
-- 文章投稿可送出
-- 聯絡 / 私密傳訊可送出
-- 後台登入可用
-- 待審核 / 文章管理 / 留言管理 / 收件匣這四個 admin 路由可用
-- 匯集區會優先顯示後端已核准文章
-
-## 目前尚未納入 production 的本地成果
-
-以下成果目前是本地已完成，但不應被誤認成 production 已上線：
-
-- 單篇文章頁 hover 引用預覽的輕量重構
-- 單篇文章頁進一步放寬的寬版閱讀布局
-- 工作檯頁首統一化與 `WorkbenchHeader`
-- 大規模 copy cleanup 的前半段
+- `/admin/login` -> `200`
+- `/admin/review` -> `307`
+- `/admin/articles` -> `307`
+- `/admin/comments` -> `307`
+- `/admin/inbox` -> `307`
 
 ## Git baseline
 
-截至目前：
+截至 2026-04-14 重新核對：
 
 - current branch：`main`
-- `HEAD`：`028a19c894af72eed675c5b45112d260c96510db`
-
-但要注意：
-
-- 這不代表工作樹乾淨
-- 本地仍有大量未提交修改
-- 因此 production truth 和 local code truth 目前是分開看的
+- `HEAD`：`b4fb22624f285cc4cd3140cc32c1ff8fafd4937d`
 
 ## Worktree baseline
 
-工作樹仍是 dirty，而且範圍廣。
+工作樹目前仍然是 dirty。可見範圍：
 
-它包含：
-
-- 產品頁面改動
-- admin / forum publication flow 改動
-- Notion 與 published-articles 調整
-- governance / snapshot / archive 整理
-
-這代表：
-
-- repo 是可營運、可交接的
-- 但不是可直接一鍵收斂成單一 commit 的狀態
+- `M .gitignore`
+- `M AGGREGATION_ZONE_PUBLISHING_TECH_DECISION_V0_1_2026-04-05.md`
+- `M app/admin/articles/page.tsx`
+- `M app/admin/login/page.tsx`
+- `M app/admin/review/page.tsx`
+- `M app/api/forum/[id]/route.ts`
+- `M app/api/forum/route.ts`
+- `M app/forum/[id]/page.tsx`
+- `M app/forum/page.tsx`
+- `M components/admin/AdminConsoleNav.tsx`
+- `M data/published-articles/README.md`
+- `D data/published-articles/art-1775147932504.json`
+- `M data/published-articles/index.json`
+- `M data/sessions/s-114-1-6.json`
+- `M data/sessions/s-114-51-1211.json`
+- `M docs/governance/AI_HANDOFF_2026-04-05_CURRENT_STATE.md`
+- `M docs/governance/CURRENT_BASELINE_2026-04-04.md`
+- `M docs/governance/CURRENT_SOURCE_OF_TRUTH_2026-04-04.md`
+- `M docs/governance/DEPLOYMENT_LEDGER.md`
+- `M docs/governance/WORK_PROTOCOL.md`
+- ... 另有 30 項未列出
 
 ## 目前最重要的基準提醒
 
-1. production 現在是可用的，但不是本地最新全部改動
-2. 下一位 AI 接手時，要先判斷哪些修改是 local-only
-3. copy cleanup 應該列為下一輪主線之一
-4. 在下一次部署前，應再次跑：
-   - `npx tsc --noEmit --incremental false`
-   - `npm run gate:encoding`
-   - `npm run build`
-   - `npm run smoke:public:prod`
+1. production 應以**逐路由實測**為準
+2. 首頁與匯集區目前都已經 live 顯示新版資料來源導覽／櫥窗語氣
+3. `s-114-51-1211` 目前 live 已是修正版逐字內容
+4. admin 頁面仍採登入保護，未登入時 `/admin/review`、`/admin/articles`、`/admin/comments`、`/admin/inbox` 會導向登入
+5. dirty worktree 仍存在，部署或交接前要先釐清範圍

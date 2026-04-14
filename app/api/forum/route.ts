@@ -7,13 +7,6 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
     try {
-        const provider = getBackendProvider();
-        const backendPosts = await provider.fetchForumPosts();
-
-        if (backendPosts.length > 0) {
-            return NextResponse.json({ ok: true, data: backendPosts, source: 'backend-published' });
-        }
-
         const publishedIndex = readPublishedArticlesIndex();
         if (publishedIndex.items.length > 0) {
             const posts = publishedIndex.items.map((item) => ({
@@ -30,6 +23,13 @@ export async function GET() {
             }));
 
             return NextResponse.json({ ok: true, data: posts, source: 'published-snapshot' });
+        }
+
+        const provider = getBackendProvider();
+        const backendPosts = await provider.fetchForumPosts();
+
+        if (backendPosts.length > 0) {
+            return NextResponse.json({ ok: true, data: backendPosts, source: 'backend-published-fallback' });
         }
 
         return NextResponse.json({ ok: true, data: [] });

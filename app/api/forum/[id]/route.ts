@@ -12,15 +12,9 @@ export async function GET(_request: Request, { params }: { params: { id: string 
             return NextResponse.json({ ok: false, error: '缺少文章 ID。' }, { status: 400 });
         }
 
-        const provider = getBackendProvider();
-        const backendPost = await provider.fetchForumPostById(postId);
-        if (backendPost) {
-            const comments = await provider.fetchForumComments(backendPost.id);
-            return NextResponse.json({ ok: true, data: { post: backendPost, comments }, source: 'backend-published' });
-        }
-
         const snapshot = findPublishedArticleSnapshotByIdOrSlug(postId);
         if (snapshot) {
+            const provider = getBackendProvider();
             const comments = await provider.fetchForumComments(snapshot.id);
 
             return NextResponse.json({
@@ -42,6 +36,13 @@ export async function GET(_request: Request, { params }: { params: { id: string 
                 },
                 source: 'published-snapshot',
             });
+        }
+
+        const provider = getBackendProvider();
+        const backendPost = await provider.fetchForumPostById(postId);
+        if (backendPost) {
+            const comments = await provider.fetchForumComments(backendPost.id);
+            return NextResponse.json({ ok: true, data: { post: backendPost, comments }, source: 'backend-published-fallback' });
         }
 
         return NextResponse.json({ ok: false, error: '找不到這篇文章。' }, { status: 404 });

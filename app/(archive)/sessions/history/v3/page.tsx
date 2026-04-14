@@ -225,7 +225,7 @@ export default function SessionsHistoryV3Page() {
               <h2 className="text-2xl font-black text-orange-900 md:text-3xl" style={serif}>一審宣判預告</h2>
               <p className="inline-block rounded-2xl bg-white/60 px-6 py-2 text-[18px] font-bold leading-relaxed text-orange-800/80 md:text-[20px]">
                 台北地院已訂於
-                <span className="mx-1 text-orange-600 underline decoration-orange-300 underline-offset-4">2026 年 4 月 16 日 下午</span>
+                <span className="mx-1 text-orange-600 underline decoration-orange-300 underline-offset-4">2026 年 4 月 16 日</span>
                 正式宣判一審結果
               </p>
             </div>

@@ -12,6 +12,11 @@ dotenv.config({ path: path.join(projectRoot, '.env.local') });
 const token = process.env.NOTION_TOKEN || '';
 const articlesDb = process.env.NOTION_DB_ARTICLES || '';
 
+const ARTICLE_STATUS = {
+  approved: '已核准',
+  published: '已發布',
+};
+
 function fail(message) {
   throw new Error(`[publish-export:notion] ${message}`);
 }
@@ -26,6 +31,32 @@ function headers() {
     'Content-Type': 'application/json',
     'Notion-Version': NOTION_VERSION,
   };
+}
+
+function parseArgs(argv) {
+  const args = {
+    prune: false,
+    dryRun: false,
+    manifestPath: '',
+  };
+
+  for (let i = 0; i < argv.length; i += 1) {
+    const tokenArg = argv[i];
+    if (tokenArg === '--prune') {
+      args.prune = true;
+      continue;
+    }
+    if (tokenArg === '--dry-run') {
+      args.dryRun = true;
+      continue;
+    }
+    if (tokenArg === '--manifest') {
+      args.manifestPath = argv[i + 1] || '';
+      i += 1;
+    }
+  }
+
+  return args;
 }
 
 async function notionFetch(pathname, init = {}) {
@@ -46,11 +77,19 @@ async function notionFetch(pathname, init = {}) {
   return res.json();
 }
 
-async function queryPublishedArticles() {
+async function queryPublishableArticles() {
   const payload = {
     filter: {
-      property: 'status',
-      status: { equals: '已發布' },
+      or: [
+        {
+          property: 'status',
+          status: { equals: ARTICLE_STATUS.approved },
+        },
+        {
+          property: 'status',
+          status: { equals: ARTICLE_STATUS.published },
+        },
+      ],
     },
     sorts: [{ property: 'published_at', direction: 'descending' }],
     page_size: 100,
@@ -130,6 +169,9 @@ function mapArticle(page) {
   const primarySessionId = getRichText(page, 'primary_session_id') || sourceSessionIds[0] || '';
   const articleTypeLabel = getSelect(page, 'article_type');
   const slug = normalizeSlug(getRichText(page, 'public_slug'), page.id);
+  const status = getSelect(page, 'status');
+  const publishedAt = getDate(page, 'published_at');
+  const createdAt = getDate(page, 'created_at');
 
   return {
     id: page.id,
@@ -143,7 +185,7 @@ function mapArticle(page) {
     sourceTopicKeys: [],
     sourceWitnessLabels: [],
     authorLabel: getRichText(page, 'author_name') || '匿名作者',
-    publishedAt: getDate(page, 'published_at'),
+    publishedAt: publishedAt || createdAt,
     reviewedAt: getDate(page, 'reviewed_at'),
     reviewedBy: getRichText(page, 'reviewed_by') || undefined,
     publishedVersion: 1,
@@ -154,18 +196,51 @@ function mapArticle(page) {
       witnessCount: 0,
       topicCount: 0,
     },
+    statusBeforeExport: status,
   };
+}
+
+function writeManifest(manifestPath, payload) {
+  if (!manifestPath) return;
+
+  const resolvedPath = path.isAbsolute(manifestPath)
+    ? manifestPath
+    : path.join(projectRoot, manifestPath);
+
+  fs.mkdirSync(path.dirname(resolvedPath), { recursive: true });
+  fs.writeFileSync(resolvedPath, `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
 }
 
 async function main() {
   try {
-    const pages = await queryPublishedArticles();
+    const args = parseArgs(process.argv.slice(2));
+    const pages = await queryPublishableArticles();
     const items = pages.map(mapArticle).filter((item) => item.title && item.contentHtml);
 
-    const exportDir = path.join(projectRoot, 'data', 'published-articles');
-    fs.mkdirSync(exportDir, { recursive: true });
+    const exportItems = items.map(({ statusBeforeExport, ...item }) => item);
+    const readyItems = items.filter((item) => item.statusBeforeExport === ARTICLE_STATUS.approved);
 
-    const result = writePublishedArticles(items, { prune: false });
+    const manifest = {
+      generatedAt: new Date().toISOString(),
+      count: exportItems.length,
+      readyToPublishIds: readyItems.map((item) => item.id),
+      exportedIds: items.map((item) => item.id),
+      items: items.map((item) => ({
+        id: item.id,
+        slug: item.slug,
+        title: item.title,
+        statusBeforeExport: item.statusBeforeExport,
+      })),
+    };
+
+    if (args.dryRun) {
+      writeManifest(args.manifestPath, manifest);
+      console.log(`[publish-export:notion] dry-run ok: ${exportItems.length} publishable article(s), ${readyItems.length} ready-to-publish`);
+      return;
+    }
+
+    const result = writePublishedArticles(exportItems, { prune: args.prune });
+    writeManifest(args.manifestPath, manifest);
     console.log(`[publish-export:notion] exported ${result.count} article(s) from Notion`);
   } catch (error) {
     console.error(error instanceof Error ? error.message : String(error));

@@ -14,201 +14,114 @@
 ## 目前 repo 狀態
 
 - 目前分支：`main`
-- 目前 `HEAD`：`028a19c894af72eed675c5b45112d260c96510db`
+- 目前 `HEAD`：`b4fb22624f285cc4cd3140cc32c1ff8fafd4937d`
 - 工作樹：**仍然是 dirty**
 
-這不是零星髒檔，而是累積了：
+目前最明確的 dirty 範圍：
 
-- 首頁、規範頁、匯集區、聯絡頁、排行頁、工作檯的產品改動
-- admin console 與 forum publication flow 的改動
-- governance / snapshot / archive 調整
-- 已公開文章 snapshot 與 Notion 相關腳本調整
+- `M .gitignore`
+- `M AGGREGATION_ZONE_PUBLISHING_TECH_DECISION_V0_1_2026-04-05.md`
+- `M app/admin/articles/page.tsx`
+- `M app/admin/login/page.tsx`
+- `M app/admin/review/page.tsx`
+- `M app/api/forum/[id]/route.ts`
+- `M app/api/forum/route.ts`
+- `M app/forum/[id]/page.tsx`
+- `M app/forum/page.tsx`
+- `M components/admin/AdminConsoleNav.tsx`
+- `M data/published-articles/README.md`
+- `D data/published-articles/art-1775147932504.json`
+- `M data/published-articles/index.json`
+- `M data/sessions/s-114-1-6.json`
+- `M data/sessions/s-114-51-1211.json`
+- `M docs/governance/AI_HANDOFF_2026-04-05_CURRENT_STATE.md`
+- `M docs/governance/CURRENT_BASELINE_2026-04-04.md`
+- `M docs/governance/CURRENT_SOURCE_OF_TRUTH_2026-04-04.md`
+- `M docs/governance/DEPLOYMENT_LEDGER.md`
+- `M docs/governance/WORK_PROTOCOL.md`
+- ... 另有 30 項未列出
 
-不要把現在的工作樹誤認成「只差一個 commit」；它是可營運、可交接，但不是 commit-clean。
-
-## 最新 production 狀態
+## 最新 production 狀態（2026-04-14 live recheck）
 
 正式站網址：
 
-- `https://court-notes-site.vercel.app/`
+- `https://court-notes-site.vercel.app`
 
-本輪重新檢查後，以下正式主路由都回 `200`：
+已直接驗證：
 
-- `/`
-- `/guide`
-- `/sessions`
-- `/forum`
-- `/contact`
-- `/rankings`
+- `/` `200`
+- `/about` `200`
+- `/guide` `200`
+- `/knowledge` `200`
+- `/sessions` `200`
+- `/sessions/s-114-51-1218` `200`
+- `/forum` `200`
+- `/contact` `200`
+- `/rankings` `200`
 
-這次檢查是 2026-04-05 在正式站直接用 `curl` 重測完成的。
+### 這次最重要的新發現
+
+- 首頁已有 `鳴謝與資料來源` 導覽與 `#sources-acknowledgements`
+- 匯集區目前已經對外顯示新版 `本計畫資料來源與鳴謝` 櫥窗
+- `s-114-51-1211` live 版本已含 `懸壅垂` 修正
+- `s-114-51-1218` 已由 `2025-12-18 還原筆錄.docx` 匯入並上線
+- `/api/transcripts/s-114-51-1218` live 已確認回傳 `476` 筆 transcript
+- admin routes 仍為登入保護頁面，未登入時不是 bug
+- 最新 recorded production deployment：`dpl_7TtNGVoSHHeC5DNBQAxJavJhDMg9`
+
+## 與克勞德摘要的落差提醒
+
+- 本 repo 的 `main` 目前**沒有**克勞德摘要中提到的：
+  - `app/admin/corrections/page.tsx`
+  - `app/api/admin/session-patch/route.ts`
+  - `app/api/admin/session-patch/log/route.ts`
+  - `components/workbench/*` 八元件拆分（目前只有 `WorkbenchHeader.tsx`）
+- 目前 `app/sessions/[id]/page.tsx` 仍是單檔大型頁面，尚未合入摘要裡描述的元件拆解版本。
+- 因此後續若要延續「內容更正 / session patch / 場次頁公版化」這條線，請以**摘要是待合併設計方向**來理解，不要誤以為它已經存在於目前 mainline。
 
 ## 最新 recorded deployment
 
-repo 內目前最新記錄的 production deployment 仍是：
+請先查看：
 
-- `dpl_EUKSjuYdMg1wat3konSH8H4taCAf`
+- `docs/governance/DEPLOYMENT_LEDGER.md`
 
-這個 deployment 的語意是：
+如果本次只是 live recheck，而非新 deploy，請不要把它誤記成新部署。
 
-- 文章送出成功後有 toast 與清空
-- 留言送出後不再假裝先公開
-- admin comments / inbox 已補第一版狀態管理
-- 匯集區文章卡先做過一輪 hover 風險止血
+## 本地已確認的 code truth
 
-但要注意：
-
-- **目前本地還有一大批未部署的改動**
-- 所以 production truth 和 local code truth 已經再次分開
-
-## 已完成且目前可用的營運主鏈
-
-### 1. 前台送件
-
-- 文章投稿：可送
-- 聯絡／私密傳訊：可送
-- 留言：可送，且會走待審核語意
-
-### 2. 後台分流
-
-目前後台已拆成：
-
-- `待審核`：`/admin/review`
-- `文章管理`：`/admin/articles`
-- `留言管理`：`/admin/comments`
-- `收件匣`：`/admin/inbox`
-
-### 3. 匯集區發佈鏈
-
-目前 production 行為是：
-
-- 匯集區先讀「後端已核准文章」
-- 不再被舊 snapshot 完全卡死
-
-這條鏈現在適合真人測試，但還不是最終的長期架構。
-
-## 已建立但尚未完全落地的長期架構
-
-這兩份技術文件已存在：
-
-- `docs/governance/AGGREGATION_ZONE_PUBLISHING_TECH_DECISION_V0_1_2026-04-05.md`
-- `docs/governance/AGGREGATION_ZONE_DATA_MODEL_AND_LINKAGE_SPEC_V0_1_2026-04-05.md`
-
-方向已鎖定為：
-
-- 後端審核池
-- 前端 published snapshot
-- 長期目標是 `ready_to_publish -> publish export -> deploy`
-
-但目前 production 還是在「後端已核准文章直接可見」的過渡模式。
+- 首頁共享導覽與頁尾資料來源櫥窗已存在於本地 code
+- 匯集區頁尾資料來源櫥窗已存在於本地 code，且目前 live 已可觀察
+- admin 營運控台、發布流程、env 健康檢查、session patch 流程都已有腳本與治理文件
 
 ## 目前最重要的未完成項
 
-### A. 全站文案清理仍未完成
+### A. dirty worktree 仍需持續收斂
 
-已完成重寫的主線檔案：
+- 現在專案已可用，但不代表 worktree 已乾淨
+- 下一位 AI 若要部署，請先判斷 dirty 範圍是否應一起帶上
 
-- `lib/public-site.tsx` 曾經重寫過，但目前檔案內容再次出現大量亂碼，需要重新確認
-- `app/forum/page.tsx` 已做過一次重寫，但目前檔案後半仍有亂碼殘留
+### B. 匯集區長期發佈架構已落地第一版，但仍需營運驗證
 
-仍需優先清理的主線檔案：
+- 目前已有：
+  - `articles:publish:prepare`
+  - `articles:publish:finalize`
+  - `release:prod`
+- 但仍需真實營運驗證 publish / unpublish / dirty sync 邏輯
 
-- `app/page.tsx`
-- `app/guide/page.tsx`
-- `app/contact/page.tsx`
-- `app/rankings/page.tsx`
-- `app/sessions/compose/page.tsx`
-- `app/sessions/[id]/page.tsx`
-- `app/api/contact/route.ts`
-- `app/api/submit-article/route.ts`
-- `components/SubpageHeader.tsx`
-- `lib/public-site.tsx`
-- `app/forum/page.tsx`
+### C. 治理更新已可工具化，但仍需養成固定使用習慣
 
-目前判斷：
+- 每次重大 recheck 或部署後，請跑治理更新腳本
+- 不要再只手動改一份 handoff
 
-- 這不是單點亂碼，而是整批 user-facing copy 還有殘留污染
-- 下一位 AI 應該把「全站 copy cleanup」列為獨立主線，而不是邊修功能邊順手改文案
+## admin surface
 
-### B. 單篇文章頁引用預覽剛做完重構，但還沒上 production 驗證
-
-本地已完成：
-
-- 拿掉 `mousemove` 連續重算
-- 改成較輕的委派式 hover 預覽
-- 放寬單篇文章頁寬度到較合理的寬版
-
-檔案：
-
-- `app/forum/[id]/page.tsx`
-
-本地驗證：
-
-- `npm run build` 通過
-
-但：
-
-- 這一版**尚未部署**
-- production 上目前還不是這個版本
-
-### C. 工作檯頁首統一化已做，但也還未部署
-
-已新增：
-
-- `components/workbench/WorkbenchHeader.tsx`
-
-已改：
-
-- `app/sessions/[id]/page.tsx`
-- `app/sessions/compose/page.tsx`
-
-目標：
-
-- 單場工作檯與跨場工作檯都有一致的頁首結構
-- 引用來源顯示正式場次名稱，不再露出 `s-114-...`
-
-這一版同樣是本地完成、尚未部署。
-
-## 本地已完成的驗證紀錄
-
-在這輪交接前，本地已跑過：
-
-- `npx tsc --noEmit --incremental false`：通過
-- `npm run gate:encoding`：通過
-- `npm run articles:validate`：通過
-- `npm run build`：通過
-- `npm run smoke:public:prod`：通過
-
-補充：
-
-- `npm run lint` 仍有 warning，但主因偏向 demo / preview / 舊字型噪音，不是眼前產品阻塞
-
-## 目前快照資料夾
-
-這些快照仍是有效交接素材：
-
-- `version_snapshots/2026-04-05_homepage_guide_shelf_snapshot/`
-- `version_snapshots/2026-04-05_sessions_status_snapshot/`
-- `version_snapshots/2026-04-05_notion_submit_safety_snapshot/`
-- `version_snapshots/2026-04-05_aggregation_handoff_snapshot/`
-- `version_snapshots/2026-04-05_admin_console_and_forum_sync_snapshot/`
-- `version_snapshots/2026-04-05_submission_feedback_and_triage_snapshot/`
-
-## 下一位 AI 最適合先做的事
-
-請不要先做大規模新功能。先做這個順序：
-
-1. 重新核對目前 dirty worktree 的真實修改範圍
-2. 先把 user-facing copy 亂碼清理完
-3. 再決定是否部署：
-   - 單篇文章頁 hover 預覽重構
-   - 單篇文章頁寬版
-   - 工作檯頁首統一化
-4. 最後才回到匯集區長期發佈架構
+- `/admin/login` -> `200`
+- `/admin/review` -> `307`
+- `/admin/articles` -> `307`
+- `/admin/comments` -> `307`
+- `/admin/inbox` -> `307`
 
 ## 中文工作簡稱
-
-之後與使用者溝通時，建議沿用這組中文簡稱：
 
 - 首頁
 - 緣起頁
@@ -227,13 +140,3 @@ repo 內目前最新記錄的 production deployment 仍是：
 - 筆記總覽抬頭區
 - 庭期區
 - 匯集區前導
-
-## 最後一句
-
-現在的 repo 不是壞掉，而是：
-
-- production 可用
-- 本地持續前進
-- 但本地尚未完成一次乾淨收斂
-
-下一位 AI 如果先把 copy cleanup 和 deployment boundary 釐清，後面會順很多。

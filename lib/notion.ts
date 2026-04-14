@@ -1,3 +1,5 @@
+import { ARTICLE_STATUS, reviewActionToArticleStatus } from '@/lib/published-articles/publishing';
+
 const NOTION_TOKEN = process.env.NOTION_TOKEN || '';
 const NOTION_VERSION = '2022-06-28';
 const API = 'https://api.notion.com/v1';
@@ -192,6 +194,10 @@ function summarizeTitle(prefix: string, content: string) {
 }
 
 function mapArticle(page: NotionPage) {
+    const sourceSessionIds = page.properties?.source_session_ids?.multi_select?.map((item: any) => item.name) || [];
+    const primarySessionId = extractRichText(page, 'primary_session_id') || sourceSessionIds[0] || '';
+    const articleType = extractSelect(page, 'article_type') || '單場次';
+
     return {
         id: page.id,
         postId: extractRichText(page, 'public_slug') || page.id,
@@ -199,10 +205,14 @@ function mapArticle(page: NotionPage) {
         contactEmail: extractEmail(page, 'contact_email') || undefined,
         title: extractTitle(page, '標題'),
         content: extractRichText(page, 'content_html'),
-        category: extractSelect(page, 'article_type') || '觀庭共構文章',
+        excerpt: extractRichText(page, 'summary') || undefined,
+        category: articleType || '觀庭共構文章',
         targetTopic: '',
-        targetSessionId: extractRichText(page, 'primary_session_id'),
-        sourceSessionIds: page.properties?.source_session_ids?.multi_select?.map((item: any) => item.name) || [],
+        targetSessionId: primarySessionId,
+        primarySessionId: primarySessionId || undefined,
+        sourceSessionIds,
+        articleType,
+        publicSlug: extractRichText(page, 'public_slug') || undefined,
         likes: extractNumber(page, 'likes_count'),
         status: extractSelect(page, 'status'),
         createdAt: extractDate(page, 'created_at') || page.created_time || nowDate(),
@@ -249,15 +259,6 @@ function mapInbox(page: NotionPage) {
         relatedSessionId: extractRichText(page, 'related_session_id'),
     };
 }
-
-const ARTICLE_STATUS = {
-    pending: '待審核',
-    reviewing: '審閱中',
-    revision: '退回修改',
-    approved: '已核准',
-    published: '已發布',
-    archived: '已封存',
-};
 
 const COMMENT_STATUS = {
     pending: '待審核',
@@ -436,9 +437,7 @@ export async function reviewForumPost(input: {
         return;
     }
 
-    const nextStatus = input.action === 'approve'
-        ? ARTICLE_STATUS.published
-        : ARTICLE_STATUS.revision;
+    const nextStatus = reviewActionToArticleStatus(input.action);
 
     await updatePageProperties(input.targetId, {
         status: statusProp(nextStatus),
@@ -446,7 +445,6 @@ export async function reviewForumPost(input: {
         reviewed_at: dateProp(nowDate()),
         review_note: richTextProp(input.note || ''),
         last_activity_at: dateProp(nowDate()),
-        ...(input.action === 'approve' ? { published_at: dateProp(nowDate()) } : {}),
     });
 
     await createModerationLog({

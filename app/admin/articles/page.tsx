@@ -99,7 +99,7 @@ export default function AdminArticlesPage() {
                 return;
             }
 
-            if (action === 'approve') setMessage('文章已設為已發布。');
+            if (action === 'approve') setMessage('文章已設為待發布。請執行正式發布流程後再上線。');
             if (action === 'reject') setMessage('文章已退回修改。');
             if (action === 'delete') setMessage('文章已封存刪除。');
 
@@ -120,7 +120,7 @@ export default function AdminArticlesPage() {
                         <p className="text-sm font-black uppercase tracking-[0.2em] text-[#8A8078]">Admin Articles</p>
                         <h1 className="text-4xl font-black text-[#2D2A26]" style={serif}>文章管理</h1>
                         <p className="max-w-3xl text-lg leading-relaxed text-[#6B6358]">
-                            這裡管理全部文章，包含待審、已發布、退回修改與封存內容。
+                            這裡管理全部文章，包含待審、待發布、已發布、退回修改與封存內容。
                         </p>
                     </div>
 
@@ -158,6 +158,11 @@ export default function AdminArticlesPage() {
                         placeholder="可先填寫管理備註，之後核准、退回或封存時會一起記錄。"
                         className="mt-4 min-h-[96px] w-full rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium text-gray-700 outline-none focus:border-[#6B8E23]"
                     />
+
+                    <div className="mt-4 rounded-2xl border border-[#E8E0D4] bg-[#FBF7F0] px-4 py-3 text-sm font-medium leading-7 text-[#6B6358]">
+                        <p className="font-black text-[#2D2A26]">正式發布提醒</p>
+                        <p>文章在這裡設為「待發布」後，仍需由本地發布流程匯出 snapshot 並重新部署，才會出現在匯集區前台。</p>
+                    </div>
 
                     {message && <p className="mt-4 text-sm font-black text-[#5A6F35]">{message}</p>}
                     {error && <p className="mt-2 text-sm font-black text-red-600">{error}</p>}
@@ -230,7 +235,7 @@ export default function AdminArticlesPage() {
                                                 className="inline-flex items-center gap-2 rounded-xl bg-[#6B8E23] px-4 py-2 text-sm font-black text-white hover:bg-[#5a781d] disabled:opacity-50"
                                             >
                                                 <Check size={15} />
-                                                設為已發布
+                                                設為待發布
                                             </button>
                                         )}
                                         {article.status !== '退回修改' && article.status !== '已封存' && (

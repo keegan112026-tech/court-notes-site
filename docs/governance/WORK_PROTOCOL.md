@@ -19,6 +19,15 @@ Before editing, explicitly define:
 - which files will be touched
 - which adjacent files must not be touched
 
+For layout / copy / component reposition requests:
+
+- use `docs/governance/DESIGN_CHANGE_REQUEST_TEMPLATE_2026-04-11.md`
+- prefer position-based naming over only `附件一 / 附件二 / 附件三`
+- explicitly separate:
+  - formal copy
+  - work instructions
+  - keep / replace / do-not-do constraints
+
 ## Verification rule
 
 After editing, verify:

@@ -5,6 +5,6 @@ export default function AdminLoginPage({
 }: {
     searchParams?: { next?: string };
 }) {
-    const nextPath = searchParams?.next || '/admin/review';
+    const nextPath = searchParams?.next || '/admin';
     return <AdminLoginClient nextPath={nextPath} />;
 }

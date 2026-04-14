@@ -121,7 +121,7 @@ export default function AdminReviewPage() {
                 return;
             }
 
-            if (action === 'approve') setMessage('已核准並更新狀態。');
+            if (action === 'approve') setMessage('已核准，等待發布上線。');
             if (action === 'reject') setMessage('已退回修改。');
             if (action === 'delete') setMessage('已封存刪除。');
 
@@ -143,7 +143,7 @@ export default function AdminReviewPage() {
                             <p className="text-sm font-black uppercase tracking-[0.2em] text-[#8A8078]">Admin Review</p>
                             <h1 className="text-4xl font-black text-[#2D2A26]" style={serif}>待審核</h1>
                             <p className="max-w-3xl text-lg leading-relaxed text-[#6B6358]">
-                                這裡只處理待審文章與待審留言。已上架文章請到文章管理，私密傳訊請到收件匣。
+                                這裡只處理待審文章與待審留言。文章核准後會進入待發布流程，不會立刻出現在前台。
                             </p>
                         </div>
 
@@ -256,7 +256,7 @@ export default function AdminReviewPage() {
                                             className="inline-flex items-center gap-2 rounded-xl bg-[#6B8E23] px-4 py-2 text-sm font-black text-white hover:bg-[#5a781d] disabled:opacity-50"
                                         >
                                             <Check size={15} />
-                                            核准
+                                            核准進待發布
                                         </button>
                                         <button
                                             onClick={() => handleReview('article', article.id, 'reject')}

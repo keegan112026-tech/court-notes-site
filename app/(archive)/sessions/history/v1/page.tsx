@@ -166,7 +166,7 @@ export default function SessionsHistoryV1Page() {
         <FadeIn>
           <div className="rounded-2xl border border-[#E8D5B8] bg-[#FDE8D8] p-6 text-center">
             <p className="text-[20px] font-black text-[#8B4D35]" style={serif}>
-              台北地院已訂於 2026 年 4 月 16 日 下午正式宣判一審結果
+              台北地院已訂於 2026 年 4 月 16 日 正式宣判一審結果
             </p>
           </div>
         </FadeIn>

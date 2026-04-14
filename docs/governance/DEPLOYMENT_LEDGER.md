@@ -12,19 +12,15 @@
 | 2026-04-05 | `feat/optimization-plan` | `97180e220fd16d6efb85d6f550b396f6ae84f309` | production deployed | `/`, `/guide`, `/sessions`, `/forum`, `/api/submit-article`, `/api/contact` | Deployed via `dpl_4uK72XekvYpoz6ELUBnAnJBePMcg`. At that checkpoint, public routes returned `200` but submission APIs still surfaced the production Notion token problem. Snapshot: `version_snapshots/2026-04-05_aggregation_handoff_snapshot/`. |
 | 2026-04-05 | `main` | `028a19c894af72eed675c5b45112d260c96510db` | production deployed | `/`, `/guide`, `/sessions`, `/forum`, `/admin/review`, `/admin/articles`, `/admin/comments`, `/admin/inbox`, `/api/forum`, `/api/submit-article`, `/api/contact` | Deployed via `dpl_XzzBoLdrURM77hJrbdKMA9gnAMfg`. Admin console split was live and forum moved to backend-published-first behavior. Snapshot: `version_snapshots/2026-04-05_admin_console_and_forum_sync_snapshot/`. |
 | 2026-04-05 | `main` | `028a19c894af72eed675c5b45112d260c96510db` | production deployed | `/`, `/sessions`, `/forum`, `/forum/[id]`, `/admin/comments`, `/admin/inbox` | Deployed via `dpl_EUKSjuYdMg1wat3konSH8H4taCAf`. Added submission success feedback, removed fake optimistic comment rendering, widened article reading layout, and added basic `已閱 / 已處理` triage controls. Snapshot: `version_snapshots/2026-04-05_submission_feedback_and_triage_snapshot/`. |
+| 2026-04-06 | `main` | `df7291599e87980a8e605ffca1091544bbbbef19` | production deployed | `/forum`, `/forum/[id]`, `/sessions/s-114-1-6` | Deployed via `dpl_2iWRpuxJJ5HpishBGSTb8VA5b9YC`. Dirty-worktree deployment boundary included the same-tab citation navigation fix for single article references, replacement of `s-114-1-6` transcript content from the supplied DOCX, and governance draft updates. Snapshot: `version_snapshots/2026-04-06_forum_same_tab_and_docx_snapshot/`. |
+| 2026-04-06 | `main` | `df7291599e87980a8e605ffca1091544bbbbef19` | production deployed | `/`, `/forum` | Deployed via `dpl_4NrRauL2H8JBYu5Hm5bHTiekAtMy`. Moved the forum "資料來源與鳴謝" shelf to the page bottom, mirrored the same shelf at the homepage footer area, and changed the shared nav item from `熱門排行` to `鳴謝與資料來源` pointing to `/#sources-acknowledgements`. Snapshot: `version_snapshots/2026-04-06_sources_shelf_home_forum_sync/`. |
+| 2026-04-07 | `main` | `b4fb22624f285cc4cd3140cc32c1ff8fafd4937d` | production rechecked | `/`, `/guide`, `/sessions`, `/forum`, `/contact`, `/rankings` | Live alias recheck only; no new deployment id was recorded in-repo. Homepage already reflected `鳴謝與資料來源` nav and `#sources-acknowledgements`, but `/forum` still rendered the older `共構筆記呈現` block and did not expose the newer `本計畫資料來源與鳴謝` shelf. Treat this as route-level production truth, not a new deploy. |
+| 2026-04-11 | `main` | `b4fb22624f285cc4cd3140cc32c1ff8fafd4937d` | production rechecked | `/, /about, /guide, /knowledge, /sessions, /forum, /contact, /rankings` | Live alias recheck only; homepage與匯集區皆已顯示新版資料來源與鳴謝內容。 |
 
-## Post-deploy recheck
-
-After the last recorded deployment, production was rechecked again on 2026-04-05 and these routes all returned `200`:
-
-- `/`
-- `/guide`
-- `/sessions`
-- `/forum`
-- `/contact`
-- `/rankings`
-
-No newer deployment id was recorded in-repo during that recheck.
+| 2026-04-12 | `main` | `b4fb22624f285cc4cd3140cc32c1ff8fafd4937d` | production rechecked | `/, /about, /guide, /knowledge, /sessions, /forum, /contact, /rankings` | Live alias recheck only; homepage與匯集區皆已顯示新版資料來源與鳴謝內容。 |
+| 2026-04-12 | `main` | `b4fb22624f285cc4cd3140cc32c1ff8fafd4937d` | production deployed | `/, /forum, /sessions/s-114-51-1211, /admin/login` | Deployed via `dpl_ERkPj6RdHiUcgUZDYjxSEZTRfMVG`. This deployment reflects the current dirty worktree as-is after build verification, and live markers were rechecked: homepage `鳴謝與資料來源`, forum `本計畫資料來源與鳴謝`, session `s-114-51-1211` contains `懸壅垂`, admin login still available. |
+| 2026-04-14 | `main` | `b4fb22624f285cc4cd3140cc32c1ff8fafd4937d` | production deployed | `/sessions`, `/sessions/s-114-51-1218`, `/api/sessions`, `/api/transcripts/s-114-51-1218` | Deployed via `dpl_7TtNGVoSHHeC5DNBQAxJavJhDMg9`. Added new local session `s-114-51-1218` from `2025-12-18 還原筆錄.docx`; live API confirms the session is published with `476` transcript lines. |
+| 2026-04-14 | `main` | `b4fb22624f285cc4cd3140cc32c1ff8fafd4937d` | production deployed | `/sessions`, `/sessions/history/v1`, `/sessions/history/v2`, `/sessions/history/v3` | Deployed via `dpl_CbwG7e36VspLhVFSYKruvMGqWSoU`. Removed `下午` from the first-instance verdict announcement copy and aligned the same wording across the active sessions page plus the three public history routes. |
 
 ## Rule
 

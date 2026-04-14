@@ -39,10 +39,14 @@ export interface BackendArticle {
     contactEmail?: string;
     title: string;
     content: string;
+    excerpt?: string;
     category: string;
     targetTopic: string;
     targetSessionId: string;
+    primarySessionId?: string;
     sourceSessionIds?: string[];
+    articleType?: string;
+    publicSlug?: string;
     likes: number;
     status: string;
     createdAt: string;

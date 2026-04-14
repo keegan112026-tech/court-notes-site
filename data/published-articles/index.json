@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-04-05T08:29:50.886Z",
+  "generatedAt": "2026-04-11T05:42:17.649Z",
   "items": [
     {
-      "id": "3367e2fd-afd8-81d6-877c-d7928901f303",
-      "slug": "art-1775147932504",
-      "title": "Notion 測試文章",
-      "excerpt": "這是一篇由 Notion 匯出的測試文章摘要。",
+      "id": "33d7e2fd-afd8-81bc-88cb-c3be16f9afd4",
+      "slug": "art-1775705230747",
+      "title": "筆記小補充",
+      "excerpt": "審判長有說，「本件未超過法定時間，程序不需要變更」。 [引用:10] （備註：但我不確定是在一開始就講這句，還是告知被告權利之後才說。） [引用:12] [引用:12] 審判長：講白話，意思就是說，你是否知道劉童父母、祖父母沒有能力、付出心力、保護劉童，以確保劉童不遭受外力侵害？ 被告：我知道他們有困難，所以透過收出養，要找到新的家。 審判長再問，在你社工學",
       "articleType": "single-session",
       "primarySessionId": "s-114-1-6",
       "sourceSessionIds": [
@@ -13,8 +13,8 @@
       ],
       "sourceTopicKeys": [],
       "sourceWitnessLabels": [],
-      "publishedAt": "2026-04-02T16:58:00.000+00:00",
-      "authorLabel": "真人測試作者",
+      "publishedAt": "2026-04-11T04:34:00.000+00:00",
+      "authorLabel": "貝珍",
       "linkageSummary": {
         "sessionCount": 1,
         "witnessCount": 0,
