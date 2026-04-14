@@ -1,0 +1,16 @@
+{
+    "patchId": "2026-04-11_s-114-51-1211_example-wording-fix",
+    "sessionId": "s-114-51-1211",
+    "summary": "範例：修正逐字內容中的單一詞彙。",
+    "operations": [
+        {
+            "type": "replace-transcript-text",
+            "match": {
+                "lineId": "p181"
+            },
+            "find": "舊文字",
+            "replace": "新文字",
+            "expectMatches": 1
+        }
+    ]
+}
