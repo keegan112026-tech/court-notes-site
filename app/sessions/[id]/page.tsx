@@ -12,7 +12,7 @@ import OnboardingOverlay from '@/components/workbench/OnboardingOverlay';
 import ReportSheet, { ReportSegment } from '@/components/workbench/ReportSheet';
 import ContributionSheet from '@/components/workbench/ContributionSheet';
 import { CitationChip } from '@/components/workbench/CitationChip';
-import { BookOpen, PenTool, Quote, Send, Share2, X } from 'lucide-react';
+import { BookOpen, PenTool, Quote, Send, Share2, X, PanelRight } from 'lucide-react';
 import { EditorContent, useEditor } from '@tiptap/react';
 import Placeholder from '@tiptap/extension-placeholder';
 import StarterKit from '@tiptap/starter-kit';
@@ -63,7 +63,8 @@ export default function SessionWorkspacePage() {
     // ── 首次教學 ──
     const [showOnboarding, setShowOnboarding] = useState(false);
 
-    // ── 桌面左欄模式 ──
+    // ── 桌面模式 ──
+    const [desktopMode, setDesktopMode] = useState<'read' | 'workbench'>('read');
     const [desktopLeftMode, setDesktopLeftMode] = useState<'transcript' | 'inline'>('transcript');
 
     // ── 回報 ──
@@ -356,19 +357,43 @@ export default function SessionWorkspacePage() {
                         subtitle="可直接在左側逐字紀錄插入引用，整理單一場次的觀庭共構筆記與專業論述。"
                         actions={
                             <>
+                                {!isMobileLayout && (
+                                    <button
+                                        onClick={() => setDesktopMode(desktopMode === 'read' ? 'workbench' : 'read')}
+                                        className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-colors ${
+                                            desktopMode === 'workbench'
+                                                ? 'bg-[#F0F7E0] text-[#4A5E28] ring-1 ring-[#C9D9A3] hover:bg-[#E3EED3]'
+                                                : 'bg-[#6B8E23] text-white shadow-md hover:bg-[#5a781d]'
+                                        }`}
+                                    >
+                                        <PanelRight size={14} />
+                                        {desktopMode === 'read' ? '進入書寫工作台' : '切換為閱讀模式'}
+                                    </button>
+                                )}
                                 <button
                                     onClick={handleShare}
                                     className="flex items-center gap-2 rounded-xl bg-gray-100 px-4 py-2 text-xs font-bold text-gray-600 transition-colors hover:bg-gray-200"
                                 >
                                     <Share2 size={14} /> {isCopied ? '已複製' : '複製連結'}
                                 </button>
-                                <button
-                                    onClick={submitArticle}
-                                    disabled={submitting || editorLength > 10000}
-                                    className="flex items-center gap-2 rounded-xl bg-[#6B8E23] px-5 py-2 text-xs font-bold text-white shadow-md transition-colors hover:bg-[#5a781d] disabled:opacity-60"
-                                >
-                                    <Send size={14} /> {submitting ? '送出中...' : '送出審核'}
-                                </button>
+                                {!isMobileLayout && desktopMode === 'workbench' && (
+                                    <button
+                                        onClick={submitArticle}
+                                        disabled={submitting || editorLength > 10000}
+                                        className="flex items-center gap-2 rounded-xl bg-[#6B8E23] px-5 py-2 text-xs font-bold text-white shadow-md transition-colors hover:bg-[#5a781d] disabled:opacity-60"
+                                    >
+                                        <Send size={14} /> {submitting ? '送出中...' : '送出審核'}
+                                    </button>
+                                )}
+                                {isMobileLayout && (
+                                    <button
+                                        onClick={submitArticle}
+                                        disabled={submitting || editorLength > 10000}
+                                        className="flex items-center gap-2 rounded-xl bg-[#6B8E23] px-5 py-2 text-xs font-bold text-white shadow-md transition-colors hover:bg-[#5a781d] disabled:opacity-60"
+                                    >
+                                        <Send size={14} /> {submitting ? '送出中...' : '送出審核'}
+                                    </button>
+                                )}
                             </>
                         }
                     />
@@ -480,8 +505,91 @@ export default function SessionWorkspacePage() {
                                 </div>
                             )}
                         </>
+                    ) : desktopMode === 'read' ? (
+                        /* ── 桌面版：純閱讀模式 ── */
+                        <div className="mx-auto w-full max-w-[820px] px-6 py-8">
+                            {/* 閱讀模式說明提示 */}
+                            <div className="mb-8 flex items-center justify-between rounded-2xl border border-[#DDE6C8] bg-[#F9FBF0] px-5 py-3.5">
+                                <p className="text-[13px] font-medium text-[#4A5E28]">
+                                    你正在閱讀還原逐字紀錄。有感觸時，點右上角
+                                    <span className="mx-1 inline-flex items-center gap-1 rounded-lg bg-[#6B8E23] px-2 py-0.5 text-[12px] font-black text-white">
+                                        <PanelRight size={11} /> 進入書寫工作台
+                                    </span>
+                                    開始書寫觀庭筆記。
+                                </p>
+                            </div>
+                            {/* 逐字稿閱讀視圖 */}
+                            <div className="space-y-0">
+                                {transcript.map((item) => {
+                                    if (item.type === 'stage') {
+                                        return (
+                                            <div
+                                                key={item.id}
+                                                className="my-6 flex items-center gap-3"
+                                            >
+                                                <div className="h-px flex-1 bg-[#E8E0D4]" />
+                                                <span className="rounded-full bg-[#F4F1EC] px-3 py-1 text-[12px] font-bold text-[#8A8078]">
+                                                    {item.content}
+                                                </span>
+                                                <div className="h-px flex-1 bg-[#E8E0D4]" />
+                                            </div>
+                                        );
+                                    }
+                                    const lineId = item.lineId || item.id;
+                                    const speaker = item.speaker || item.role || '';
+                                    const isActive = activeLineId === lineId;
+                                    return (
+                                        <div
+                                            key={lineId}
+                                            id={`line-${lineId}`}
+                                            className={`group relative rounded-xl px-5 py-3.5 transition-colors ${
+                                                isActive
+                                                    ? 'bg-[#F0F7E0] ring-1 ring-[#C9D9A3]'
+                                                    : 'hover:bg-[#FAFAF7]'
+                                            }`}
+                                        >
+                                            {speaker && (
+                                                <p className="mb-1 text-[11px] font-black uppercase tracking-widest text-[#A09080]">
+                                                    {speaker}
+                                                </p>
+                                            )}
+                                            <p
+                                                className="text-[17px] leading-[2] text-[#2D2A26]"
+                                                style={{ fontFamily: "'Noto Serif TC', serif" }}
+                                            >
+                                                {item.content}
+                                            </p>
+                                            {/* 回報按鈕 */}
+                                            <button
+                                                type="button"
+                                                onClick={() => openReport(lineId, speaker, item.content || '')}
+                                                className="absolute right-3 top-3 hidden rounded-lg p-1.5 text-[#B0A898] transition-colors hover:bg-[#F4F1EC] hover:text-[#8A7A6A] group-hover:flex"
+                                                title="回報此段問題"
+                                            >
+                                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+                                            </button>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                            {/* 頁底 CTA */}
+                            <div className="mt-12 flex flex-col items-center gap-4 rounded-2xl border border-[#DDE6C8] bg-[#F9FBF0] px-6 py-8 text-center">
+                                <p className="text-[15px] font-black text-[#2D2A26]" style={{ fontFamily: "'Noto Serif TC', serif" }}>
+                                    讀完了？書寫屬於你的觀庭筆記。
+                                </p>
+                                <p className="max-w-[480px] text-[13px] font-medium leading-relaxed text-[#6B5A4A]">
+                                    你可以一邊對照逐字紀錄、一邊撰寫論述，也可以逐段記錄感受。完成後送出審核，通過後會公開發表。
+                                </p>
+                                <button
+                                    onClick={() => setDesktopMode('workbench')}
+                                    className="flex items-center gap-2 rounded-xl bg-[#6B8E23] px-6 py-3 text-[14px] font-black text-white shadow-md transition-colors hover:bg-[#5a781d]"
+                                >
+                                    <PanelRight size={16} /> 進入書寫工作台
+                                </button>
+                            </div>
+                        </div>
                     ) : (
-                        /* ── 桌面版：左右分欄 ── */
+                        /* ── 桌面版：書寫工作台 ── */
                         <ResizablePanelGroup direction="horizontal" className="h-full overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
                             <ResizablePanel defaultSize={50} minSize={30} className="flex flex-col bg-white">
                                 {/* 桌面左欄模式切換 */}
